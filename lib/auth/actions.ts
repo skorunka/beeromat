@@ -33,6 +33,96 @@ export type AuthActionResult<T = void> =
   | { ok: false; code: string; message?: string; attemptsRemaining?: number };
 
 /**
+ * Accept an invitation. Creates Better Auth user + members row + marks
+ * invitation accepted, then triggers a magic-link send so the user can
+ * sign in cleanly via Better Auth's normal flow. The display name is
+ * collected here; the PIN is set later by the (app)/layout PIN gate
+ * after first sign-in.
+ */
+export async function acceptInvitationAction(input: {
+  token: string;
+  displayName: string;
+}): Promise<AuthActionResult<{ email: string }>> {
+  if (!input.displayName || input.displayName.trim().length === 0) {
+    return { ok: false, code: 'DISPLAY_NAME_REQUIRED' };
+  }
+  if (!input.token) return { ok: false, code: 'INVALID_INVITATION' };
+
+  // Match the invitation by argon2id-verifying the raw token against
+  // every recent pending invitation's tokenHash. For a small club this
+  // is a few comparisons; at scale we'd add a fast hash prefix index.
+  const argon2 = await import('argon2');
+  const open = await db.query.invitations.findMany({
+    where: eq(invitations.status, 'pending'),
+  });
+  let inv = null as null | (typeof open)[number];
+  for (const candidate of open) {
+    if (candidate.expiresAt.getTime() < Date.now()) continue;
+    try {
+      const ok = await argon2.verify(candidate.tokenHash, input.token);
+      if (ok) {
+        inv = candidate;
+        break;
+      }
+    } catch {
+      /* malformed hash, skip */
+    }
+  }
+  if (!inv) return { ok: false, code: 'INVALID_INVITATION' };
+
+  // Find or create Better Auth user.
+  let user = await db.query.users.findFirst({ where: eq(users.email, inv.email) });
+  if (!user) {
+    const [created] = await db
+      .insert(users)
+      .values({
+        email: inv.email,
+        name: input.displayName.trim(),
+        emailVerified: true,
+      })
+      .returning();
+    if (!created) throw new Error('Failed to create user');
+    user = created;
+  }
+
+  // Find or create member.
+  const existingMember = await db.query.members.findFirst({
+    where: eq(members.userId, user.id),
+  });
+  if (!existingMember) {
+    await db.insert(members).values({
+      clubId: inv.clubId,
+      userId: user.id,
+      email: inv.email,
+      displayName: input.displayName.trim(),
+      role: inv.role,
+      acceptedInvitationAt: new Date(),
+      createdByUserId: inv.createdByUserId,
+    });
+  }
+
+  // Mark invitation accepted.
+  await db
+    .update(invitations)
+    .set({ status: 'accepted', acceptedAt: new Date(), acceptedByUserId: user.id })
+    .where(eq(invitations.id, inv.id));
+
+  // Trigger a magic-link send via Better Auth. The invitee gets a
+  // normal sign-in email and lands on the home screen with the PIN
+  // setup form.
+  try {
+    await auth.api.signInMagicLink({
+      body: { email: inv.email },
+      headers: await headers(),
+    });
+  } catch (err) {
+    console.error('[accept-invitation] magic-link send failed', err);
+  }
+
+  return { ok: true, data: { email: inv.email } };
+}
+
+/**
  * Magic-link request entrypoint called by the sign-in form.
  * Per contracts/auth.md: always returns { ok: true } to the client to
  * prevent email-enumeration. All failures (rate-limit, Turnstile, no

@@ -1,28 +1,44 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.1.0 → 1.1.1
-Bump rationale: PATCH. Clarifying paragraph added to Principle II
-spelling out that tenant-scoped configuration is administered via the
-in-app admin UI, not via environment variables or static config files.
-This is a corollary of the existing principle ("tenant-aware schema"),
-not a new principle — hence PATCH rather than MINOR.
+Version change: 1.1.1 → 1.2.0
+Bump rationale: MINOR. Two material additions/revisions to the
+Development Workflow & Quality Gates section:
 
-Principles modified:
-  II.  Tenant-Aware Schema, Single-Club UX (v1)
-       — added "Configuration administration" paragraph clarifying the
-         boundary between tenant-scoped config (admin UI) and
-         deployment-scoped config (env vars).
+1. New "Verification Gates" subsection encoding the five-gate
+   definition of "done" for every feature commit, with Playwright E2E
+   against the running app as the load-bearing gate. Motivated by an
+   incident where a routing conflict between two route-group files
+   slipped past typecheck/lint/build because no real navigation was
+   ever performed.
 
-All other principles, sections, and the Tech Stack table remain unchanged.
+2. Workflow language updated from "PRs MUST link to spec + plan…" to
+   "Commits MUST reference the user-story / task ID + pass all five
+   verification gates" — reflects the trunk-based-no-PR workflow the
+   project actually uses.
+
+No principles added, removed, or fundamentally redefined.
+
+Sections modified:
+  - Development Workflow & Quality Gates (Verification Gates added,
+    PR language softened to commit language).
+
+All Principles I-VI, the Tech Stack table, the Internationalization
+section, and the Governance section are unchanged.
 
 Templates reviewed for alignment:
-  ✅ All templates remain principle-agnostic; no changes needed.
+  ✅ All templates remain workflow-agnostic; no changes needed.
 
 Follow-up TODOs:
-  - None deferred.
+  - None deferred. The new Verification Gates rule has a real
+    backfill task: Playwright E2E specs for US1 and US5 (already
+    shipped) must be written before US2 begins. Tracked in the
+    in-conversation plan, not as a constitution TODO.
 
 ----- Prior amendment history (for reference) -----
+1.1.0 → 1.1.1 (2026-05-19, PATCH): Added "Configuration administration"
+  paragraph to Principle II clarifying that tenant-scoped config is
+  admin-UI-driven, not env-var-driven.
 1.0.0 → 1.1.0 (2026-05-19, MINOR): Multi-tenant softened to schema-only
   + single-club UX; auditable history relaxed from event sourcing to
   soft-delete + actor; PWA scope narrowed to installable manifest;
@@ -211,12 +227,55 @@ constitution amendment so the stack stays coherent.
   `/speckit-tasks` → `/speckit-implement`. Skipping stages is permitted
   only for trivial changes (typos, copy edits, dependency bumps).
 - Each feature lives on its own branch named per spec-kit conventions
-  (`NNN-feature-name`). Commits follow Conventional Commits.
+  (`NNN-feature-name`) until merged. The project uses a **trunk-based**
+  workflow with direct merges to `main`; pull-request review is not
+  used at this team size. Commits follow Conventional Commits and MUST
+  reference the relevant task ID(s) (e.g. `T054`) and / or user-story
+  ID (e.g. `US1`) so traceability from spec → task → commit is
+  preserved without a PR layer.
 - A feature's `plan.md` MUST pass the Constitution Check gate before
   implementation begins. Any violation MUST be recorded in the
   Complexity Tracking table with a justification, not silently ignored.
-- PRs MUST link to their spec and plan, include a test plan, and pass
-  type-check + lint in CI.
+
+### Verification Gates
+
+Every feature commit (and every commit that adds or changes
+user-facing behaviour) MUST pass all of the following gates before
+being pushed to `main`:
+
+1. **`pnpm typecheck`** — `tsc --noEmit` returns zero errors.
+2. **`pnpm lint`** — ESLint (with the project's flat config) returns
+   zero errors.
+3. **`pnpm test:unit`** — every Vitest unit and integration test
+   currently in the suite passes. Tests that exercise the database
+   layer use PGlite, not a live Neon connection.
+4. **`pnpm build`** — `next build` succeeds, including TypeScript's
+   second pass and route metadata collection. (For builds run without
+   real secrets, `SKIP_ENV_VALIDATION=1` is the documented escape
+   hatch.)
+5. **`pnpm test:e2e`** — Playwright runs the user-story spec(s)
+   relevant to the change against the production-mode app (`pnpm
+   build && pnpm start`) on an isolated test port, connected to an
+   **isolated test database** (Neon branch created and destroyed per
+   run; never a shared dev or prod DB), with Resend HTTP intercepted
+   so no real emails are sent, with Cloudflare Turnstile's
+   documented test site keys, and with the test DB seeded into the
+   precise state each test scenario requires. Every Acceptance
+   Scenario from the corresponding User Story in `spec.md` MUST have
+   a matching Playwright assertion. A scenario without a test is a
+   spec without verification, not a feature without a problem.
+
+The five gates are non-negotiable for non-trivial changes. Skipping a
+gate (e.g. shipping ahead of an E2E backfill) requires the same
+justification discipline as a Constitution Check violation: noted in
+the commit message as a `Skipped-Gate: <gate>` trailer with a
+follow-up task referenced.
+
+When building or modifying multi-piece infrastructure (the E2E rig,
+deployment pipelines, CI workflows), each piece in the chain MUST be
+verified working in isolation before the next piece is stacked on
+top. Untested layers stacked together produce diagnoses-on-fire; a
+verification per link is the only reliable path.
 
 ## Governance
 
@@ -240,4 +299,4 @@ a review acknowledging the version-bump rationale.
 Constitution Check gate; principle violations must be justified or fixed,
 not waived informally.
 
-**Version**: 1.1.1 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-19
+**Version**: 1.2.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-19

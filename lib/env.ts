@@ -4,6 +4,12 @@ import { z } from 'zod';
 const envSchema = z.object({
   // Database
   DATABASE_URL: z.string().url(),
+  // Optional override for the Neon HTTP driver's fetch endpoint. Unset
+  // in production (driver uses Neon's public endpoint by default).
+  // Local dev + test point at a local proxy via docker-compose. NOT a
+  // test-only switch — any deployment can legitimately route through a
+  // private Neon mirror by setting this. See constitution v1.3.0.
+  NEON_FETCH_ENDPOINT: z.string().url().optional(),
 
   // Better Auth
   BETTER_AUTH_SECRET: z.string().min(32, 'BETTER_AUTH_SECRET must be at least 32 characters'),

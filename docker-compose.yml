@@ -21,7 +21,7 @@
 
 services:
   postgres:
-    image: postgres:16
+    image: postgres:17
     container_name: beeromat-postgres
     restart: unless-stopped
     environment:
@@ -54,7 +54,10 @@ services:
     environment:
       PG_CONNECTION_STRING: postgres://beeromat:beeromat@postgres:5432/beeromat
     ports:
-      - '4444:4444'
+      # Non-default host port (image default is 4444). Other projects
+      # using this same proxy image would conflict; this offset keeps
+      # multiple Neon-stack projects coexistent on the same machine.
+      - '14444:4444'
     depends_on:
       postgres:
         condition: service_healthy

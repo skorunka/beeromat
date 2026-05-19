@@ -1,41 +1,48 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.1.1 → 1.2.0
-Bump rationale: MINOR. Two material additions/revisions to the
-Development Workflow & Quality Gates section:
+Version change: 1.2.0 → 1.3.0
+Bump rationale: MINOR. Adds a new constitutional rule:
+"Test/Prod Code Separation" — zero test-only branches in production
+source files. Test/prod differences MUST be configuration (env-driven
+values consumed by the same code path), never code (different
+branches selecting test vs prod behaviour).
 
-1. New "Verification Gates" subsection encoding the five-gate
-   definition of "done" for every feature commit, with Playwright E2E
-   against the running app as the load-bearing gate. Motivated by an
-   incident where a routing conflict between two route-group files
-   slipped past typecheck/lint/build because no real navigation was
-   ever performed.
+The rule was caught the hard way: an in-flight proposal to add a
+driver-swap if-statement to lib/db/client.ts for E2E testing was
+intercepted by review. A test-only branch in production source would
+have shipped to prod, run code paths no human ever exercised, and
+created a latent "works in test, breaks in prod" risk. Codifying the
+rule constitutionally so future contributors (and future-me) see it
+without relying on out-of-repo memory.
 
-2. Workflow language updated from "PRs MUST link to spec + plan…" to
-   "Commits MUST reference the user-story / task ID + pass all five
-   verification gates" — reflects the trunk-based-no-PR workflow the
-   project actually uses.
+Also adds: per-project port hygiene — when running multiple projects
+on the same dev machine, container host ports MUST be non-default to
+avoid silent conflicts. Captured as a paragraph in the Tech Stack &
+Constraints section.
 
 No principles added, removed, or fundamentally redefined.
 
 Sections modified:
-  - Development Workflow & Quality Gates (Verification Gates added,
-    PR language softened to commit language).
+  - Development Workflow & Quality Gates → new "Test/Prod Code
+    Separation" subsection appended after "Verification Gates".
+  - Tech Stack & Constraints → "Local development infrastructure"
+    paragraph added documenting the Docker stack + non-default ports.
 
-All Principles I-VI, the Tech Stack table, the Internationalization
-section, and the Governance section are unchanged.
+All Principles I-VI, the rest of the Tech Stack table, the
+Internationalization section, and the Governance section are
+unchanged.
 
 Templates reviewed for alignment:
   ✅ All templates remain workflow-agnostic; no changes needed.
 
 Follow-up TODOs:
-  - None deferred. The new Verification Gates rule has a real
-    backfill task: Playwright E2E specs for US1 and US5 (already
-    shipped) must be written before US2 begins. Tracked in the
-    in-conversation plan, not as a constitution TODO.
+  - None deferred.
 
 ----- Prior amendment history (for reference) -----
+1.1.1 → 1.2.0 (2026-05-19, MINOR): Added Verification Gates
+  (five-gate definition of "done" including Playwright E2E) and
+  softened PR language to trunk-based-direct-to-main reality.
 1.1.0 → 1.1.1 (2026-05-19, PATCH): Added "Configuration administration"
   paragraph to Principle II clarifying that tenant-scoped config is
   admin-UI-driven, not env-var-driven.
@@ -209,6 +216,18 @@ Prettier). All code MUST pass `tsc --noEmit` and the linter before merge.
 Major version upgrades of the items in this table MUST be proposed via a
 constitution amendment so the stack stays coherent.
 
+**Local development infrastructure.** All non-production dependencies
+(database, transactional email, Redis, etc.) MUST be runnable locally
+via `docker compose up` from the repo root. The default backing in
+dev + test is a local container; cloud services are used only in
+production deployments. Host port mappings MUST be non-default
+(e.g., `5433:5432` for Postgres, `14444:4444` for the Neon HTTP
+proxy) — multiple beeromat-style projects can run on the same dev
+machine and using image-default ports causes silent collisions that
+present as confusing "works for me / doesn't work for them" bug
+reports. The repo's `docker-compose.yml` is the source of truth for
+the host-port choices.
+
 ## Internationalization & Localization
 
 - **Currency** MUST be a per-`Club` configuration value (ISO 4217 code);
@@ -277,6 +296,61 @@ verified working in isolation before the next piece is stacked on
 top. Untested layers stacked together produce diagnoses-on-fire; a
 verification per link is the only reliable path.
 
+### Test/Prod Code Separation
+
+**Hard rule:** Production source files (`lib/`, `app/`, `components/`,
+`drizzle/`, `messages/`, and anything else that ships to prod) MUST
+NOT contain branches that exist only to serve test scenarios.
+
+Concretely banned in production source:
+
+- `if (process.env.NODE_ENV === 'test') { ... }`
+- `if (env.TEST_DB_DRIVER === 'pg') { useA() } else { useB() }`
+- Test-only imports (`import { testStub } from '@/lib/test-only/...'`)
+- Type unions whose only purpose is to satisfy test-mode return types
+- Mock objects or fixtures exported from production modules
+
+The test/prod difference MUST live in **configuration** — env vars
+that set endpoints, secrets, or feature-flag values which the same
+production code path consumes. Examples:
+
+- Production reads `DATABASE_URL`; test sets it to a local Docker URL.
+  Same code path, different connection target.
+- Production reads `NEON_FETCH_ENDPOINT` (unset → driver default); test
+  sets it to the local proxy URL. Same code path, same driver, just a
+  different URL. The env var name does NOT contain the word "TEST" —
+  anyone could legitimately set it in production to route through a
+  private Neon mirror.
+- Production reads `EMAIL_FROM`; test sets it to a no-op address. Same
+  code path.
+
+Cleaner alternatives to test-branching, in order of preference:
+
+1. **Config override** — same code, env-driven values. Use this 95%
+   of the time. (e.g., `neonConfig.fetchEndpoint`).
+2. **Local sidecar** — a Docker proxy that speaks the same protocol
+   the production driver expects (e.g., `local-neon-http-proxy` for
+   the Neon HTTP driver). Production driver stays unchanged.
+3. **Test infrastructure outside prod source** — fixtures, mocks, and
+   helpers live under `tests/`, never under `lib/`.
+4. **Dependency injection at the boundary** — last resort. The prod
+   entry point composes the dependency and passes it down; the test
+   entry point composes a different one; but the inner business
+   logic never knows it's being tested.
+
+**Diff-against-prod-paths verification:** As part of every test
+infrastructure change (Playwright setup, fixtures, etc.), examine the
+diff for ANY changes under `lib/`, `app/`, `components/`, `drizzle/`,
+or `messages/`. If something there was modified specifically for
+tests, back it out and find the configuration path. **Verification
+that "the test passes" is necessary but not sufficient** — the diff
+must also show that no production code was contaminated.
+
+This rule is **non-negotiable**. A test-only branch in production
+source is a defect, not a tradeoff — back out and find the config
+path no matter how much code has already been written on the wrong
+path.
+
 ## Governance
 
 This constitution supersedes all other practices in the beeromat project.
@@ -299,4 +373,4 @@ a review acknowledging the version-bump rationale.
 Constitution Check gate; principle violations must be justified or fixed,
 not waived informally.
 
-**Version**: 1.2.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-19
+**Version**: 1.3.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-19

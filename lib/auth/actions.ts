@@ -1,15 +1,21 @@
 'use server';
 
 import { randomUUID } from 'node:crypto';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { eq } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
-import { deviceSessions } from '@/lib/db/schema/members';
+import { invitations, members, deviceSessions } from '@/lib/db/schema/members';
+import { users } from '@/lib/db/schema/auth';
 import { requireMember } from '@/lib/auth/session';
 import { DEVICE_ID_COOKIE } from '@/lib/auth/session';
 import { hashPin, isValidPinFormat, verifyPin } from '@/lib/auth/pin';
 import { auth } from '@/lib/auth/better-auth';
+import { verifyTurnstileToken } from '@/lib/turnstile/verify';
+import {
+  magicLinkPerEmailLimiter,
+  magicLinkPerIpLimiter,
+} from '@/lib/rate-limit';
 
 const MAX_PIN_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 100 * 365 * 24 * 60 * 60 * 1000; // 100 years ~ effectively permanent
@@ -25,6 +31,76 @@ const deviceCookieOptions = {
 export type AuthActionResult<T = void> =
   | { ok: true; data?: T }
   | { ok: false; code: string; message?: string; attemptsRemaining?: number };
+
+/**
+ * Magic-link request entrypoint called by the sign-in form.
+ * Per contracts/auth.md: always returns { ok: true } to the client to
+ * prevent email-enumeration. All failures (rate-limit, Turnstile, no
+ * matching invitation/member) are logged server-side and silently
+ * absorbed.
+ */
+export async function requestMagicLinkAction(input: {
+  email: string;
+  turnstileToken: string;
+}): Promise<AuthActionResult> {
+  const email = input.email.trim().toLowerCase();
+
+  if (!email || !email.includes('@')) {
+    console.warn('[magic-link] invalid email submitted');
+    return { ok: true };
+  }
+
+  // 1. Turnstile.
+  const reqHeaders = await headers();
+  const remoteIp =
+    reqHeaders.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    reqHeaders.get('x-real-ip') ??
+    undefined;
+  const turnstileOk = await verifyTurnstileToken(input.turnstileToken, remoteIp);
+  if (!turnstileOk) {
+    console.warn('[magic-link] Turnstile verification failed');
+    return { ok: true };
+  }
+
+  // 2. Rate-limit per email + IP.
+  const perEmail = await magicLinkPerEmailLimiter().limit(`email:${email}`);
+  if (!perEmail.success) {
+    console.warn('[magic-link] rate-limited by email', { email });
+    return { ok: true };
+  }
+  if (remoteIp) {
+    const perIp = await magicLinkPerIpLimiter().limit(`ip:${remoteIp}`);
+    if (!perIp.success) {
+      console.warn('[magic-link] rate-limited by IP', { remoteIp });
+      return { ok: true };
+    }
+  }
+
+  // 3. Only send if the email is either an active member OR an open
+  //    invitation. Unknown emails get no email but the same response.
+  const member = await db.query.members.findFirst({
+    where: eq(members.email, email),
+  });
+  const knownUser = member
+    ? await db.query.users.findFirst({ where: eq(users.id, member.userId) })
+    : null;
+  const openInvitation = await db.query.invitations.findFirst({
+    where: eq(invitations.email, email),
+  });
+
+  if (!knownUser && !openInvitation) {
+    console.info('[magic-link] no matching member/invitation', { email });
+    return { ok: true };
+  }
+
+  // 4. Dispatch.
+  try {
+    await auth.api.signInMagicLink({ body: { email }, headers: reqHeaders });
+  } catch (err) {
+    console.error('[magic-link] dispatch failed', err);
+  }
+  return { ok: true };
+}
 
 /**
  * Set or rotate the PIN for the current device.

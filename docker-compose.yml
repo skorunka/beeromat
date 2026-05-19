@@ -1,0 +1,63 @@
+# Local dev + test infrastructure. Same containers serve `pnpm dev`
+# and `pnpm test:e2e` — what differs is the DB *contents* (the test
+# fixture truncates + reseeds before each test; dev keeps your work).
+#
+# Per the "prefer local Docker over cloud" preference, this is the
+# default backing for every external dependency used in development
+# and testing. Production runs against managed Neon (and real
+# Resend, Upstash, etc.).
+#
+# Services:
+#   - postgres:        Postgres 16, exposed on host port 5433 (5432
+#                      is left alone for any existing local Postgres)
+#   - neon-proxy:      Exposes Neon's HTTP serverless protocol on 4444
+#                      so @neondatabase/serverless connects identically
+#                      to production — only the fetchEndpoint URL
+#                      differs (no driver swap).
+#
+# Bring up:   pnpm docker:up
+# Tear down:  pnpm docker:down
+# Logs:       pnpm docker:logs
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: beeromat-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: beeromat
+      POSTGRES_PASSWORD: beeromat
+      POSTGRES_DB: beeromat
+    ports:
+      # Non-default host port to avoid colliding with any local
+      # Postgres install or other dev container already on 5432.
+      # The application talks to Postgres through the neon-proxy
+      # (port 4444) via Docker's internal network, so this host
+      # mapping is purely for dev-tool access (psql / Drizzle Studio).
+      - '5433:5432'
+    volumes:
+      - beeromat_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U beeromat -d beeromat']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  neon-proxy:
+    # Third-party proxy that exposes Neon's HTTP serverless protocol on
+    # top of a vanilla local Postgres. Lets @neondatabase/serverless
+    # work locally without any cloud dependency. Source:
+    # https://github.com/TimoWilhelm/local-neon-http-proxy
+    image: ghcr.io/timowilhelm/local-neon-http-proxy:main
+    container_name: beeromat-neon-proxy
+    restart: unless-stopped
+    environment:
+      PG_CONNECTION_STRING: postgres://beeromat:beeromat@postgres:5432/beeromat
+    ports:
+      - '4444:4444'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  beeromat_pg:

@@ -1,48 +1,34 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.0.0 → 1.1.0
-Bump rationale: MINOR. Multiple principles materially revised and the
-Tech Stack section was rewritten with web-verified versions. No principles
-removed or fundamentally redefined.
+Version change: 1.1.0 → 1.1.1
+Bump rationale: PATCH. Clarifying paragraph added to Principle II
+spelling out that tenant-scoped configuration is administered via the
+in-app admin UI, not via environment variables or static config files.
+This is a corollary of the existing principle ("tenant-aware schema"),
+not a new principle — hence PATCH rather than MINOR.
 
 Principles modified:
-  II.  Multi-Tenant by Default
-       → renamed "Tenant-Aware Schema, Single-Club UX (v1)"
-       — schema retains club_id everywhere; multi-club onboarding UI is
-         explicitly out of scope for v1.
-  V.   Auditable Domain Events
-       → renamed "Auditable History (No Hard Deletes)"
-       — softened from event-sourced ledger to append-only soft-delete +
-         actor/timestamp on every domain row. Cheaper, still answers the
-         "who drank what when" pain.
+  II.  Tenant-Aware Schema, Single-Club UX (v1)
+       — added "Configuration administration" paragraph clarifying the
+         boundary between tenant-scoped config (admin UI) and
+         deployment-scoped config (env vars).
 
-Principles unchanged in spirit but lightly reworded:
-  I.   Mobile-First PWA (PWA scope clarified: installable via manifest;
-       no service worker / offline support in v1).
-  III. Track, Don't Transact
-  IV.  Auth That Disappears, Bots That Bounce
-  VI.  Free-Tier First, Scale on Demand
-
-Sections modified:
-  - Tech Stack & Constraints
-      • Auth library: Auth.js v5 → Better Auth (Auth.js maintainers
-        themselves now direct new projects to Better Auth as of 2026).
-      • PWA tooling: Serwist removed (deferred to a later version).
-      • Pinned web-verified versions for every dependency (May 2026).
-  - Internationalization & Localization — unchanged.
-  - Development Workflow & Quality Gates — unchanged.
+All other principles, sections, and the Tech Stack table remain unchanged.
 
 Templates reviewed for alignment:
-  ✅ .specify/templates/spec-template.md — generic, no changes needed.
-  ✅ .specify/templates/plan-template.md — Constitution Check gate is
-       principle-agnostic; will pick up revised principles automatically.
-  ✅ .specify/templates/tasks-template.md — no principle-specific task
-       categories to update.
-  ✅ CLAUDE.md — no principle references; no change needed.
+  ✅ All templates remain principle-agnostic; no changes needed.
 
 Follow-up TODOs:
   - None deferred.
+
+----- Prior amendment history (for reference) -----
+1.0.0 → 1.1.0 (2026-05-19, MINOR): Multi-tenant softened to schema-only
+  + single-club UX; auditable history relaxed from event sourcing to
+  soft-delete + actor; PWA scope narrowed to installable manifest;
+  tech stack pinned with web-verified May 2026 versions; auth library
+  swapped from Auth.js v5 to Better Auth.
+(none) → 1.0.0 (2026-05-19): Initial ratification.
 -->
 
 # beeromat Constitution
@@ -93,6 +79,17 @@ app means touching every query, every API route, every page, and the
 auth/session shape — the canonical refactor disaster. By contrast, the
 *user-facing* multi-club features add complexity that gives v1 users zero
 value. Schema-yes, UI-no is the cheapest correct hedge.
+
+**Configuration administration:** All club-scoped configuration —
+including but not limited to currency, locale default, banking profile
+(IBAN, Revolut handle), low-stock thresholds, beer types, member roles,
+and any future per-club settings — MUST live in the database and be
+administered via the in-app admin UI by users with the `club_admin`
+role. Environment variables and static configuration files MUST be
+reserved for deployment-scoped concerns (database URLs, third-party
+API keys, secrets) and MUST NOT carry tenant-scoped settings. Adding a
+club, changing a currency, or updating an IBAN MUST be an in-app
+operation, never a redeploy.
 
 ### III. Track, Don't Transact
 
@@ -243,4 +240,4 @@ a review acknowledging the version-bump rationale.
 Constitution Check gate; principle violations must be justified or fixed,
 not waived informally.
 
-**Version**: 1.1.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-19
+**Version**: 1.1.1 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-19

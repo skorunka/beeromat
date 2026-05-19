@@ -1,0 +1,56 @@
+{
+  "app": {
+    "title": "beeromat",
+    "tagline": "Po zápase. Po pivu. Bez chaosu."
+  },
+  "common": {
+    "loading": "Načítání…",
+    "error": "Něco se pokazilo",
+    "cancel": "Zrušit",
+    "confirm": "Potvrdit",
+    "save": "Uložit",
+    "delete": "Smazat",
+    "back": "Zpět"
+  },
+  "auth": {
+    "signIn": {
+      "title": "Přihlásit se",
+      "emailLabel": "E-mail",
+      "emailPlaceholder": "vy@example.com",
+      "submit": "Poslat odkaz",
+      "checkInbox": "Pokud je váš e-mail pozvaný, přijde vám přihlašovací odkaz.",
+      "linkExpiresIn": "Odkaz platí 5 minut.",
+      "linkSent": "Odkaz byl odeslán. Zkontrolujte si e-mail."
+    },
+    "magicLink": {
+      "verifyingTitle": "Přihlašujeme vás…",
+      "invalidTitle": "Odkaz již nelze použít",
+      "invalidBody": "Tento odkaz vypršel nebo byl již použit. Požádejte o nový odkaz administrátora vašeho klubu."
+    },
+    "signOut": "Odhlásit"
+  },
+  "pin": {
+    "setup": {
+      "title": "Nastavte si PIN pro toto zařízení",
+      "subtitle": "Krátký 4místný PIN pro rychlé odemčení aplikace.",
+      "pinLabel": "PIN (4 číslice)",
+      "confirmLabel": "Potvrdit PIN",
+      "submit": "Uložit PIN",
+      "mismatch": "PINy se neshodují",
+      "invalidFormat": "PIN musí mít přesně 4 číslice"
+    },
+    "unlock": {
+      "title": "Zadejte svůj PIN",
+      "submit": "Odemknout",
+      "wrongPin": "Špatný PIN. Zbývá pokusů: {remaining}.",
+      "lockedTitle": "Zařízení uzamčeno",
+      "lockedBody": "Pět nesprávných pokusů. Přihlaste se znovu odkazem z e-mailu."
+    }
+  },
+  "errors": {
+    "unauthorized": "Pro tuto akci musíte být přihlášeni.",
+    "forbidden": "K této akci nemáte oprávnění.",
+    "notFound": "Hledaná položka neexistuje.",
+    "rateLimited": "Příliš mnoho pokusů. Zkuste to za chvíli."
+  }
+}

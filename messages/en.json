@@ -1,0 +1,56 @@
+{
+  "app": {
+    "title": "beeromat",
+    "tagline": "After the match. After the pint. Without the chaos."
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "back": "Back"
+  },
+  "auth": {
+    "signIn": {
+      "title": "Sign in",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Send link",
+      "checkInbox": "If your email is invited, a sign-in link is on its way.",
+      "linkExpiresIn": "The link expires in 5 minutes.",
+      "linkSent": "Link sent. Check your email."
+    },
+    "magicLink": {
+      "verifyingTitle": "Signing you in…",
+      "invalidTitle": "This link can no longer be used",
+      "invalidBody": "The link has expired or has already been used. Ask your club admin for a new invitation."
+    },
+    "signOut": "Sign out"
+  },
+  "pin": {
+    "setup": {
+      "title": "Set a PIN for this device",
+      "subtitle": "A short 4-digit PIN unlocks beeromat quickly on this device.",
+      "pinLabel": "PIN (4 digits)",
+      "confirmLabel": "Confirm PIN",
+      "submit": "Save PIN",
+      "mismatch": "The two PINs don't match",
+      "invalidFormat": "PIN must be exactly 4 digits"
+    },
+    "unlock": {
+      "title": "Enter your PIN",
+      "submit": "Unlock",
+      "wrongPin": "Wrong PIN. {remaining} attempts remaining.",
+      "lockedTitle": "Device locked",
+      "lockedBody": "Five wrong attempts. Sign in again with the link from your email."
+    }
+  },
+  "errors": {
+    "unauthorized": "You need to sign in to do that.",
+    "forbidden": "You don't have permission for that.",
+    "notFound": "We couldn't find that.",
+    "rateLimited": "Too many attempts. Please wait a moment."
+  }
+}

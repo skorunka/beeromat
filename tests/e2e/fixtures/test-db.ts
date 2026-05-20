@@ -1,32 +1,31 @@
 import path from 'node:path';
-import { neon, neonConfig } from '@neondatabase/serverless';
 import { eq, sql } from 'drizzle-orm';
-import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
-import { migrate } from 'drizzle-orm/neon-http/migrator';
+import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import { Pool } from 'pg';
 
 import * as schema from '@/lib/db/schema';
 import { clubBankingProfiles, clubs } from '@/lib/db/schema/clubs';
 import { members } from '@/lib/db/schema/members';
 import { users } from '@/lib/db/schema/auth';
 
-// E2E test-DB lifecycle. Per the constitutional Test/Prod Code
-// Separation rule, this fixture lives OUTSIDE production source
-// (under tests/). It uses the SAME @neondatabase/serverless driver
-// the app uses, routed through the local proxy via .env.test's
-// NEON_FETCH_ENDPOINT — so the production code path is exercised
-// end-to-end.
+// E2E test-DB lifecycle.
 //
-// On first call within a test run: applies every drizzle/ migration
-// via Drizzle's built-in migrator (creates the __drizzle_migrations
-// tracking table; subsequent calls are no-ops).
+// This fixture is TEST INFRASTRUCTURE (lives under tests/, never
+// imported by production code). It connects DIRECTLY to the local
+// Docker Postgres — bypassing the Neon HTTP proxy — because the proxy
+// adds ~450ms latency per query, which makes a ~70-statement migration
+// take ~35s. The app-under-test still uses the proxy (the production
+// code path); only test setup/teardown uses this direct connection.
+// This is NOT a prod driver-swap: production lib/db/client.ts is
+// untouched and uses neon-http exclusively.
 //
-// Before each test scenario: truncates every domain + Better Auth
-// table in dependency-safe order using CASCADE, then re-seeds the
-// single v1 club + admin from the SEED_* env vars.
+// Lifecycle:
+//   globalSetup    → applyMigrations(): DROP SCHEMA + migrate fresh
+//                    (crash-safe — recovers from any prior partial run)
+//   beforeEach     → resetAndSeedTestDb(): truncate + reseed
+//   globalTeardown → wipeTestDb(): truncate, leaving the DB clean
 
-// Drizzle's migration tracking table — never truncate this, or
-// migrations will be reapplied (causing dup-key errors on the
-// __drizzle_migrations row).
 const PRESERVE_TABLES = new Set(['__drizzle_migrations']);
 
 export interface TestDbSeed {
@@ -34,40 +33,62 @@ export interface TestDbSeed {
   admin: { id: string; userId: string; email: string };
 }
 
-type Db = NeonHttpDatabase<typeof schema>;
+type Db = NodePgDatabase<typeof schema>;
 
-let migrationsApplied = false;
-
-function makeDb(connectionString: string): Db {
-  // Mirror lib/db/client.ts: honour the fetchEndpoint override so the
-  // fixture talks to the same local proxy as the app.
-  if (process.env.NEON_FETCH_ENDPOINT) {
-    neonConfig.fetchEndpoint = process.env.NEON_FETCH_ENDPOINT;
+/**
+ * Guard: the fixture performs destructive operations (DROP SCHEMA,
+ * TRUNCATE). It MUST only ever run against a local Docker Postgres.
+ * Refuse any non-loopback host so a misconfigured env can never wipe
+ * a real database.
+ */
+function assertLoopback(directUrl: string): void {
+  let host: string;
+  try {
+    host = new URL(directUrl).hostname;
+  } catch {
+    throw new Error('test-db: TEST_DATABASE_DIRECT_URL is not a valid URL');
   }
-  const client = neon(connectionString);
-  return drizzle({ client, schema, casing: 'snake_case' });
+  if (!['localhost', '127.0.0.1', '::1', 'db.localtest.me'].includes(host)) {
+    throw new Error(
+      `test-db: refusing to operate — host "${host}" is not loopback. ` +
+        'The test fixture only ever touches the local Docker Postgres.',
+    );
+  }
 }
 
-async function ensureMigrationsApplied(db: Db): Promise<void> {
-  if (migrationsApplied) return;
-  await migrate(db, { migrationsFolder: path.join(process.cwd(), 'drizzle') });
-  migrationsApplied = true;
+async function withDb<T>(directUrl: string, fn: (db: Db) => Promise<T>): Promise<T> {
+  assertLoopback(directUrl);
+  const pool = new Pool({ connectionString: directUrl });
+  try {
+    const db = drizzle(pool, { schema, casing: 'snake_case' });
+    return await fn(db);
+  } finally {
+    await pool.end();
+  }
+}
+
+/**
+ * Crash-safe schema reset. DROP SCHEMA wipes everything — including
+ * __drizzle_migrations and any partial state from a prior failed run —
+ * then migrations are applied fresh. Called once by Playwright's
+ * globalSetup.
+ */
+export async function applyMigrations(directUrl: string): Promise<void> {
+  await withDb(directUrl, async (db) => {
+    await db.execute(sql.raw('DROP SCHEMA public CASCADE; CREATE SCHEMA public;'));
+    await migrate(db, { migrationsFolder: path.join(process.cwd(), 'drizzle') });
+  });
 }
 
 async function truncateAll(db: Db): Promise<void> {
-  // Discover all current public-schema tables at runtime. This is more
-  // robust than hardcoding the list — as new migrations land (US6 bets,
-  // US2 payments, etc.) the new tables are picked up automatically with
-  // no fixture maintenance.
+  // Discover all current public-schema tables at runtime so new
+  // migrations (US2 payments, US6 bets, …) are picked up automatically.
   const result = await db.execute<{ tablename: string }>(
     sql.raw("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"),
   );
-  const rows = (result as unknown as { rows: { tablename: string }[] }).rows ?? [];
-  const tablenames = rows
-    .map((r) => r.tablename)
-    .filter((t) => !PRESERVE_TABLES.has(t));
-  if (tablenames.length === 0) return;
-  const list = tablenames.map((t) => `"${t}"`).join(', ');
+  const names = result.rows.map((r) => r.tablename).filter((t) => !PRESERVE_TABLES.has(t));
+  if (names.length === 0) return;
+  const list = names.map((t) => `"${t}"`).join(', ');
   await db.execute(sql.raw(`TRUNCATE TABLE ${list} RESTART IDENTITY CASCADE`));
 }
 
@@ -114,26 +135,31 @@ async function seedRows(db: Db, e: NodeJS.ProcessEnv): Promise<TestDbSeed> {
 }
 
 /**
- * Reset the test DB to a known seeded state. Call from `beforeEach`
- * (or `beforeAll` of a test file for shared seed). Returns the seed
- * row IDs so tests can reference them.
+ * Truncate + reseed the base state (one club + admin). Call from a
+ * spec's beforeEach. Schema is assumed already applied by globalSetup.
  */
-export async function resetAndSeedTestDb(connectionString: string): Promise<TestDbSeed> {
-  if (!connectionString) {
-    throw new Error('resetAndSeedTestDb: DATABASE_URL is empty');
-  }
-  const db = makeDb(connectionString);
-  await ensureMigrationsApplied(db);
-  await truncateAll(db);
-  return seedRows(db, process.env);
+export async function resetAndSeedTestDb(directUrl: string): Promise<TestDbSeed> {
+  return withDb(directUrl, async (db) => {
+    await truncateAll(db);
+    return seedRows(db, process.env);
+  });
+}
+
+/**
+ * Wipe every row, leaving the DB clean. Called by globalTeardown
+ * ("destroy DB after test end"). Schema is preserved.
+ */
+export async function wipeTestDb(directUrl: string): Promise<void> {
+  await withDb(directUrl, (db) => truncateAll(db));
 }
 
 /** Read-only helper: confirm a row exists for a known member email. */
 export async function findMemberByEmail(
-  connectionString: string,
+  directUrl: string,
   email: string,
 ): Promise<{ id: string; clubId: string } | null> {
-  const db = makeDb(connectionString);
-  const row = await db.query.members.findFirst({ where: eq(members.email, email) });
-  return row ? { id: row.id, clubId: row.clubId } : null;
+  return withDb(directUrl, async (db) => {
+    const row = await db.query.members.findFirst({ where: eq(members.email, email) });
+    return row ? { id: row.id, clubId: row.clubId } : null;
+  });
 }

@@ -24,18 +24,19 @@ function loadEnvTest(): Record<string, string> {
   return out;
 }
 
-// Each commit in the E2E setup chain extends this config. The smoke
-// commit verifies just: Playwright can spawn the production-mode app
-// on an isolated port with .env.test loaded, the home redirect works,
-// and the sign-in page renders.
-//
-// Later commits will add:
-//   - Neon-branch test DB lifecycle (per-run create + drop)
-//   - Resend HTTP interception (magic-link capture)
-//   - Per-test seed fixtures
-//   - User-story specs
+// E2E configuration.
+//   globalSetup    — DROP SCHEMA + migrate the test DB once (crash-safe)
+//   globalTeardown — wipe the test DB clean after the run
+//   webServer      — production build of the app on an isolated port,
+//                    pointed at the test DB via the Neon proxy
 export default defineConfig({
   testDir: './tests/e2e',
+  // Prepare the test schema once, before any test or the webServer.
+  globalSetup: './tests/e2e/global-setup.ts',
+  // Wipe the test DB clean once the whole run ends ("destroy DB after
+  // test end"). Per-test reset happens in each spec's beforeEach via
+  // resetAndSeedTestDb.
+  globalTeardown: './tests/e2e/global-teardown.ts',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -57,7 +58,10 @@ export default defineConfig({
     command: `pnpm build && pnpm start --port ${PORT}`,
     url: `${BASE_URL}/cs/sign-in`,
     timeout: 240_000,
-    reuseExistingServer: !process.env.CI,
+    // Never reuse a stale server — a server left over from a different
+    // run could be pointed at the wrong DB / env, and the `env` below
+    // is ignored when an existing server is reused. Always boot fresh.
+    reuseExistingServer: false,
     stdout: 'pipe',
     stderr: 'pipe',
     env: loadEnvTest(),

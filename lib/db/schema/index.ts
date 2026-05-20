@@ -9,3 +9,4 @@ export * from './catalog';
 export * from './sessions';
 export * from './consumption';
 export * from './payments';
+export * from './bets';

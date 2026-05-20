@@ -12,6 +12,7 @@ import {
   seedClub,
   seedConsumption,
   seedDrinkSession,
+  seedInvitation,
   seedMember,
 } from './seed';
 
@@ -34,6 +35,7 @@ export interface SeedContext {
   club: (o?: Parameters<typeof seedClub>[1]) => ReturnType<typeof seedClub>;
   bankingProfile: (a: Parameters<typeof seedBankingProfile>[1]) => ReturnType<typeof seedBankingProfile>;
   member: (a: Parameters<typeof seedMember>[1]) => ReturnType<typeof seedMember>;
+  invitation: (a: Parameters<typeof seedInvitation>[1]) => ReturnType<typeof seedInvitation>;
   beerType: (a: Parameters<typeof seedBeerType>[1]) => ReturnType<typeof seedBeerType>;
   drinkSession: (a: Parameters<typeof seedDrinkSession>[1]) => ReturnType<typeof seedDrinkSession>;
   consumption: (a: Parameters<typeof seedConsumption>[1]) => ReturnType<typeof seedConsumption>;
@@ -52,6 +54,7 @@ export const test = base.extend<{ seed: SeedContext }>({
         club: (o) => seedClub(db, o),
         bankingProfile: (a) => seedBankingProfile(db, a),
         member: (a) => seedMember(db, a),
+        invitation: (a) => seedInvitation(db, a),
         beerType: (a) => seedBeerType(db, a),
         drinkSession: (a) => seedDrinkSession(db, a),
         consumption: (a) => seedConsumption(db, a),

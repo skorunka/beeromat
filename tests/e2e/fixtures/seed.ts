@@ -1,8 +1,10 @@
+import argon2 from 'argon2';
+
 import { users } from '@/lib/db/schema/auth';
 import { beerTypes } from '@/lib/db/schema/catalog';
 import { clubBankingProfiles, clubs } from '@/lib/db/schema/clubs';
 import { consumptions } from '@/lib/db/schema/consumption';
-import { members } from '@/lib/db/schema/members';
+import { invitations, members } from '@/lib/db/schema/members';
 import { drinkSessions } from '@/lib/db/schema/sessions';
 import type {
   BeerType,
@@ -10,6 +12,7 @@ import type {
   ClubBankingProfile,
   Consumption,
   DrinkSession,
+  Invitation,
   Member,
   User,
 } from '@/lib/db/schema';
@@ -153,6 +156,48 @@ export async function seedDrinkSession(
     .returning();
   if (!row) throw new Error('seedDrinkSession: insert returned no row');
   return row;
+}
+
+/**
+ * Seed a pending invitation whose RAW token the test knows. Production
+ * inviteMemberAction argon2-hashes the token before storing it, so a
+ * test cannot recover the raw token from the DB — it must be planted
+ * here. The returned `rawToken` is what goes in the /invitation/<token>
+ * URL the accept-flow spec navigates to.
+ */
+export async function seedInvitation(
+  db: Db,
+  args: {
+    clubId: string;
+    createdByUserId: string;
+    email?: string;
+    role?: Member['role'];
+    rawToken?: string;
+    expiresInDays?: number;
+  },
+): Promise<{ invitation: Invitation; rawToken: string }> {
+  const n = next();
+  const rawToken = args.rawToken ?? `e2e-invite-token-${n}-${Date.now()}`;
+  const tokenHash = await argon2.hash(rawToken, {
+    type: argon2.argon2id,
+    memoryCost: 65_536,
+    timeCost: 3,
+    parallelism: 4,
+  });
+  const [invitation] = await db
+    .insert(invitations)
+    .values({
+      clubId: args.clubId,
+      createdByUserId: args.createdByUserId,
+      email: args.email ?? `invitee${n}@example.test`,
+      role: args.role ?? 'member',
+      tokenHash,
+      status: 'pending',
+      expiresAt: new Date(Date.now() + (args.expiresInDays ?? 14) * 24 * 60 * 60 * 1000),
+    })
+    .returning();
+  if (!invitation) throw new Error('seedInvitation: insert returned no row');
+  return { invitation, rawToken };
 }
 
 export async function seedConsumption(

@@ -8,7 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db/client';
 import { invitations, members } from '@/lib/db/schema/members';
 import { requireRole } from '@/lib/auth/session';
-import { sendInvitation } from '@/lib/email/resend';
+import { sendInvitation } from '@/lib/email/mailer';
 import { env } from '@/lib/env';
 import type { Role } from '@/lib/permissions';
 

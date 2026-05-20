@@ -76,5 +76,19 @@ services:
       postgres:
         condition: service_healthy
 
+  # Local SMTP sink. Dev + test email (magic links, invitations) is
+  # delivered here instead of to a real provider, so nothing leaves the
+  # machine. Browse caught messages at http://localhost:18025.
+  # Production sends via real SMTP (Resend's SMTP gateway) — same code
+  # path, different SMTP_URL (constitution v1.3.0: configuration not
+  # code). Host ports are non-default per the project convention.
+  mailpit:
+    image: axllent/mailpit:v1.21.8
+    container_name: beeromat-mailpit
+    restart: unless-stopped
+    ports:
+      - '11025:1025' # SMTP   — the app connects here
+      - '18025:8025' # Web UI — browse caught messages
+
 volumes:
   beeromat_pg:

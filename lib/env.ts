@@ -16,8 +16,10 @@ const envSchema = z.object({
   BETTER_AUTH_SECRET: z.string().min(32, 'BETTER_AUTH_SECRET must be at least 32 characters'),
   BETTER_AUTH_URL: z.string().url(),
 
-  // Email
-  RESEND_API_KEY: z.string().startsWith('re_'),
+  // Email — SMTP connection URL (nodemailer). Local dev + E2E point at
+  // the Mailpit container (smtp://localhost:11025); production points at
+  // a real SMTP gateway (e.g. Resend's). One code path, env-driven.
+  SMTP_URL: z.string().min(1).startsWith('smtp'),
   EMAIL_FROM: z.string().min(1),
 
   // Bot mitigation

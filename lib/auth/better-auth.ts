@@ -6,7 +6,7 @@ import { magicLink } from 'better-auth/plugins';
 import { db } from '@/lib/db/client';
 import { accounts, sessions, users, verifications } from '@/lib/db/schema/auth';
 import { env } from '@/lib/env';
-import { sendMagicLink } from '@/lib/email/resend';
+import { sendMagicLink } from '@/lib/email/mailer';
 
 // Better Auth v1.6 server instance with the magic-link plugin.
 // Constitution Principle IV: invitation-only, magic-link as root of trust,

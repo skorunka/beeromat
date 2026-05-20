@@ -33,7 +33,7 @@ export interface TestDbSeed {
   admin: { id: string; userId: string; email: string };
 }
 
-type Db = NodePgDatabase<typeof schema>;
+export type Db = NodePgDatabase<typeof schema>;
 
 /**
  * Guard: the fixture performs destructive operations (DROP SCHEMA,
@@ -41,14 +41,18 @@ type Db = NodePgDatabase<typeof schema>;
  * Refuse any non-loopback host so a misconfigured env can never wipe
  * a real database.
  */
-function assertLoopback(directUrl: string): void {
+export function assertLoopback(directUrl: string): void {
   let host: string;
   try {
     host = new URL(directUrl).hostname;
   } catch {
     throw new Error('test-db: TEST_DATABASE_DIRECT_URL is not a valid URL');
   }
-  if (!['localhost', '127.0.0.1', '::1', 'db.localtest.me'].includes(host)) {
+  // Only literal loopback hosts. NB: a public-DNS name like
+  // `db.localtest.me` is deliberately NOT allowed — even though it
+  // currently resolves to 127.0.0.1, it is attacker-controllable and
+  // has no place in a DROP SCHEMA / TRUNCATE allowlist.
+  if (!['localhost', '127.0.0.1', '::1'].includes(host)) {
     throw new Error(
       `test-db: refusing to operate — host "${host}" is not loopback. ` +
         'The test fixture only ever touches the local Docker Postgres.',
@@ -56,7 +60,12 @@ function assertLoopback(directUrl: string): void {
   }
 }
 
-async function withDb<T>(directUrl: string, fn: (db: Db) => Promise<T>): Promise<T> {
+/**
+ * Open a guarded, pooled connection to the test DB, run `fn`, and
+ * always close the pool. Exported so the Playwright base fixture
+ * (tests/e2e/fixtures/test.ts) can reuse the same lifecycle.
+ */
+export async function withDb<T>(directUrl: string, fn: (db: Db) => Promise<T>): Promise<T> {
   assertLoopback(directUrl);
   const pool = new Pool({ connectionString: directUrl });
   try {
@@ -75,12 +84,31 @@ async function withDb<T>(directUrl: string, fn: (db: Db) => Promise<T>): Promise
  */
 export async function applyMigrations(directUrl: string): Promise<void> {
   await withDb(directUrl, async (db) => {
-    await db.execute(sql.raw('DROP SCHEMA public CASCADE; CREATE SCHEMA public;'));
+    // Drop BOTH schemas:
+    //  - `public`  → all application tables
+    //  - `drizzle` → Drizzle's __drizzle_migrations tracking table,
+    //    which the node-postgres migrator keeps in its OWN schema.
+    // Dropping only `public` leaves migration tracking intact, so the
+    // next migrate() sees everything "already applied" and no-ops
+    // against an empty public schema. Both must go for a true
+    // crash-safe reset.
+    await db.execute(
+      sql.raw(
+        'DROP SCHEMA IF EXISTS public CASCADE; ' +
+          'DROP SCHEMA IF EXISTS drizzle CASCADE; ' +
+          'CREATE SCHEMA public;',
+      ),
+    );
     await migrate(db, { migrationsFolder: path.join(process.cwd(), 'drizzle') });
   });
 }
 
-async function truncateAll(db: Db): Promise<void> {
+/**
+ * TRUNCATE every domain + Better Auth table (schema preserved).
+ * Exported so the base fixture can wipe to an empty slate before each
+ * test, then let the test compose exactly the state it needs.
+ */
+export async function truncateAll(db: Db): Promise<void> {
   // Discover all current public-schema tables at runtime so new
   // migrations (US2 payments, US6 bets, …) are picked up automatically.
   const result = await db.execute<{ tablename: string }>(

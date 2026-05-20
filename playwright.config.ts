@@ -1,28 +1,9 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
+
+import { readEnvTest } from './tests/e2e/env-test';
 
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 const BASE_URL = `http://localhost:${PORT}`;
-
-// Load .env.test for the webServer. We deliberately avoid `dotenv`
-// because it's not yet a project dependency; parsing KEY=VALUE lines
-// is trivial and keeps the e2e setup self-contained.
-function loadEnvTest(): Record<string, string> {
-  const envPath = path.resolve(__dirname, '.env.test');
-  const text = readFileSync(envPath, 'utf-8');
-  const out: Record<string, string> = {};
-  for (const line of text.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const eq = trimmed.indexOf('=');
-    if (eq < 0) continue;
-    const key = trimmed.slice(0, eq).trim();
-    const value = trimmed.slice(eq + 1).trim();
-    out[key] = value;
-  }
-  return out;
-}
 
 // E2E configuration.
 //   globalSetup    — DROP SCHEMA + migrate the test DB once (crash-safe)
@@ -34,12 +15,15 @@ export default defineConfig({
   // Prepare the test schema once, before any test or the webServer.
   globalSetup: './tests/e2e/global-setup.ts',
   // Wipe the test DB clean once the whole run ends ("destroy DB after
-  // test end"). Per-test reset happens in each spec's beforeEach via
-  // resetAndSeedTestDb.
+  // test end"). Per-test reset happens in each spec's beforeEach.
   globalTeardown: './tests/e2e/global-teardown.ts',
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
+  // workers:1 is a HARD CONSTRAINT, not a default. The test-DB fixture
+  // truncates the whole `beeromat_test` database between tests — two
+  // parallel workers would clobber each other's data. Going parallel
+  // would require a DB-per-worker scheme; do not raise this without it.
   workers: 1,
   reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   use: {
@@ -64,6 +48,8 @@ export default defineConfig({
     reuseExistingServer: false,
     stdout: 'pipe',
     stderr: 'pipe',
-    env: loadEnvTest(),
+    // Single source of truth for .env.test parsing (shared with the
+    // fixtures via tests/e2e/env-test.ts).
+    env: readEnvTest(),
   },
 });

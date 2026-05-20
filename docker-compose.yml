@@ -40,7 +40,7 @@ services:
       # passes once the init script has created it AND Postgres is
       # accepting real TCP connections. This closes the race where a
       # proxy could start before beeromat_test exists.
-      test: ['CMD-SHELL', 'psql -U beeromat -d beeromat_test -c "SELECT 1" || exit 1']
+      test: ['CMD-SHELL', 'psql -U beeromat -d beeromat_test -c "SELECT 1"']
       interval: 5s
       timeout: 3s
       retries: 15

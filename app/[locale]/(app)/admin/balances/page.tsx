@@ -33,31 +33,33 @@ export default async function BalancesPage({
       <ul className="flex flex-col gap-2">
         {balances.map((b) => (
           <li key={b.memberId}>
-            <Card className="flex items-center justify-between gap-3 p-3">
-              <div className="min-w-0">
-                <div className="font-medium">
-                  {b.displayName}
-                  {b.isActive ? null : (
-                    <Badge variant="outline" className="ml-2">
-                      inactive
-                    </Badge>
-                  )}
-                </div>
-                {b.pendingConfirmationMinor > 0n ? (
-                  <div className="text-muted-foreground text-xs">
-                    {formatMoney(b.pendingConfirmationMinor, currencyCode, defaultLocale)} pending
-                    confirmation
+            <Link href={`/admin/balances/${b.memberId}` as Route}>
+              <Card className="hover:bg-accent flex items-center justify-between gap-3 p-3 transition-colors">
+                <div className="min-w-0">
+                  <div className="font-medium">
+                    {b.displayName}
+                    {b.isActive ? null : (
+                      <Badge variant="outline" className="ml-2">
+                        inactive
+                      </Badge>
+                    )}
                   </div>
-                ) : null}
-              </div>
-              <div
-                className={`font-mono text-sm font-semibold ${
-                  b.balanceMinor > 0n ? '' : 'text-muted-foreground'
-                }`}
-              >
-                {formatMoney(b.balanceMinor, currencyCode, defaultLocale)}
-              </div>
-            </Card>
+                  {b.pendingConfirmationMinor > 0n ? (
+                    <div className="text-muted-foreground text-xs">
+                      {formatMoney(b.pendingConfirmationMinor, currencyCode, defaultLocale)} pending
+                      confirmation
+                    </div>
+                  ) : null}
+                </div>
+                <div
+                  className={`font-mono text-sm font-semibold ${
+                    b.balanceMinor > 0n ? '' : 'text-muted-foreground'
+                  }`}
+                >
+                  {formatMoney(b.balanceMinor, currencyCode, defaultLocale)}
+                </div>
+              </Card>
+            </Link>
           </li>
         ))}
         {balances.length === 0 ? (

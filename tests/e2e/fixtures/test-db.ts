@@ -26,8 +26,6 @@ import { users } from '@/lib/db/schema/auth';
 //   beforeEach     → resetAndSeedTestDb(): truncate + reseed
 //   globalTeardown → wipeTestDb(): truncate, leaving the DB clean
 
-const PRESERVE_TABLES = new Set(['__drizzle_migrations']);
-
 export interface TestDbSeed {
   club: { id: string; name: string };
   admin: { id: string; userId: string; email: string };
@@ -111,13 +109,16 @@ export async function applyMigrations(directUrl: string): Promise<void> {
 export async function truncateAll(db: Db): Promise<void> {
   // Discover all current public-schema tables at runtime so new
   // migrations (US2 payments, US6 bets, …) are picked up automatically.
+  // Drizzle's __drizzle_migrations tracking table lives in the separate
+  // `drizzle` schema, so this public-scoped query never includes it —
+  // truncation can't disturb migration tracking.
   const result = await db.execute<{ tablename: string }>(
     sql.raw("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"),
   );
-  const names = result.rows.map((r) => r.tablename).filter((t) => !PRESERVE_TABLES.has(t));
+  const names = result.rows.map((r) => r.tablename);
   if (names.length === 0) return;
   const list = names.map((t) => `"${t}"`).join(', ');
-  await db.execute(sql.raw(`TRUNCATE TABLE ${list} RESTART IDENTITY CASCADE`));
+  await db.execute(sql.raw(`TRUNCATE TABLE ${list} CASCADE`));
 }
 
 async function seedRows(db: Db, e: NodeJS.ProcessEnv): Promise<TestDbSeed> {

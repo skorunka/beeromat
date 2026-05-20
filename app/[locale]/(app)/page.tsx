@@ -1,3 +1,4 @@
+import type { Route } from 'next';
 import Link from 'next/link';
 import { setRequestLocale } from 'next-intl/server';
 
@@ -5,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
 import { formatMoney } from '@/lib/format';
+import { roleSatisfies } from '@/lib/permissions';
 
 // Home of the authenticated app — quick balance + entry points.
 export default async function AppHomePage({
@@ -17,6 +19,7 @@ export default async function AppHomePage({
 
   const ctx = await requireUnlocked();
   const balanceMinor = await memberBalance(ctx.member.id);
+  const isTreasurer = roleSatisfies(ctx.member.role, 'treasurer');
 
   return (
     <main className="mx-auto max-w-md p-4">
@@ -54,6 +57,24 @@ export default async function AppHomePage({
         >
           Settle up
         </Link>
+      ) : null}
+
+      {isTreasurer ? (
+        <div className="mt-6 flex flex-col gap-2">
+          <p className="text-muted-foreground text-sm font-medium">Treasurer</p>
+          <Link
+            href={'/admin/pending' as Route}
+            className="border-input bg-background hover:bg-accent flex h-12 items-center justify-center rounded-lg border font-medium"
+          >
+            Pending payments
+          </Link>
+          <Link
+            href={'/admin/balances' as Route}
+            className="border-input bg-background hover:bg-accent flex h-12 items-center justify-center rounded-lg border font-medium"
+          >
+            Member balances
+          </Link>
+        </div>
       ) : null}
     </main>
   );

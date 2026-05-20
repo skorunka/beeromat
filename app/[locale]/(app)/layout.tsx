@@ -4,7 +4,10 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth/better-auth';
 import { currentSession } from '@/lib/auth/session';
 import { deviceSessionState } from '@/lib/auth/device-session-state';
+import { getDisputedClaimsForMember } from '@/lib/db/queries/payments';
+import { formatMoney } from '@/lib/format';
 import { PinGate } from '@/components/pin/pin-gate';
+import { DisputeBanner } from '@/components/dispute-banner';
 
 // Authenticated route group layout. Gates everything under (app)/* behind
 // (a) a valid Better Auth session and (b) the device PIN.
@@ -30,5 +33,20 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
 
   if (state === 'no-session') return <PinGate mode="setup" />;
   if (state !== 'unlocked') return <PinGate mode="unlock" />;
-  return <>{children}</>;
+
+  const disputed = await getDisputedClaimsForMember(ctx.member.id);
+  return (
+    <>
+      {disputed.length > 0 ? (
+        <DisputeBanner
+          claims={disputed.map((d) => ({
+            paymentId: d.paymentId,
+            amountDisplay: formatMoney(d.amountMinor, d.currencyCode, ctx.club.defaultLocale),
+            reason: d.reason,
+          }))}
+        />
+      ) : null}
+      {children}
+    </>
+  );
 }

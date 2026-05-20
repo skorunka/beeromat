@@ -14,6 +14,7 @@ import {
   seedDrinkSession,
   seedInvitation,
   seedMember,
+  seedPayment,
 } from './seed';
 
 // Shared Playwright base fixture for all beeromat E2E specs.
@@ -39,6 +40,7 @@ export interface SeedContext {
   beerType: (a: Parameters<typeof seedBeerType>[1]) => ReturnType<typeof seedBeerType>;
   drinkSession: (a: Parameters<typeof seedDrinkSession>[1]) => ReturnType<typeof seedDrinkSession>;
   consumption: (a: Parameters<typeof seedConsumption>[1]) => ReturnType<typeof seedConsumption>;
+  payment: (a: Parameters<typeof seedPayment>[1]) => ReturnType<typeof seedPayment>;
 }
 
 export const test = base.extend<{ seed: SeedContext }>({
@@ -58,6 +60,7 @@ export const test = base.extend<{ seed: SeedContext }>({
         beerType: (a) => seedBeerType(db, a),
         drinkSession: (a) => seedDrinkSession(db, a),
         consumption: (a) => seedConsumption(db, a),
+        payment: (a) => seedPayment(db, a),
       });
     } finally {
       await pool.end();

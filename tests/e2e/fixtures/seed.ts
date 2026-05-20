@@ -5,6 +5,7 @@ import { beerTypes } from '@/lib/db/schema/catalog';
 import { clubBankingProfiles, clubs } from '@/lib/db/schema/clubs';
 import { consumptions } from '@/lib/db/schema/consumption';
 import { invitations, members } from '@/lib/db/schema/members';
+import { payments, paymentStateTransitions } from '@/lib/db/schema/payments';
 import { drinkSessions } from '@/lib/db/schema/sessions';
 import type {
   BeerType,
@@ -14,6 +15,7 @@ import type {
   DrinkSession,
   Invitation,
   Member,
+  Payment,
   User,
 } from '@/lib/db/schema';
 
@@ -198,6 +200,54 @@ export async function seedInvitation(
     .returning();
   if (!invitation) throw new Error('seedInvitation: insert returned no row');
   return { invitation, rawToken };
+}
+
+/**
+ * Seed a payment row plus its initial state-transition (NULL → status),
+ * mirroring how the production actions create them. Defaults to a
+ * member-initiated `claimed` claim; pass `status: 'disputed'` + `reason`
+ * to plant a dispute the member banner can pick up.
+ */
+export async function seedPayment(
+  db: Db,
+  args: {
+    clubId: string;
+    memberId: string;
+    createdByUserId: string;
+    amountMinor?: bigint;
+    currencyCode?: string;
+    status?: Payment['status'];
+    origin?: Payment['origin'];
+    variableSymbol?: bigint | null;
+    note?: string | null;
+    reason?: string | null;
+  },
+): Promise<Payment> {
+  const [payment] = await db
+    .insert(payments)
+    .values({
+      clubId: args.clubId,
+      memberId: args.memberId,
+      createdByUserId: args.createdByUserId,
+      amountMinor: args.amountMinor ?? 5000n,
+      currencyCode: args.currencyCode ?? 'CZK',
+      status: args.status ?? 'claimed',
+      origin: args.origin ?? 'member_initiated',
+      variableSymbol: args.variableSymbol ?? null,
+      note: args.note ?? null,
+    })
+    .returning();
+  if (!payment) throw new Error('seedPayment: insert returned no row');
+
+  await db.insert(paymentStateTransitions).values({
+    clubId: args.clubId,
+    paymentId: payment.id,
+    fromStatus: null,
+    toStatus: payment.status,
+    reason: args.reason ?? null,
+    createdByUserId: args.createdByUserId,
+  });
+  return payment;
 }
 
 export async function seedConsumption(

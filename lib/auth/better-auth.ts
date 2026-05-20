@@ -23,6 +23,17 @@ export const auth = betterAuth({
   }),
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
+  advanced: {
+    database: {
+      // Better Auth's default ID generator emits non-UUID random
+      // strings. Every Better Auth table in lib/db/schema/auth.ts
+      // declares `id` as a Postgres `uuid` column, so Better Auth MUST
+      // emit UUIDs — 'uuid' makes it use crypto.randomUUID(). Without
+      // this, every user/session/verification insert fails with
+      // "invalid input syntax for type uuid".
+      generateId: 'uuid',
+    },
+  },
   emailAndPassword: {
     // We never use passwords; magic-link only.
     enabled: false,

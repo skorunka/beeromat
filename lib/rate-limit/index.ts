@@ -54,3 +54,34 @@ export function magicLinkPerIpLimiter(): Ratelimit {
   }
   return _magicLinkPerIp;
 }
+
+/**
+ * Check both magic-link rate limits (per-email + per-IP).
+ *
+ * **Fails OPEN on infrastructure error.** Rate limiting is defense in
+ * depth, not the primary control — Cloudflare Turnstile already gates
+ * the magic-link form. If Upstash is unreachable (outage, network
+ * blip), letting a legitimate user sign in is the correct trade-off
+ * over taking authentication down entirely. The error is logged so an
+ * outage is still visible.
+ *
+ * Returns `{ allowed: false }` only when the limiter is reachable AND
+ * a limit was genuinely exceeded.
+ */
+export async function checkMagicLinkLimits(
+  email: string,
+  ip: string | undefined,
+): Promise<{ allowed: boolean }> {
+  try {
+    const perEmail = await magicLinkPerEmailLimiter().limit(`email:${email}`);
+    if (!perEmail.success) return { allowed: false };
+    if (ip) {
+      const perIp = await magicLinkPerIpLimiter().limit(`ip:${ip}`);
+      if (!perIp.success) return { allowed: false };
+    }
+    return { allowed: true };
+  } catch (err) {
+    console.error('[rate-limit] limiter unavailable — failing open:', err);
+    return { allowed: true };
+  }
+}

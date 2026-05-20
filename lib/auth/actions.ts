@@ -12,10 +12,7 @@ import { DEVICE_ID_COOKIE } from '@/lib/auth/session';
 import { hashPin, isValidPinFormat, verifyPin } from '@/lib/auth/pin';
 import { auth } from '@/lib/auth/better-auth';
 import { verifyTurnstileToken } from '@/lib/turnstile/verify';
-import {
-  magicLinkPerEmailLimiter,
-  magicLinkPerIpLimiter,
-} from '@/lib/rate-limit';
+import { checkMagicLinkLimits } from '@/lib/rate-limit';
 
 const MAX_PIN_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 100 * 365 * 24 * 60 * 60 * 1000; // 100 years ~ effectively permanent
@@ -152,18 +149,12 @@ export async function requestMagicLinkAction(input: {
     return { ok: true };
   }
 
-  // 2. Rate-limit per email + IP.
-  const perEmail = await magicLinkPerEmailLimiter().limit(`email:${email}`);
-  if (!perEmail.success) {
-    console.warn('[magic-link] rate-limited by email', { email });
+  // 2. Rate-limit per email + IP. Fails open if Upstash is unreachable
+  //    (Turnstile above is the primary gate; see checkMagicLinkLimits).
+  const { allowed } = await checkMagicLinkLimits(email, remoteIp);
+  if (!allowed) {
+    console.warn('[magic-link] rate-limited', { email, remoteIp });
     return { ok: true };
-  }
-  if (remoteIp) {
-    const perIp = await magicLinkPerIpLimiter().limit(`ip:${remoteIp}`);
-    if (!perIp.success) {
-      console.warn('[magic-link] rate-limited by IP', { remoteIp });
-      return { ok: true };
-    }
   }
 
   // 3. Only send if the email is either an active member OR an open

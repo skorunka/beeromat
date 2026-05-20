@@ -1,40 +1,52 @@
 import 'server-only';
-import { neon, neonConfig } from '@neondatabase/serverless';
-import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { drizzle, type NeonDatabase } from 'drizzle-orm/neon-serverless';
+import ws from 'ws';
 
 import { env } from '@/lib/env';
 import * as schema from '@/lib/db/schema';
 
-// Optional fetchEndpoint override. Unset in production (driver hits
-// Neon's public HTTP endpoint). Local dev + test set this to point
-// at a local proxy (e.g. http://localhost:14444/sql, served by the
-// ghcr.io/timowilhelm/local-neon-http-proxy container in
-// docker-compose.yml). The driver, the SQL emitted by Drizzle, and
-// every line of code below this point is identical in both worlds —
-// only the URL differs. (Constitution v1.3.0 §Test/Prod Code
-// Separation: configuration over branching.)
-if (env.NEON_FETCH_ENDPOINT) {
-  neonConfig.fetchEndpoint = env.NEON_FETCH_ENDPOINT;
+// Neon serverless driver — WebSocket pool variant
+// (drizzle-orm/neon-serverless). This is the driver that supports
+// interactive transactions (`db.transaction(async (tx) => …)`), which
+// the consumption / payment / bet actions rely on. The HTTP-only
+// variant (drizzle-orm/neon-http) cannot do interactive transactions
+// and was the wrong initial choice — corrected here.
+//
+// `poolQueryViaFetch` keeps single (non-transactional) queries on the
+// fast HTTP path; transactions transparently use the WebSocket.
+//
+// Node 22+ has a global WebSocket, but the Neon driver wants an
+// explicit constructor — `ws` is the documented, reliable choice.
+neonConfig.webSocketConstructor = ws;
+neonConfig.poolQueryViaFetch = true;
+
+// Local-proxy mode. When NEON_LOCAL_PROXY_HOST is set (dev + test via
+// docker-compose's local-neon-http-proxy), point the driver's HTTP
+// and WebSocket endpoints at the local proxy. Production leaves it
+// unset → the driver talks to Neon Cloud directly. This is generic
+// configuration (any deployment routing through a private Neon mirror
+// would use it) — not a test-only branch (constitution v1.3.0).
+if (env.NEON_LOCAL_PROXY_HOST) {
+  const host = env.NEON_LOCAL_PROXY_HOST;
+  neonConfig.fetchEndpoint = `http://${host}/sql`;
+  neonConfig.wsProxy = () => `${host}/v2`;
+  neonConfig.useSecureWebSocket = false;
+  neonConfig.pipelineConnect = false;
 }
 
-// Lazy-initialized Drizzle client. The Neon HTTP driver and the Drizzle
-// instance are created on first access, NOT at module-import time. This
-// matters for `next build`, which collects page/route metadata by
-// importing every route module — eager initialization would force the
-// build environment to have a real DATABASE_URL even when no query is
-// actually executed during build.
-//
-// At request time the proxy passes every property access through to the
-// fully initialized Drizzle instance, so callers see no difference.
+// Lazy-initialized Drizzle client — the Pool is created on first
+// access, not at module-import time, so `next build` can collect
+// route metadata without a live database.
 
-type Database = NeonHttpDatabase<typeof schema>;
+type Database = NeonDatabase<typeof schema>;
 
 let _db: Database | null = null;
 
 function getDb(): Database {
   if (_db) return _db;
-  const client = neon(env.DATABASE_URL);
-  _db = drizzle({ client, schema, casing: 'snake_case' });
+  const pool = new Pool({ connectionString: env.DATABASE_URL });
+  _db = drizzle({ client: pool, schema, casing: 'snake_case' });
   return _db;
 }
 

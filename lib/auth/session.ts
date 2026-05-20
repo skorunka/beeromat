@@ -1,7 +1,14 @@
 import 'server-only';
+import type { Route } from 'next';
 import { cookies, headers } from 'next/headers';
-import { forbidden, unauthorized } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { eq } from 'drizzle-orm';
+
+// Locale-less redirect targets. At runtime the next-intl proxy
+// resolves `/sign-in` and `/` to the active locale (e.g. `/cs/...`).
+// typedRoutes only knows the `/[locale]/...` forms, so these are cast.
+const SIGN_IN: Route = '/sign-in' as Route;
+const APP_HOME: Route = '/' as Route;
 
 import { db } from '@/lib/db/client';
 import { clubs, type Club } from '@/lib/db/schema/clubs';
@@ -62,45 +69,47 @@ export async function currentSession(): Promise<SessionContext | null> {
   };
 }
 
+// Auth guards use the stable `redirect()` primitive rather than Next's
+// experimental `unauthorized()` / `forbidden()` interrupts (which need
+// `experimental.authInterrupts` and throw without it). `redirect()`
+// works identically in Server Components and Server Actions.
+
 /**
- * Throws `unauthorized()` (renders the unauthorized.tsx UI / returns 401)
- * if there's no authenticated active member. Use as the first line of
- * every protected Server Action and Server Component.
+ * Resolve the session context or redirect to /sign-in. The first line
+ * of every protected Server Component and Server Action.
  */
 export async function requireMember(): Promise<SessionContext> {
   const ctx = await currentSession();
-  if (!ctx) unauthorized();
+  if (!ctx) redirect(SIGN_IN);
   return ctx;
 }
 
 /**
- * `requireMember()` + role check. Allows roles by hierarchy (club_admin
- * satisfies every role).
+ * `requireMember()` + role check (club_admin satisfies every role).
+ * On insufficient role, redirects to the app home rather than exposing
+ * the resource.
  */
 export async function requireRole(...allowed: Role[]): Promise<SessionContext> {
   const ctx = await requireMember();
   const ok = allowed.some((required) => roleSatisfies(ctx.member.role, required));
-  if (!ok) forbidden();
+  if (!ok) redirect(APP_HOME);
   return ctx;
 }
 
 /**
  * `requireMember()` + a check that the device PIN is unlocked (and not
- * locked out from brute-force attempts). Used on protected pages /
- * actions that demand the second factor.
+ * locked out). On a locked/stale device, redirects to the app home —
+ * the (app) layout renders the PIN gate there.
  */
 export async function requireUnlocked(): Promise<SessionContext> {
   const ctx = await requireMember();
   const ds = ctx.deviceSession;
-  if (!ds) forbidden(); // No PIN set for this device → force PIN setup.
-  if (ds.lockedUntil && ds.lockedUntil > new Date()) forbidden();
+  if (!ds) redirect(APP_HOME); // No PIN set for this device → PIN setup gate.
+  if (ds.lockedUntil && ds.lockedUntil > new Date()) redirect(APP_HOME);
 
   const inactivityWindowMs = ctx.club.deviceInactivityLockSeconds * 1000;
-  if (
-    !ds.lastUnlockAt ||
-    Date.now() - ds.lastUnlockAt.getTime() > inactivityWindowMs
-  ) {
-    forbidden(); // Inactivity window exceeded → re-prompt for PIN.
+  if (!ds.lastUnlockAt || Date.now() - ds.lastUnlockAt.getTime() > inactivityWindowMs) {
+    redirect(APP_HOME); // Inactivity window exceeded → re-prompt for PIN.
   }
   return ctx;
 }

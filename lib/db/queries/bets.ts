@@ -78,7 +78,9 @@ export async function getTransferableConsumptionsForCurrentSession(args: {
 export interface BetTransferRow {
   id: string;
   sourceConsumptionId: string;
+  fromMemberId: string;
   fromMemberName: string;
+  toMemberId: string;
   toMemberName: string;
   beerTypeName: string;
   unitPriceMinorSnapshot: bigint;
@@ -144,7 +146,9 @@ export async function getBetTransfersForSession(args: {
   return rows.map((r) => ({
     id: r.id,
     sourceConsumptionId: r.sourceConsumptionId,
+    fromMemberId: r.fromMemberId,
     fromMemberName: nameById.get(r.fromMemberId) ?? '—',
+    toMemberId: r.toMemberId,
     toMemberName: nameById.get(r.toMemberId) ?? '—',
     beerTypeName: r.beerTypeName,
     unitPriceMinorSnapshot: r.unitPriceMinorSnapshot,

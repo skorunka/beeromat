@@ -111,16 +111,22 @@ test.describe('@us2 settle via QR Platba', () => {
 
     await page.goto('/settle');
     await page.getByRole('button', { name: /^i paid$/i }).click();
-    await expect(page.getByText(/awaiting.*confirmation/i)).toBeVisible();
+    // confirmTransferMade routes home on success; leaving /settle is the
+    // stable signal the claim was recorded (the success toast is
+    // transient and races a slow DB transaction over the proxy).
+    await page.waitForURL((url) => !url.pathname.includes('/settle'), { timeout: 30_000 });
 
     // A claimed payment row now exists for the member.
     await expect
-      .poll(async () => {
-        const row = await seed.db.query.payments.findFirst({
-          where: and(eq(payments.memberId, member.id), eq(payments.status, 'claimed')),
-        });
-        return row ? `${row.status}:${row.amountMinor}` : null;
-      })
+      .poll(
+        async () => {
+          const row = await seed.db.query.payments.findFirst({
+            where: and(eq(payments.memberId, member.id), eq(payments.status, 'claimed')),
+          });
+          return row ? `${row.status}:${row.amountMinor}` : null;
+        },
+        { timeout: 15_000 },
+      )
       .toBe('claimed:10000');
   });
 
@@ -136,7 +142,8 @@ test.describe('@us2 settle via QR Platba', () => {
 
     await page.goto('/settle');
     await page.getByRole('button', { name: /^i paid$/i }).click();
-    await expect(page.getByText(/awaiting.*confirmation/i)).toBeVisible();
+    // Wait for the post-claim redirect rather than the transient toast.
+    await page.waitForURL((url) => !url.pathname.includes('/settle'), { timeout: 30_000 });
 
     // Re-visiting settle now shows the pending-claim state, not a new QR.
     await page.goto('/settle');

@@ -19,7 +19,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx scripts/seed.ts",
+    "db:seed": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/seed.ts",
     "i18n:check": "tsx scripts/i18n-check.ts"
   },
   "dependencies": {
@@ -70,6 +70,7 @@
     "jsdom": "^25.0.1",
     "pg": "^8.21.0",
     "prettier": "^3.8.3",
+    "server-only": "^0.0.1",
     "tailwindcss": "^4",
     "tsx": "^4.22.2",
     "typescript": "^5",

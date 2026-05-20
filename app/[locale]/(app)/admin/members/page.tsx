@@ -1,3 +1,5 @@
+import type { Route } from 'next';
+import Link from 'next/link';
 import { setRequestLocale } from 'next-intl/server';
 import { eq } from 'drizzle-orm';
 
@@ -26,9 +28,21 @@ export default async function AdminMembersPage({
 
   const invitationRows = await getPendingInvitations(ctx.club.id);
 
+  const isAdmin = ctx.member.role === 'club_admin';
+
   return (
     <main className="mx-auto max-w-3xl p-4">
-      <h1 className="mb-6 text-2xl font-bold">Members</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Members</h1>
+        {isAdmin ? (
+          <Link
+            href={'/admin/settings/banking' as Route}
+            className="text-primary text-sm underline"
+          >
+            Banking profile
+          </Link>
+        ) : null}
+      </div>
 
       <Card className="mb-6 p-4">
         <h2 className="mb-3 text-lg font-semibold">Invite a new member</h2>

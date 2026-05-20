@@ -46,6 +46,15 @@ export default async function AppHomePage({
           My tab
         </Link>
       </div>
+
+      {balanceMinor > 0n ? (
+        <Link
+          href="/settle"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 mt-3 flex h-14 items-center justify-center rounded-lg text-lg font-semibold"
+        >
+          Settle up
+        </Link>
+      ) : null}
     </main>
   );
 }

@@ -15,6 +15,13 @@
       "when": 1779223378709,
       "tag": "0001_young_speedball",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779301802917,
+      "tag": "0002_easy_frog_thor",
+      "breakpoints": true
     }
   ]
 }

@@ -3,14 +3,14 @@ import { and, eq, isNull, sum } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { consumptionVoids, consumptions } from '@/lib/db/schema/consumption';
+import { payments } from '@/lib/db/schema/payments';
 
 // FR-024 / FR-031 — balance derivation.
 //
-// In US1 (this commit) the calculator only knows about consumptions and
-// their voids. It will be extended in US6 (bet_transfers add to or
-// subtract from the effective total) and US2 (confirmed payments
-// subtract from the final balance). The signatures stay stable; only
-// the SQL grows.
+// As of US2 the calculator knows about consumptions, their voids, and
+// confirmed payments. US6 will additionally apply bet_transfers to the
+// effective consumption total. Signatures stay stable; only the SQL
+// grows.
 
 /**
  * Sum of unvoided consumption prices for a member, optionally scoped to
@@ -36,13 +36,32 @@ export async function effectiveConsumptionTotal(
 }
 
 /**
- * Outstanding balance for a member across all sessions.
- * Currently equals effectiveConsumptionTotal (no payments subtracted
- * yet — US2 adds the payments leg).
+ * Sum of a member's payments in a given status. `confirmed` payments
+ * reduce the outstanding balance; `claimed` payments are shown as
+ * "pending confirmation" but do NOT yet reduce the canonical balance.
+ */
+export async function paymentsTotal(
+  memberId: string,
+  status: 'claimed' | 'confirmed',
+): Promise<bigint> {
+  const result = await db
+    .select({ total: sum(payments.amountMinor).mapWith(BigInt) })
+    .from(payments)
+    .where(and(eq(payments.memberId, memberId), eq(payments.status, status)));
+  return result[0]?.total ?? 0n;
+}
+
+/**
+ * Outstanding balance for a member across all sessions:
+ *   effective consumption total − confirmed payments.
+ * Claimed-but-unconfirmed payments are NOT subtracted here (see
+ * getMyBalance for the "pending confirmation" presentation).
  */
 export async function memberBalance(memberId: string): Promise<bigint> {
-  // TODO(US2): subtract sum of confirmed payments.
-  // TODO(US6): apply bet_transfers (add transfers-in, subtract
-  //   transfers-out) inside effectiveConsumptionTotal.
-  return effectiveConsumptionTotal(memberId);
+  // TODO(US6): apply bet_transfers inside effectiveConsumptionTotal.
+  const [consumed, confirmedPaid] = await Promise.all([
+    effectiveConsumptionTotal(memberId),
+    paymentsTotal(memberId, 'confirmed'),
+  ]);
+  return consumed - confirmedPaid;
 }

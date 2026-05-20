@@ -12,6 +12,11 @@ const BASE_URL = `http://localhost:${PORT}`;
 //                    pointed at the test DB via the Neon proxy
 export default defineConfig({
   testDir: './tests/e2e',
+  // Per-test budget. Generous because every "Given a signed-in member"
+  // spec drives the real magic-link sign-in flow in its setup, and
+  // signInAndUnlock retries that flow up to 3× to absorb transient
+  // dead-pooled-connection failures against the local Neon proxy.
+  timeout: 90_000,
   // Prepare the test schema once, before any test or the webServer.
   globalSetup: './tests/e2e/global-setup.ts',
   // Wipe the test DB clean once the whole run ends ("destroy DB after

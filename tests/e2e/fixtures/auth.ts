@@ -45,22 +45,15 @@ async function readMagicLinkToken(email: string): Promise<string> {
 }
 
 /**
- * Sign a seeded member in and set their device PIN, leaving `page` on
- * the authenticated app home.
+ * Drive the /sign-in form once: request a magic link, then verify it.
+ * Returns true if the verify landed us on the device-PIN gate.
  */
-export async function signInAndUnlock(
-  page: Page,
-  opts: { email: string; pin: string },
-): Promise<void> {
-  if (!/^\d{4}$/.test(opts.pin)) {
-    throw new Error('signInAndUnlock: pin must be exactly 4 digits');
-  }
-
-  // 1. Drive the sign-in form. The Turnstile test site key
-  //    (1x00000000000000000000AA) auto-passes, enabling the submit
-  //    button; wait for that rather than racing it.
+async function requestAndVerifyMagicLink(page: Page, email: string): Promise<boolean> {
+  // Drive the sign-in form. The Turnstile test site key
+  // (1x00000000000000000000AA) auto-passes, enabling the submit
+  // button; wait for that rather than racing it.
   await page.goto('/sign-in');
-  await page.locator('#email').fill(opts.email);
+  await page.locator('#email').fill(email);
   const submit = page.locator('button[type="submit"]');
   await submit.waitFor({ state: 'visible' });
   await page.waitForFunction(
@@ -79,16 +72,53 @@ export async function signInAndUnlock(
   // token before this point is a race.
   await page.locator('#email').waitFor({ state: 'detached', timeout: 15_000 });
 
-  // 2. Read the freshly-created magic-link token from the DB.
-  const token = await readMagicLinkToken(opts.email);
-
-  // 3. Verify the magic link → Better Auth creates the session cookie
-  //    and redirects to callbackURL (/).
+  // Read the freshly-created magic-link token and verify it → Better
+  // Auth creates the session cookie and redirects to callbackURL (/).
+  const token = await readMagicLinkToken(email);
   await page.goto(`/api/auth/magic-link/verify?token=${encodeURIComponent(token)}&callbackURL=/`);
 
-  // 4. Device-PIN setup gate (first sign-in on this browser → no
-  //    device session yet → PinGate renders in 'setup' mode).
-  await page.locator('#pin').waitFor({ state: 'visible' });
+  // The device-PIN setup gate (#pin) renders once the session is live.
+  // A transient verify failure (e.g. a dropped pooled connection) drops
+  // us back on /sign-in instead — the caller retries with a fresh link.
+  try {
+    await page.locator('#pin').waitFor({ state: 'visible', timeout: 15_000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Sign a seeded member in and set their device PIN, leaving `page` on
+ * the authenticated app home.
+ *
+ * The magic-link request/verify is retried: each magic link is single-
+ * use and a transient verify failure must restart from a fresh link
+ * rather than replay a consumed token. A persistent failure still
+ * surfaces — every attempt fails the same way.
+ */
+export async function signInAndUnlock(
+  page: Page,
+  opts: { email: string; pin: string },
+): Promise<void> {
+  if (!/^\d{4}$/.test(opts.pin)) {
+    throw new Error('signInAndUnlock: pin must be exactly 4 digits');
+  }
+
+  const MAX_ATTEMPTS = 3;
+  let reachedPinGate = false;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS && !reachedPinGate; attempt += 1) {
+    reachedPinGate = await requestAndVerifyMagicLink(page, opts.email);
+  }
+  if (!reachedPinGate) {
+    throw new Error(
+      `signInAndUnlock: device-PIN gate never appeared for ${opts.email} ` +
+        `after ${MAX_ATTEMPTS} sign-in attempts (last URL: ${page.url()})`,
+    );
+  }
+
+  // Device-PIN setup gate (first sign-in on this browser → no device
+  // session yet → PinGate renders in 'setup' mode).
   await page.locator('#pin').fill(opts.pin);
   await page.locator('#confirmPin').fill(opts.pin);
   await page.locator('button[type="submit"]').click();

@@ -94,9 +94,9 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 
 **Independent Test**: Confirm a payment, undo it with a reason; balance restored; audit row written.
 
-- [ ] T020 [US4] Add a `getRecentlyConfirmedPayments(clubId)` read query to `lib/db/queries/payments.ts` (reuses existing tables; no schema change).
-- [ ] T021 [US4] Surface an "Undo confirmation" control (reason dialog → existing `voidConfirmedPaymentAction`) in `components/treasurer/pending-list.tsx` or a sibling component; offered ONLY for `confirmed` payments (contract C6, FR-008).
-- [ ] T022 [US4] Render the recently-confirmed list on `app/[locale]/(app)/admin/pending/page.tsx`; add the new strings to the `treasurer` catalog namespace.
+- [X] T020 [US4] Add a `getRecentlyConfirmedPayments(clubId)` read query to `lib/db/queries/payments.ts` (reuses existing tables; no schema change).
+- [X] T021 [US4] Surface an "Undo confirmation" control (reason dialog → existing `voidConfirmedPaymentAction`) in `components/treasurer/pending-list.tsx` or a sibling component; offered ONLY for `confirmed` payments (contract C6, FR-008).
+- [X] T022 [US4] Render the recently-confirmed list on `app/[locale]/(app)/admin/pending/page.tsx`; add the new strings to the `treasurer` catalog namespace.
 - [ ] T023 [US4] E2E `tests/e2e/ux-confirm-undo.spec.ts` — confirm then undo with a reason, assert balance restored and the action absent for a non-confirmed payment (Acceptance Scenarios 1–2).
 
 **Checkpoint**: The confirm one-way door is closed (constitution Principle V).

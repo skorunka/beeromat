@@ -188,3 +188,43 @@ export async function getDisputedClaimsForMember(memberId: string): Promise<Disp
     .orderBy(desc(paymentStateTransitions.createdAt));
   return rows;
 }
+
+export interface ConfirmedPaymentRow {
+  paymentId: string;
+  memberDisplayName: string;
+  amountMinor: bigint;
+  currencyCode: string;
+  confirmedAt: Date;
+}
+
+/**
+ * Recently confirmed payments for the treasurer view (US4) — newest
+ * confirmation first. Ordered by the `confirmed` state-transition so a
+ * treasurer can find and undo a mistaken confirmation.
+ */
+export async function getRecentlyConfirmedPayments(
+  clubId: string,
+  limit = 20,
+): Promise<ConfirmedPaymentRow[]> {
+  const rows = await db
+    .select({
+      paymentId: payments.id,
+      memberDisplayName: members.displayName,
+      amountMinor: payments.amountMinor,
+      currencyCode: payments.currencyCode,
+      confirmedAt: paymentStateTransitions.createdAt,
+    })
+    .from(payments)
+    .innerJoin(members, eq(members.id, payments.memberId))
+    .innerJoin(
+      paymentStateTransitions,
+      and(
+        eq(paymentStateTransitions.paymentId, payments.id),
+        eq(paymentStateTransitions.toStatus, 'confirmed'),
+      ),
+    )
+    .where(and(eq(payments.clubId, clubId), eq(payments.status, 'confirmed')))
+    .orderBy(desc(paymentStateTransitions.createdAt))
+    .limit(limit);
+  return rows;
+}

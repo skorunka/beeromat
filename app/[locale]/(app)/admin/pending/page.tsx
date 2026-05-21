@@ -2,10 +2,14 @@ import type { Route } from 'next';
 import Link from 'next/link';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
+import { ConfirmedList } from '@/components/treasurer/confirmed-list';
 import { PendingList } from '@/components/treasurer/pending-list';
 import { Card } from '@/components/ui/card';
 import { requireRole } from '@/lib/auth/session';
-import { getPendingClaimsForTreasurer } from '@/lib/db/queries/payments';
+import {
+  getPendingClaimsForTreasurer,
+  getRecentlyConfirmedPayments,
+} from '@/lib/db/queries/payments';
 import { formatMoney } from '@/lib/format';
 
 // US3 — treasurer's queue of payment claims awaiting confirmation.
@@ -34,6 +38,14 @@ export default async function PendingPaymentsPage({
     createdAtDisplay: dateFmt.format(c.createdAt),
   }));
 
+  const confirmed = await getRecentlyConfirmedPayments(ctx.club.id);
+  const confirmedView = confirmed.map((c) => ({
+    paymentId: c.paymentId,
+    memberDisplayName: c.memberDisplayName,
+    amountDisplay: formatMoney(c.amountMinor, c.currencyCode, ctx.club.defaultLocale),
+    confirmedAtDisplay: dateFmt.format(c.confirmedAt),
+  }));
+
   return (
     <main className="mx-auto max-w-2xl p-4">
       <div className="mb-4 flex items-center justify-between">
@@ -50,6 +62,8 @@ export default async function PendingPaymentsPage({
       ) : (
         <PendingList claims={view} />
       )}
+
+      <ConfirmedList payments={confirmedView} />
     </main>
   );
 }

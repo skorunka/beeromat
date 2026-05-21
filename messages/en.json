@@ -16,6 +16,7 @@
     "close": "Close"
   },
   "nav": {
+    "language": "Language",
     "home": "Home",
     "log": "Log",
     "tab": "Tab",

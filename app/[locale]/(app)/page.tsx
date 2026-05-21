@@ -2,6 +2,7 @@ import { Link } from '@/lib/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Card } from '@/components/ui/card';
+import { LanguageSwitcher } from '@/components/nav/language-switcher';
 import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
 import { formatMoney } from '@/lib/format';
@@ -23,11 +24,14 @@ export default async function AppHomePage({
 
   return (
     <main className="mx-auto max-w-md p-4">
-      <header className="mb-6">
-        <p className="text-muted-foreground text-sm">
-          {t('greeting', { name: ctx.member.displayName })}
-        </p>
-        <h1 className="text-2xl font-bold">{ctx.club.name}</h1>
+      <header className="mb-6 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-muted-foreground text-sm">
+            {t('greeting', { name: ctx.member.displayName })}
+          </p>
+          <h1 className="text-2xl font-bold">{ctx.club.name}</h1>
+        </div>
+        <LanguageSwitcher />
       </header>
 
       <Card className="mb-6 p-6">

@@ -4,10 +4,27 @@
 // redirection (e.g. browser language → /cs or /en prefix).
 
 import createMiddleware from 'next-intl/middleware';
+import { type NextRequest, NextResponse } from 'next/server';
 
 import { routing } from '@/lib/i18n/routing';
 
-export default createMiddleware(routing);
+const intlMiddleware = createMiddleware(routing);
+
+export default function proxy(request: NextRequest): NextResponse {
+  // Honour a remembered locale choice for unprefixed paths. The
+  // language switcher writes the NEXT_LOCALE cookie; localeDetection
+  // stays off, so this never sniffs Accept-Language — only an explicit
+  // prior choice sends a member to /en. Czech (the default) needs no
+  // prefix, so a `cs` cookie is a no-op.
+  const { pathname } = request.nextUrl;
+  const hasLocalePrefix = /^\/(cs|en)(\/|$)/.test(pathname);
+  if (!hasLocalePrefix && request.cookies.get('NEXT_LOCALE')?.value === 'en') {
+    const url = request.nextUrl.clone();
+    url.pathname = `/en${pathname}`;
+    return NextResponse.redirect(url);
+  }
+  return intlMiddleware(request);
+}
 
 export const config = {
   // Match all paths except: api, _next/static, _next/image, favicon, the

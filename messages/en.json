@@ -12,7 +12,8 @@
     "saving": "Saving…",
     "delete": "Delete",
     "back": "Back",
-    "backHome": "Back home"
+    "backHome": "Back home",
+    "close": "Close"
   },
   "nav": {
     "home": "Home",
@@ -32,7 +33,8 @@
       "submit": "Send link",
       "checkInbox": "If your email is invited, a sign-in link is on its way.",
       "linkExpiresIn": "The link expires in 5 minutes.",
-      "linkSent": "Link sent. Check your email."
+      "linkSent": "Link sent. Check your email.",
+      "turnstileMissing": "Turnstile site key missing"
     },
     "magicLink": {
       "verifyingTitle": "Signing you in…",
@@ -62,13 +64,17 @@
     }
   },
   "invitation": {
-    "title": "You're invited to {clubName}",
-    "displayNameLabel": "Your name",
-    "displayNamePlaceholder": "How your club knows you",
+    "welcomeTitle": "Welcome to beeromat",
+    "welcomeBody": "Set your display name to finish the invitation. We'll then email you a one-time sign-in link.",
+    "displayNameLabel": "Display name",
     "submit": "Accept invitation",
-    "welcome": "You're in! Check your email for a sign-in link.",
-    "invalidTitle": "This invitation is no longer valid",
-    "invalidBody": "The invitation may have expired or already been used. Ask your club admin for a new one."
+    "working": "Working…",
+    "acceptedTitle": "You're in!",
+    "acceptedBody": "We've sent a sign-in link to {email}. Open it on this device to finish setup.",
+    "acceptedNote": "The link expires in 5 minutes.",
+    "errorInvalid": "This invitation link is no longer valid. Ask your club admin to send a new one.",
+    "errorNameRequired": "Please enter your display name.",
+    "errorGeneric": "Something went wrong. Please try again."
   },
   "home": {
     "greeting": "Hi, {name}",
@@ -220,8 +226,10 @@
     "bankingSubtitle": "Bank details used to generate members' payment QR codes.",
     "ibanLabel": "IBAN",
     "ibanHint": "Required for QR-code payments. Clearing it disables member self-pay.",
+    "ibanPlaceholder": "CZ65 0800 0000 1920 0014 5399",
     "accountHolderLabel": "Account holder name",
     "revolutLabel": "Revolut handle",
+    "revolutPlaceholder": "@yourclub",
     "qrMessageLabel": "Default QR message",
     "qrMessagePlaceholder": "Tennis club beers",
     "saveBanking": "Save banking profile",

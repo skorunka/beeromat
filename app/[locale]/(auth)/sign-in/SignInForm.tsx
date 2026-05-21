@@ -67,7 +67,7 @@ export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
             onExpire={() => setTurnstileToken(null)}
           />
         ) : (
-          <p className="text-destructive text-sm">Turnstile site key missing</p>
+          <p className="text-destructive text-sm">{t('turnstileMissing')}</p>
         )}
 
         <Button

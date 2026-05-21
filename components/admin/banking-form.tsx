@@ -58,7 +58,7 @@ export function BankingForm({ initial }: BankingFormProps) {
         <Label htmlFor="bank-iban">{t('ibanLabel')}</Label>
         <Input
           id="bank-iban"
-          placeholder="CZ65 0800 0000 1920 0014 5399"
+          placeholder={t('ibanPlaceholder')}
           autoComplete="off"
           value={iban}
           onChange={(e) => setIban(e.target.value)}
@@ -77,7 +77,7 @@ export function BankingForm({ initial }: BankingFormProps) {
         <Label htmlFor="bank-revolut">{t('revolutLabel')}</Label>
         <Input
           id="bank-revolut"
-          placeholder="@yourclub"
+          placeholder={t('revolutPlaceholder')}
           value={revolutHandle}
           onChange={(e) => setRevolutHandle(e.target.value)}
         />

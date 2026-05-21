@@ -53,8 +53,8 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 - [X] T009 [P] [US1] Localize `app/[locale]/(app)/bet/page.tsx` and `components/bet/*`.
 - [X] T010 [P] [US1] Localize `app/[locale]/(app)/history/` (list + `[sessionId]`).
 - [X] T011 [P] [US1] Localize `app/[locale]/(app)/admin/members/page.tsx`, `app/[locale]/(app)/admin/settings/banking/page.tsx`, `app/[locale]/(app)/admin/beer-types/` (list + `[id]/history`), and `components/admin/*`.
-- [ ] T012 [P] [US1] Audit and complete localization of `app/[locale]/(auth)/*` and `components/pin/*` / `components/auth/*` (the auth/PIN catalog largely exists — close any gaps).
-- [ ] T013 [US1] Run `pnpm i18n:check` and fix every catalog-parity and hardcoded-string failure until it exits zero (depends on T002 + T004–T012).
+- [X] T012 [P] [US1] Audit and complete localization of `app/[locale]/(auth)/*` and `components/pin/*` / `components/auth/*` (the auth/PIN catalog largely exists — close any gaps).
+- [X] T013 [US1] Run `pnpm i18n:check` and fix every catalog-parity and hardcoded-string failure until it exits zero (depends on T002 + T004–T012).
 - [ ] T014 [US1] E2E `tests/e2e/ux-i18n.spec.ts` — assert representative screens render fully in `cs` and in `en` with no raw catalog keys (Acceptance Scenarios 1–2).
 
 **Checkpoint**: UI fully bilingual; gate 6 green.

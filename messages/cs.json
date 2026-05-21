@@ -12,7 +12,8 @@
     "saving": "Ukládání…",
     "delete": "Smazat",
     "back": "Zpět",
-    "backHome": "Zpět na úvod"
+    "backHome": "Zpět na úvod",
+    "close": "Zavřít"
   },
   "nav": {
     "home": "Úvod",
@@ -32,7 +33,8 @@
       "submit": "Poslat odkaz",
       "checkInbox": "Pokud je váš e-mail pozvaný, přijde vám přihlašovací odkaz.",
       "linkExpiresIn": "Odkaz platí 5 minut.",
-      "linkSent": "Odkaz byl odeslán. Zkontrolujte si e-mail."
+      "linkSent": "Odkaz byl odeslán. Zkontrolujte si e-mail.",
+      "turnstileMissing": "Chybí klíč Turnstile"
     },
     "magicLink": {
       "verifyingTitle": "Přihlašujeme vás…",
@@ -62,13 +64,17 @@
     }
   },
   "invitation": {
-    "title": "Máte pozvánku do klubu {clubName}",
-    "displayNameLabel": "Vaše jméno",
-    "displayNamePlaceholder": "Jak vás zná váš klub",
+    "welcomeTitle": "Vítejte v beeromatu",
+    "welcomeBody": "Pro dokončení pozvánky zadejte své zobrazované jméno. Poté vám e-mailem pošleme jednorázový přihlašovací odkaz.",
+    "displayNameLabel": "Zobrazované jméno",
     "submit": "Přijmout pozvánku",
-    "welcome": "Jste tady! Zkontrolujte si e-mail s přihlašovacím odkazem.",
-    "invalidTitle": "Tato pozvánka už neplatí",
-    "invalidBody": "Pozvánka mohla vypršet nebo už byla použita. Požádejte správce klubu o novou."
+    "working": "Pracuji…",
+    "acceptedTitle": "Jste tady!",
+    "acceptedBody": "Přihlašovací odkaz jsme poslali na {email}. Otevřete ho na tomto zařízení a dokončete nastavení.",
+    "acceptedNote": "Odkaz platí 5 minut.",
+    "errorInvalid": "Tento odkaz na pozvánku už neplatí. Požádejte správce klubu o nový.",
+    "errorNameRequired": "Zadejte prosím své zobrazované jméno.",
+    "errorGeneric": "Něco se pokazilo. Zkuste to prosím znovu."
   },
   "home": {
     "greeting": "Ahoj, {name}",
@@ -220,8 +226,10 @@
     "bankingSubtitle": "Bankovní údaje pro generování platebních QR kódů členů.",
     "ibanLabel": "IBAN",
     "ibanHint": "Nutné pro platby QR kódem. Vymazáním zakážete samoplacení členů.",
+    "ibanPlaceholder": "CZ65 0800 0000 1920 0014 5399",
     "accountHolderLabel": "Jméno majitele účtu",
     "revolutLabel": "Revolut handle",
+    "revolutPlaceholder": "@vasklub",
     "qrMessageLabel": "Výchozí zpráva QR kódu",
     "qrMessagePlaceholder": "Piva tenisového klubu",
     "saveBanking": "Uložit bankovní profil",

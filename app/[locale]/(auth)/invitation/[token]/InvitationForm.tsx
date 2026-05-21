@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ interface InvitationFormProps {
 }
 
 export function InvitationForm({ token }: InvitationFormProps) {
+  const t = useTranslations('invitation');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [accepted, setAccepted] = useState<{ email: string } | null>(null);
@@ -25,13 +27,11 @@ export function InvitationForm({ token }: InvitationFormProps) {
       if (result.ok) {
         setAccepted({ email: result.data?.email ?? '' });
       } else if (result.code === 'INVALID_INVITATION') {
-        setError(
-          'This invitation link is no longer valid. Ask your club admin to send a new one.',
-        );
+        setError(t('errorInvalid'));
       } else if (result.code === 'DISPLAY_NAME_REQUIRED') {
-        setError('Please enter your display name.');
+        setError(t('errorNameRequired'));
       } else {
-        setError('Something went wrong. Please try again.');
+        setError(t('errorGeneric'));
       }
     });
   }
@@ -39,27 +39,23 @@ export function InvitationForm({ token }: InvitationFormProps) {
   if (accepted) {
     return (
       <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 p-8 text-center">
-        <h1 className="text-2xl font-bold">You&apos;re in!</h1>
+        <h1 className="text-2xl font-bold">{t('acceptedTitle')}</h1>
         <p className="text-muted-foreground">
-          We&apos;ve sent a sign-in link to <strong>{accepted.email}</strong>. Open it on this
-          device to finish setup.
+          {t('acceptedBody', { email: accepted.email })}
         </p>
-        <p className="text-muted-foreground text-sm">The link expires in 5 minutes.</p>
+        <p className="text-muted-foreground text-sm">{t('acceptedNote')}</p>
       </main>
     );
   }
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 p-8">
-      <h1 className="text-2xl font-bold">Welcome to beeromat</h1>
-      <p className="text-muted-foreground text-center text-sm">
-        Set your display name to finish the invitation. We&apos;ll then email you a one-time
-        sign-in link.
-      </p>
+      <h1 className="text-2xl font-bold">{t('welcomeTitle')}</h1>
+      <p className="text-muted-foreground text-center text-sm">{t('welcomeBody')}</p>
 
       <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="displayName">Display name</Label>
+          <Label htmlFor="displayName">{t('displayNameLabel')}</Label>
           <Input
             id="displayName"
             type="text"
@@ -80,7 +76,7 @@ export function InvitationForm({ token }: InvitationFormProps) {
           disabled={!displayName || isPending}
           className="h-14 text-lg"
         >
-          {isPending ? 'Working…' : 'Accept invitation'}
+          {isPending ? t('working') : t('submit')}
         </Button>
       </form>
     </main>

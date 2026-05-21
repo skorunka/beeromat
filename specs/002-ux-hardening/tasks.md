@@ -50,7 +50,7 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 - [X] T006 [P] [US1] Localize `app/[locale]/(app)/log/page.tsx`, `app/[locale]/(app)/tab/page.tsx`, and `components/log/*`.
 - [X] T007 [P] [US1] Localize `app/[locale]/(app)/settle/page.tsx` and `components/settle/*`.
 - [X] T008 [P] [US1] Localize `app/[locale]/(app)/admin/pending/page.tsx`, `app/[locale]/(app)/admin/balances/` (list + `[memberId]`), and `components/treasurer/*`.
-- [ ] T009 [P] [US1] Localize `app/[locale]/(app)/bet/page.tsx` and `components/bet/*`.
+- [X] T009 [P] [US1] Localize `app/[locale]/(app)/bet/page.tsx` and `components/bet/*`.
 - [ ] T010 [P] [US1] Localize `app/[locale]/(app)/history/` (list + `[sessionId]`).
 - [ ] T011 [P] [US1] Localize `app/[locale]/(app)/admin/members/page.tsx`, `app/[locale]/(app)/admin/settings/banking/page.tsx`, `app/[locale]/(app)/admin/beer-types/` (list + `[id]/history`), and `components/admin/*`.
 - [ ] T012 [P] [US1] Audit and complete localization of `app/[locale]/(auth)/*` and `components/pin/*` / `components/auth/*` (the auth/PIN catalog largely exists — close any gaps).
@@ -138,7 +138,7 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 
 **Independent Test**: No session → guidance + log link; after logging, transfer list works.
 
-- [ ] T031 [US6] Replace the "No open session" dead end in `app/[locale]/(app)/bet/page.tsx` with guidance text ("a session starts when the first beer is logged") and a link to `/log` (contract C9); strings from the `bet` namespace.
+- [X] T031 [US6] Replace the "No open session" dead end in `app/[locale]/(app)/bet/page.tsx` with guidance text ("a session starts when the first beer is logged") and a link to `/log` (contract C9); strings from the `bet` namespace.
 - [ ] T032 [US6] E2E `tests/e2e/ux-bet-no-session.spec.ts` — with no open session the bet screen shows guidance + a log link; after a beer is logged the transferable list is available (Acceptance Scenarios 1–2).
 
 **Checkpoint**: No dead end on the bet screen.

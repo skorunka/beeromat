@@ -1,6 +1,7 @@
 'use client';
 
 import { useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 import {
@@ -31,21 +32,22 @@ export function TransferList({
   transferables: TransferableView[];
   transfers: BetTransferView[];
 }) {
+  const t = useTranslations('bet');
   const [isPending, startTransition] = useTransition();
 
   function handleTransfer(consumptionId: string) {
     startTransition(async () => {
       const result = await createBetTransferAction({ sourceConsumptionId: consumptionId });
       if (result.ok) {
-        toast.success('Transferred onto your tab.');
+        toast.success(t('transferred'));
       } else if (result.code === 'ALREADY_TRANSFERRED') {
-        toast.error('That drink has already been transferred.');
+        toast.error(t('alreadyTransferred'));
       } else if (result.code === 'OUT_OF_SCOPE') {
-        toast.error('That drink is from a closed session.');
+        toast.error(t('outOfScope'));
       } else if (result.code === 'SELF_TRANSFER') {
-        toast.error('You can only transfer another member’s drink.');
+        toast.error(t('selfTransfer'));
       } else {
-        toast.error('Could not transfer that drink.');
+        toast.error(t('transferFailed'));
       }
     });
   }
@@ -54,13 +56,13 @@ export function TransferList({
     startTransition(async () => {
       const result = await voidBetTransferAction({ betTransferId });
       if (result.ok) {
-        toast.success('Transfer undone.');
+        toast.success(t('undoneToast'));
       } else if (result.code === 'ALREADY_VOIDED') {
-        toast.error('That transfer is already undone.');
+        toast.error(t('alreadyVoided'));
       } else if (result.code === 'FORBIDDEN') {
-        toast.error('Only the person who made the transfer (or a treasurer) can undo it.');
+        toast.error(t('voidForbidden'));
       } else {
-        toast.error('Could not undo that transfer.');
+        toast.error(t('undoFailed'));
       }
     });
   }
@@ -68,11 +70,9 @@ export function TransferList({
   return (
     <div className="flex flex-col gap-6">
       <section>
-        <h2 className="mb-2 text-sm font-medium">Drinks you can take</h2>
+        <h2 className="mb-2 text-sm font-medium">{t('drinksYouCanTake')}</h2>
         {transferables.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            No other members have logged a drink this session.
-          </p>
+          <p className="text-muted-foreground text-sm">{t('noOtherDrinks')}</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {transferables.map((c) => (
@@ -86,11 +86,11 @@ export function TransferList({
                   </div>
                   <Button
                     type="button"
-                    size="sm"
+                    className="h-11"
                     disabled={isPending}
                     onClick={() => handleTransfer(c.consumptionId)}
                   >
-                    Transfer to me
+                    {t('transferToMe')}
                   </Button>
                 </Card>
               </li>
@@ -101,33 +101,33 @@ export function TransferList({
 
       {transfers.length > 0 ? (
         <section>
-          <h2 className="mb-2 text-sm font-medium">Bets this session</h2>
+          <h2 className="mb-2 text-sm font-medium">{t('betsThisSession')}</h2>
           <ul className="flex flex-col gap-2">
-            {transfers.map((t) => (
-              <li key={t.id}>
+            {transfers.map((tr) => (
+              <li key={tr.id}>
                 <Card
                   className={`flex items-center justify-between gap-3 p-3 ${
-                    t.voided ? 'opacity-50' : ''
+                    tr.voided ? 'opacity-50' : ''
                   }`}
                 >
                   <div className="min-w-0">
                     <div className="truncate text-sm">
-                      {t.description}
-                      {t.voided ? ' · undone' : ''}
+                      {tr.description}
+                      {tr.voided ? ` · ${t('undone')}` : ''}
                     </div>
                     <div className="text-muted-foreground font-mono text-xs">
-                      {t.amountDisplay}
+                      {tr.amountDisplay}
                     </div>
                   </div>
-                  {t.canVoid ? (
+                  {tr.canVoid ? (
                     <Button
                       type="button"
-                      size="sm"
                       variant="ghost"
+                      className="h-11"
                       disabled={isPending}
-                      onClick={() => handleVoid(t.id)}
+                      onClick={() => handleVoid(tr.id)}
                     >
-                      Undo
+                      {t('undo')}
                     </Button>
                   ) : null}
                 </Card>

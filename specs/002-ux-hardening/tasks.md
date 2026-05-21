@@ -55,7 +55,7 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 - [X] T011 [P] [US1] Localize `app/[locale]/(app)/admin/members/page.tsx`, `app/[locale]/(app)/admin/settings/banking/page.tsx`, `app/[locale]/(app)/admin/beer-types/` (list + `[id]/history`), and `components/admin/*`.
 - [X] T012 [P] [US1] Audit and complete localization of `app/[locale]/(auth)/*` and `components/pin/*` / `components/auth/*` (the auth/PIN catalog largely exists — close any gaps).
 - [X] T013 [US1] Run `pnpm i18n:check` and fix every catalog-parity and hardcoded-string failure until it exits zero (depends on T002 + T004–T012).
-- [ ] T014 [US1] E2E `tests/e2e/ux-i18n.spec.ts` — assert representative screens render fully in `cs` and in `en` with no raw catalog keys (Acceptance Scenarios 1–2).
+- [X] T014 [US1] E2E `tests/e2e/ux-i18n.spec.ts` — assert representative screens render fully in `cs` and in `en` with no raw catalog keys (Acceptance Scenarios 1–2).
 
 **Checkpoint**: UI fully bilingual; gate 6 green.
 
@@ -69,7 +69,7 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 
 - [X] T015 [US2] Audit `components/ui/button.tsx` size variants; raise the `sm` variant (or define an action size) so action buttons reach a ≥ 44px hit target without breaking icon/inline button forms.
 - [X] T016 [P] [US2] Apply the sizing across action buttons in `components/treasurer/pending-list.tsx`, `components/admin/beer-type-manager.tsx`, `components/bet/transfer-list.tsx`, and `components/settle/*` (replace `size="sm"` on action buttons).
-- [ ] T017 [US2] E2E `tests/e2e/ux-touch-targets.spec.ts` — at 360×640, assert every action button ≥ 44×44 via the `viewport.ts` helper.
+- [X] T017 [US2] E2E `tests/e2e/ux-touch-targets.spec.ts` — at 360×640, assert every action button ≥ 44×44 via the `viewport.ts` helper.
 
 **Checkpoint**: No sub-44px action target remains.
 
@@ -82,7 +82,7 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 **Independent Test**: At 360×640 a pending row shows amount/name prominently; the two actions are clearly separated.
 
 - [X] T018 [US3] Restructure the pending-claim row in `components/treasurer/pending-list.tsx` per contract C5 — amount and member name as the dominant elements; `Confirm received` and `Dispute` on a dedicated line with a clear separating gap; no ambiguous wrap at 360px.
-- [ ] T019 [US3] E2E `tests/e2e/ux-pending-row.spec.ts` — at 360×640, assert amount/name prominence and a measurable gap between Confirm and Dispute (Acceptance Scenarios 1–2).
+- [X] T019 [US3] E2E `tests/e2e/ux-pending-row.spec.ts` — at 360×640, assert amount/name prominence and a measurable gap between Confirm and Dispute (Acceptance Scenarios 1–2).
 
 **Checkpoint**: Pending row safe and legible on a small phone.
 
@@ -97,7 +97,7 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 - [X] T020 [US4] Add a `getRecentlyConfirmedPayments(clubId)` read query to `lib/db/queries/payments.ts` (reuses existing tables; no schema change).
 - [X] T021 [US4] Surface an "Undo confirmation" control (reason dialog → existing `voidConfirmedPaymentAction`) in `components/treasurer/pending-list.tsx` or a sibling component; offered ONLY for `confirmed` payments (contract C6, FR-008).
 - [X] T022 [US4] Render the recently-confirmed list on `app/[locale]/(app)/admin/pending/page.tsx`; add the new strings to the `treasurer` catalog namespace.
-- [ ] T023 [US4] E2E `tests/e2e/ux-confirm-undo.spec.ts` — confirm then undo with a reason, assert balance restored and the action absent for a non-confirmed payment (Acceptance Scenarios 1–2).
+- [X] T023 [US4] E2E `tests/e2e/ux-confirm-undo.spec.ts` — confirm then undo with a reason, assert balance restored and the action absent for a non-confirmed payment (Acceptance Scenarios 1–2).
 
 **Checkpoint**: The confirm one-way door is closed (constitution Principle V).
 
@@ -110,7 +110,7 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 **Independent Test**: From the unlock screen, forgot-PIN sends a sign-in link; no attempts spent.
 
 - [X] T024 [US5] Add a "Forgot PIN — email me a sign-in link" affordance to the `unlock` mode of `components/pin/pin-gate.tsx` — calls the existing `requestMagicLinkAction` for the signed-in user's email, shows a check-email confirmation, consumes no PIN attempts; add strings to the `pin` namespace.
-- [ ] T025 [US5] E2E `tests/e2e/ux-forgot-pin.spec.ts` — from the unlock screen, forgot-PIN triggers a magic-link (verification row created) and spends no attempts (Acceptance Scenarios 1–2).
+- [X] T025 [US5] E2E `tests/e2e/ux-forgot-pin.spec.ts` — from the unlock screen, forgot-PIN triggers a magic-link (verification row created) and spends no attempts (Acceptance Scenarios 1–2).
 
 **Checkpoint**: The occasional user can no longer get trapped.
 
@@ -126,7 +126,7 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 - [X] T027 [US7] Render the nav in `app/[locale]/(app)/layout.tsx` — compute role-visible entries server-side from the session; add bottom padding so content and the keyboard are not occluded (contract C3).
 - [X] T028 [P] [US7] Create the Admin hub `app/[locale]/(app)/admin/page.tsx` — links to members, banking profile, beer-types (contract C4); strings from the `admin` namespace.
 - [X] T029 [US7] Remove now-redundant ad-hoc navigation from `app/[locale]/(app)/page.tsx` (the Log/Tab/Bet/Settle/treasurer/stock link blocks) and the admin cross-links superseded by the hub + nav.
-- [ ] T030 [US7] E2E `tests/e2e/ux-navigation.spec.ts` — daily screens reachable one tap apart; Admin hub lists the three areas; role-gated nav entries hidden for a plain member (Acceptance Scenarios 1–3).
+- [X] T030 [US7] E2E `tests/e2e/ux-navigation.spec.ts` — daily screens reachable one tap apart; Admin hub lists the three areas; role-gated nav entries hidden for a plain member (Acceptance Scenarios 1–3).
 
 **Checkpoint**: Navigation no longer routes through the home screen.
 
@@ -139,7 +139,7 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 **Independent Test**: No session → guidance + log link; after logging, transfer list works.
 
 - [X] T031 [US6] Replace the "No open session" dead end in `app/[locale]/(app)/bet/page.tsx` with guidance text ("a session starts when the first beer is logged") and a link to `/log` (contract C9); strings from the `bet` namespace.
-- [ ] T032 [US6] E2E `tests/e2e/ux-bet-no-session.spec.ts` — with no open session the bet screen shows guidance + a log link; after a beer is logged the transferable list is available (Acceptance Scenarios 1–2).
+- [X] T032 [US6] E2E `tests/e2e/ux-bet-no-session.spec.ts` — with no open session the bet screen shows guidance + a log link; after a beer is logged the transferable list is available (Acceptance Scenarios 1–2).
 
 **Checkpoint**: No dead end on the bet screen.
 
@@ -153,7 +153,7 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 
 - [X] T033 [P] [US8] Add `app/[locale]/(app)/loading.tsx` — a shared skeleton for the authenticated group.
 - [X] T034 [P] [US8] Add content-shaped `loading.tsx` for `app/[locale]/(app)/admin/pending/`, `app/[locale]/(app)/admin/balances/`, and `app/[locale]/(app)/history/`.
-- [ ] T035 [US8] E2E `tests/e2e/ux-loading.spec.ts` — assert a loading placeholder appears on navigation to a data-heavy route (Acceptance Scenario 1).
+- [X] T035 [US8] E2E `tests/e2e/ux-loading.spec.ts` — assert a loading placeholder appears on navigation to a data-heavy route (Acceptance Scenario 1).
 
 **Checkpoint**: Every transition gives feedback.
 

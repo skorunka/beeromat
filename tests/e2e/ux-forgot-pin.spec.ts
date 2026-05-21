@@ -1,5 +1,8 @@
+import { eq } from 'drizzle-orm';
+
 import { test, expect } from './fixtures/test';
 import { signInAndUnlock } from './fixtures/auth';
+import { deviceSessions } from '@/lib/db/schema/members';
 
 // US5 (v1.1) — a forgotten-PIN escape on the unlock screen.
 
@@ -11,16 +14,19 @@ test.describe('@ux-forgot-pin recover a forgotten PIN', () => {
     page,
     seed,
   }) => {
-    // A 1-second inactivity window so the device goes stale (→ unlock
-    // screen) right after sign-in, without waiting hours.
-    const club = await seed.club({ deviceInactivityLockSeconds: 1 });
-    await seed.member({ clubId: club.id, role: 'member', email: EMAIL });
+    const club = await seed.club();
+    const { user } = await seed.member({ clubId: club.id, role: 'member', email: EMAIL });
 
     await signInAndUnlock(page, { email: EMAIL, pin: PIN });
 
-    // Let the device session go stale, then return — the PIN gate now
-    // renders in unlock mode.
-    await page.waitForTimeout(1500);
+    // Age the device session past the inactivity window directly — the
+    // PIN gate then renders in unlock mode on the next load. (Doing this
+    // by waiting real time would also delay signInAndUnlock itself.)
+    await seed.db
+      .update(deviceSessions)
+      .set({ lastUnlockAt: new Date(0) })
+      .where(eq(deviceSessions.userId, user.id));
+
     await page.goto('/');
     await expect(page.locator('#pin')).toBeVisible();
     // Unlock mode has no confirm-PIN field (that is setup mode).

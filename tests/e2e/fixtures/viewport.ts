@@ -16,6 +16,9 @@ export async function setPhoneViewport(page: Page): Promise<void> {
  * least 44×44 CSS px (constitution Principle I — one-thumb operation).
  */
 export async function expectThumbSized(locator: Locator): Promise<void> {
+  // Wait for the controls to render before measuring — count() alone
+  // does not auto-retry and can race a server-component navigation.
+  await locator.first().waitFor({ state: 'visible', timeout: 15_000 });
   const count = await locator.count();
   expect(count, 'expected at least one control to measure').toBeGreaterThan(0);
   for (let i = 0; i < count; i += 1) {

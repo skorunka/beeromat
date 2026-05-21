@@ -33,9 +33,10 @@ test.describe('@ux-navigation persistent nav + admin hub', () => {
     await signInAndUnlock(page, { email: ADMIN_EMAIL, pin: PIN });
 
     await page.goto('/admin');
-    await expect(page.getByText('Members')).toBeVisible();
-    await expect(page.getByText('Banking profile')).toBeVisible();
-    await expect(page.getByText('Beer types & stock')).toBeVisible();
+    // Each admin area is a hub card linking to its route.
+    await expect(page.locator('a[href$="/admin/members"]')).toBeVisible();
+    await expect(page.locator('a[href$="/admin/settings/banking"]')).toBeVisible();
+    await expect(page.locator('a[href$="/admin/beer-types"]')).toBeVisible();
   });
 
   test('scenario 3: a plain member sees no admin entry in the nav', async ({ page, seed }) => {

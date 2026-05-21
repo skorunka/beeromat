@@ -34,8 +34,8 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 
 **⚠️ Verification infrastructure — constitution v1.4.0. Must complete before user-story verification.**
 
-- [ ] T002 Implement the `i18n:check` gate in `scripts/i18n-check.ts` per contract C1 / research R1: (a) flatten and diff the `cs.json`/`en.json` key sets; (b) scan `app/**` and `components/**` `.tsx` for hardcoded user-facing literals (JSX text nodes; `placeholder`/`aria-label`/`alt`/`title` attributes; `toast.*` arguments); exit non-zero with `file:line` for each finding. (`package.json` already maps `pnpm i18n:check`.)
-- [ ] T003 [P] Add `tests/e2e/fixtures/viewport.ts` — a 360×640 viewport helper and a control-size assertion (rendered bounding box ≥ 44×44 px) for the US2 and US3 specs.
+- [X] T002 Implement the `i18n:check` gate in `scripts/i18n-check.ts` per contract C1 / research R1: (a) flatten and diff the `cs.json`/`en.json` key sets; (b) scan `app/**` and `components/**` `.tsx` for hardcoded user-facing literals (JSX text nodes; `placeholder`/`aria-label`/`alt`/`title` attributes; `toast.*` arguments); exit non-zero with `file:line` for each finding. (`package.json` already maps `pnpm i18n:check`.)
+- [X] T003 [P] Add `tests/e2e/fixtures/viewport.ts` — a 360×640 viewport helper and a control-size assertion (rendered bounding box ≥ 44×44 px) for the US2 and US3 specs.
 
 ---
 

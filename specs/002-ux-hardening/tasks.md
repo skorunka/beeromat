@@ -151,8 +151,8 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 
 **Independent Test**: Under throttling, each navigation shows a placeholder within 300 ms.
 
-- [ ] T033 [P] [US8] Add `app/[locale]/(app)/loading.tsx` — a shared skeleton for the authenticated group.
-- [ ] T034 [P] [US8] Add content-shaped `loading.tsx` for `app/[locale]/(app)/admin/pending/`, `app/[locale]/(app)/admin/balances/`, and `app/[locale]/(app)/history/`.
+- [X] T033 [P] [US8] Add `app/[locale]/(app)/loading.tsx` — a shared skeleton for the authenticated group.
+- [X] T034 [P] [US8] Add content-shaped `loading.tsx` for `app/[locale]/(app)/admin/pending/`, `app/[locale]/(app)/admin/balances/`, and `app/[locale]/(app)/history/`.
 - [ ] T035 [US8] E2E `tests/e2e/ux-loading.spec.ts` — assert a loading placeholder appears on navigation to a data-heavy route (Acceptance Scenario 1).
 
 **Checkpoint**: Every transition gives feedback.

@@ -15,7 +15,7 @@ test('@smoke sign-in page renders on the test server', async ({ page }) => {
   expect(response!.status(), 'http status').toBe(200);
 
   // Czech sign-in heading from messages/cs.json -> auth.signIn.title
-  await expect(page.getByRole('heading', { name: 'Přihlásit se' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Přihlášení' })).toBeVisible();
   await expect(page.getByLabel('E-mail')).toBeVisible();
 });
 

@@ -165,7 +165,7 @@ test.describe('@us3 treasurer confirms payments', () => {
     await signInAndUnlock(page, { email: memberEmail, pin: MEMBER_PIN });
 
     // The banner renders in the (app) layout on every protected page.
-    await expect(page.getByText(/was disputed/i)).toBeVisible();
+    await expect(page.getByText(/got flagged/i)).toBeVisible();
     await expect(page.getByText(/Amount does not match the transfer/i)).toBeVisible();
   });
 });

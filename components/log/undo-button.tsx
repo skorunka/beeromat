@@ -30,7 +30,6 @@ export function UndoButton({ consumptionId }: UndoButtonProps) {
     <Button
       type="button"
       variant="ghost"
-      size="sm"
       onClick={handleUndo}
       disabled={isPending}
     >

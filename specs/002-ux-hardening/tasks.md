@@ -67,8 +67,8 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 
 **Independent Test**: Measure action buttons at 360×640 — all ≥ 44px.
 
-- [ ] T015 [US2] Audit `components/ui/button.tsx` size variants; raise the `sm` variant (or define an action size) so action buttons reach a ≥ 44px hit target without breaking icon/inline button forms.
-- [ ] T016 [P] [US2] Apply the sizing across action buttons in `components/treasurer/pending-list.tsx`, `components/admin/beer-type-manager.tsx`, `components/bet/transfer-list.tsx`, and `components/settle/*` (replace `size="sm"` on action buttons).
+- [X] T015 [US2] Audit `components/ui/button.tsx` size variants; raise the `sm` variant (or define an action size) so action buttons reach a ≥ 44px hit target without breaking icon/inline button forms.
+- [X] T016 [P] [US2] Apply the sizing across action buttons in `components/treasurer/pending-list.tsx`, `components/admin/beer-type-manager.tsx`, `components/bet/transfer-list.tsx`, and `components/settle/*` (replace `size="sm"` on action buttons).
 - [ ] T017 [US2] E2E `tests/e2e/ux-touch-targets.spec.ts` — at 360×640, assert every action button ≥ 44×44 via the `viewport.ts` helper.
 
 **Checkpoint**: No sub-44px action target remains.

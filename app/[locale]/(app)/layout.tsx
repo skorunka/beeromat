@@ -1,9 +1,8 @@
 import type { Route } from 'next';
 import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
 
 import { auth } from '@/lib/auth/better-auth';
-import { currentSession } from '@/lib/auth/session';
+import { currentSession, localeRedirect } from '@/lib/auth/session';
 import { deviceSessionState } from '@/lib/auth/device-session-state';
 import { getDisputedClaimsForMember } from '@/lib/db/queries/payments';
 import { formatMoney } from '@/lib/format';
@@ -27,10 +26,10 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
   // Cheap session probe first — avoid the deeper query if there's no
   // Better Auth session.
   const raw = await auth.api.getSession({ headers: await headers() });
-  if (!raw?.user) redirect('/sign-in');
+  if (!raw?.user) return localeRedirect('/sign-in');
 
   const ctx = await currentSession();
-  if (!ctx) redirect('/sign-in');
+  if (!ctx) return localeRedirect('/sign-in');
 
   const state = deviceSessionState(ctx.deviceSession, ctx.club.deviceInactivityLockSeconds);
 

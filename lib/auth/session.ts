@@ -1,14 +1,16 @@
 import 'server-only';
-import type { Route } from 'next';
 import { cookies, headers } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { getLocale } from 'next-intl/server';
 import { eq } from 'drizzle-orm';
 
-// Locale-less redirect targets. At runtime the next-intl proxy
-// resolves `/sign-in` and `/` to the active locale (e.g. `/cs/...`).
-// typedRoutes only knows the `/[locale]/...` forms, so these are cast.
-const SIGN_IN: Route = '/sign-in' as Route;
-const APP_HOME: Route = '/' as Route;
+// Locale-aware redirect — preserves the active locale prefix, so an
+// /en/* visitor hitting an auth guard lands on /en/sign-in rather than
+// the default-locale sign-in.
+import { redirect } from '@/lib/i18n/navigation';
+
+// Locale-less redirect targets; localeRedirect prepends the active locale.
+const SIGN_IN = '/sign-in';
+const APP_HOME = '/';
 
 import { db } from '@/lib/db/client';
 import { clubs, type Club } from '@/lib/db/schema/clubs';
@@ -75,12 +77,23 @@ export async function currentSession(): Promise<SessionContext | null> {
 // works identically in Server Components and Server Actions.
 
 /**
+ * Locale-aware redirect, typed `never`. next-intl's redirect() is not
+ * typed `never`, so callers would lose control-flow narrowing; this
+ * wrapper always terminates (redirect throws — the throw is a
+ * belt-and-braces guard) so `if (!x) return localeRedirect(...)` narrows.
+ */
+export async function localeRedirect(href: string): Promise<never> {
+  redirect({ href, locale: await getLocale() });
+  throw new Error('localeRedirect: redirect() did not throw');
+}
+
+/**
  * Resolve the session context or redirect to /sign-in. The first line
  * of every protected Server Component and Server Action.
  */
 export async function requireMember(): Promise<SessionContext> {
   const ctx = await currentSession();
-  if (!ctx) redirect(SIGN_IN);
+  if (!ctx) return localeRedirect(SIGN_IN);
   return ctx;
 }
 
@@ -92,7 +105,7 @@ export async function requireMember(): Promise<SessionContext> {
 export async function requireRole(...allowed: Role[]): Promise<SessionContext> {
   const ctx = await requireMember();
   const ok = allowed.some((required) => roleSatisfies(ctx.member.role, required));
-  if (!ok) redirect(APP_HOME);
+  if (!ok) return localeRedirect(APP_HOME);
   return ctx;
 }
 
@@ -104,12 +117,12 @@ export async function requireRole(...allowed: Role[]): Promise<SessionContext> {
 export async function requireUnlocked(): Promise<SessionContext> {
   const ctx = await requireMember();
   const ds = ctx.deviceSession;
-  if (!ds) redirect(APP_HOME); // No PIN set for this device → PIN setup gate.
-  if (ds.lockedUntil && ds.lockedUntil > new Date()) redirect(APP_HOME);
+  if (!ds) return localeRedirect(APP_HOME); // No PIN on this device → setup gate.
+  if (ds.lockedUntil && ds.lockedUntil > new Date()) return localeRedirect(APP_HOME);
 
   const inactivityWindowMs = ctx.club.deviceInactivityLockSeconds * 1000;
   if (!ds.lastUnlockAt || Date.now() - ds.lastUnlockAt.getTime() > inactivityWindowMs) {
-    redirect(APP_HOME); // Inactivity window exceeded → re-prompt for PIN.
+    return localeRedirect(APP_HOME); // Inactivity window exceeded → re-prompt.
   }
   return ctx;
 }

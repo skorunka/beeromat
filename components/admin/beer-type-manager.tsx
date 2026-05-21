@@ -1,7 +1,7 @@
 'use client';
 
 import type { Route } from 'next';
-import Link from 'next/link';
+import { Link } from '@/lib/i18n/navigation';
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';

@@ -1,5 +1,5 @@
 import type { Route } from 'next';
-import Link from 'next/link';
+import { Link } from '@/lib/i18n/navigation';
 import { notFound } from 'next/navigation';
 import { and, eq } from 'drizzle-orm';
 import { getTranslations, setRequestLocale } from 'next-intl/server';

@@ -1,10 +1,10 @@
 'use client';
 
 import type { Route } from 'next';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Clock, Dices, Home, Plus, Receipt, Shield } from 'lucide-react';
+
+import { Link, usePathname } from '@/lib/i18n/navigation';
 
 // Persistent bottom navigation for the daily member flows (US7).
 // The role-gated operational entry (treasurer/stock/admin) is decided
@@ -29,15 +29,10 @@ export interface NavItem {
   href: Route;
 }
 
-/** Strip the leading /cs or /en locale segment for active-state matching. */
-function localelessPath(pathname: string): string {
-  const stripped = pathname.replace(/^\/(cs|en)(?=\/|$)/, '');
-  return stripped === '' ? '/' : stripped;
-}
-
 export function BottomNav({ items }: { items: NavItem[] }) {
   const t = useTranslations('nav');
-  const path = localelessPath(usePathname());
+  // next-intl's usePathname returns the path without the locale prefix.
+  const path = usePathname();
 
   return (
     <nav

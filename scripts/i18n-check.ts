@@ -1,16 +1,20 @@
 /**
  * i18n:check — the sixth verification gate (constitution v1.4.0).
  *
- * Fails (exit 1) when either:
+ * Fails (exit 1) when any of:
  *   1. messages/cs.json and messages/en.json have differing key sets.
  *   2. an app/** or components/** .tsx file contains a hardcoded
  *      user-facing string instead of a next-intl catalog lookup.
+ *   3. a `t('key')` call resolves — under the namespace its
+ *      useTranslations/getTranslations was scoped to — to a key that
+ *      does not exist in the catalog. (Catches the wrong-namespace bug
+ *      class, e.g. `useTranslations('settle')` then `t('backHome')`,
+ *      which otherwise only surfaces as a runtime MISSING_MESSAGE.)
  *
- * The hardcoded-string scan is deliberately conservative — a perfect
- * detector is undecidable. It flags the v1 failure mode (whole screens
- * of literal English) without drowning the build in false positives.
+ * Checks 2 and 3 are heuristic — a perfect detector is undecidable.
+ * They cover the real failure modes without false-positive noise.
  * Silence a false positive by extracting the string to the catalog,
- * never by an inline ignore — the pressure must point at the catalog.
+ * never by an inline ignore.
  *
  * Run: pnpm i18n:check
  */
@@ -19,8 +23,12 @@ import { join, relative } from 'node:path';
 
 const ROOT = process.cwd();
 const SCAN_DIRS = ['app', 'components'];
+// The global not-found renders with no locale context (the [locale]
+// layout throws notFound() before its providers), so it legitimately
+// carries hardcoded copy in the deployment-default language.
+const EXCLUDED = new Set(['app/not-found.tsx']);
 
-// ── 1. Catalog parity ────────────────────────────────────────────────
+// ── shared ───────────────────────────────────────────────────────────
 function flatten(obj: unknown, prefix = ''): string[] {
   if (obj === null || typeof obj !== 'object') return [prefix];
   return Object.entries(obj as Record<string, unknown>).flatMap(([k, v]) =>
@@ -28,18 +36,10 @@ function flatten(obj: unknown, prefix = ''): string[] {
   );
 }
 
-function checkCatalogParity(): string[] {
-  const cs = JSON.parse(readFileSync(join(ROOT, 'messages/cs.json'), 'utf8'));
-  const en = JSON.parse(readFileSync(join(ROOT, 'messages/en.json'), 'utf8'));
-  const csKeys = new Set(flatten(cs));
-  const enKeys = new Set(flatten(en));
-  const problems: string[] = [];
-  for (const k of csKeys) if (!enKeys.has(k)) problems.push(`  key in cs.json missing from en.json: ${k}`);
-  for (const k of enKeys) if (!csKeys.has(k)) problems.push(`  key in en.json missing from cs.json: ${k}`);
-  return problems;
+function loadCatalog(locale: string): Record<string, unknown> {
+  return JSON.parse(readFileSync(join(ROOT, `messages/${locale}.json`), 'utf8'));
 }
 
-// ── 2. Hardcoded user-facing string scan ─────────────────────────────
 function tsxFiles(dir: string): string[] {
   const abs = join(ROOT, dir);
   let entries: string[];
@@ -56,12 +56,23 @@ function tsxFiles(dir: string): string[] {
   });
 }
 
-// A literal "looks like prose": has a run of letters and a space or is a
-// multi-word phrase — i.e. something a member would read, not an id.
+const lineOf = (src: string, idx: number) => src.slice(0, idx).split('\n').length;
+
+// ── 1. Catalog parity ────────────────────────────────────────────────
+function checkCatalogParity(): string[] {
+  const csKeys = new Set(flatten(loadCatalog('cs')));
+  const enKeys = new Set(flatten(loadCatalog('en')));
+  const problems: string[] = [];
+  for (const k of csKeys) if (!enKeys.has(k)) problems.push(`  key in cs.json missing from en.json: ${k}`);
+  for (const k of enKeys) if (!csKeys.has(k)) problems.push(`  key in en.json missing from cs.json: ${k}`);
+  return problems;
+}
+
+// ── 2. Hardcoded user-facing string scan ─────────────────────────────
 function looksLikeProse(s: string): boolean {
   const trimmed = s.trim();
   if (trimmed.length < 2) return false;
-  if (!/[A-Za-z]{2,}/.test(trimmed)) return false; // needs letters
+  if (!/[A-Za-z]{2,}/.test(trimmed)) return false;
   if (/^[a-z0-9-]+$/.test(trimmed)) return false; // slug / token / class
   if (/^[A-Z][A-Z0-9_]+$/.test(trimmed)) return false; // CONSTANT
   return /\s/.test(trimmed) || /[A-Za-z]{4,}/.test(trimmed);
@@ -69,45 +80,82 @@ function looksLikeProse(s: string): boolean {
 
 const ATTR_RE = /\b(?:placeholder|aria-label|alt|title)\s*=\s*"([^"]+)"/g;
 const TOAST_RE = /toast\.(?:success|error|info|warning)\(\s*['"]([^'"]+)['"]/g;
-// JSX text node: ">  Some words  <" with no interpolation braces.
 const JSX_TEXT_RE = />\s*([A-Za-z][^<>{}]*?)\s*</g;
 
-function scanFile(rel: string): string[] {
+function scanHardcoded(rel: string): string[] {
   const src = readFileSync(join(ROOT, rel), 'utf8');
   const lines = src.split('\n');
   const findings: string[] = [];
-  const lineOf = (idx: number) => src.slice(0, idx).split('\n').length;
 
   for (const re of [ATTR_RE, TOAST_RE]) {
     re.lastIndex = 0;
     let m: RegExpExecArray | null;
     while ((m = re.exec(src)) !== null) {
       if (looksLikeProse(m[1]!)) {
-        findings.push(`  ${rel}:${lineOf(m.index)} — hardcoded "${m[1]}"`);
+        findings.push(`  ${rel}:${lineOf(src, m.index)} — hardcoded "${m[1]}"`);
       }
     }
   }
 
-  // JSX text: skip lines that already resolve through a t(...) call.
   JSX_TEXT_RE.lastIndex = 0;
   let jm: RegExpExecArray | null;
   while ((jm = JSX_TEXT_RE.exec(src)) !== null) {
     const text = jm[1]!;
-    const ln = lineOf(jm.index);
-    const lineText = lines[ln - 1] ?? '';
-    if (looksLikeProse(text) && !/\bt\(/.test(lineText)) {
+    const ln = lineOf(src, jm.index);
+    if (looksLikeProse(text) && !/\bt\(/.test(lines[ln - 1] ?? '')) {
       findings.push(`  ${rel}:${ln} — hardcoded JSX text "${text.trim()}"`);
     }
   }
   return findings;
 }
 
-// ── Run ──────────────────────────────────────────────────────────────
-const parity = checkCatalogParity();
-const hardcoded = SCAN_DIRS.flatMap((d) => tsxFiles(d)).flatMap(scanFile);
+// ── 3. Namespace-scoped t() key resolution ───────────────────────────
+// `const <name> = (await) useTranslations|getTranslations('<ns>')`
+const HOOK_RE =
+  /\b(\w+)\s*=\s*(?:await\s+)?(?:useTranslations|getTranslations)\(\s*(?:['"]([^'"]+)['"])?\s*\)/g;
 
-if (parity.length === 0 && hardcoded.length === 0) {
-  console.log('i18n:check — OK (catalogs match, no hardcoded user-facing strings)');
+function scanTranslationKeys(rel: string, keys: Set<string>): string[] {
+  const src = readFileSync(join(ROOT, rel), 'utf8');
+  const namespaces = new Map<string, string>();
+  HOOK_RE.lastIndex = 0;
+  let hm: RegExpExecArray | null;
+  while ((hm = HOOK_RE.exec(src)) !== null) {
+    namespaces.set(hm[1]!, hm[2] ?? '');
+  }
+  if (namespaces.size === 0) return [];
+
+  const findings: string[] = [];
+  for (const [varName, ns] of namespaces) {
+    // <var>('key') and <var>.rich|markup|raw('key') — NOT .has() (an
+    // existence probe legitimately passes a maybe-absent key).
+    const callRe = new RegExp(
+      `\\b${varName}(?:\\.(?:rich|markup|raw))?\\(\\s*['"\`]([^'"\`]+)['"\`]`,
+      'g',
+    );
+    let cm: RegExpExecArray | null;
+    while ((cm = callRe.exec(src)) !== null) {
+      const key = cm[1]!;
+      const full = ns ? `${ns}.${key}` : key;
+      if (!keys.has(full)) {
+        findings.push(`  ${rel}:${lineOf(src, cm.index)} — t() key not in catalog: ${full}`);
+      }
+    }
+  }
+  return findings;
+}
+
+// ── Run ──────────────────────────────────────────────────────────────
+const files = SCAN_DIRS.flatMap((d) => tsxFiles(d)).filter(
+  (f) => !EXCLUDED.has(f.replace(/\\/g, '/')),
+);
+const catalogKeys = new Set(flatten(loadCatalog('en')));
+
+const parity = checkCatalogParity();
+const hardcoded = files.flatMap(scanHardcoded);
+const badKeys = parity.length === 0 ? files.flatMap((f) => scanTranslationKeys(f, catalogKeys)) : [];
+
+if (parity.length === 0 && hardcoded.length === 0 && badKeys.length === 0) {
+  console.log('i18n:check — OK (catalogs match, no hardcoded strings, all t() keys resolve)');
   process.exit(0);
 }
 
@@ -118,5 +166,9 @@ if (parity.length > 0) {
 if (hardcoded.length > 0) {
   console.error(`i18n:check — hardcoded strings FAILED (${hardcoded.length}):`);
   for (const h of hardcoded) console.error(h);
+}
+if (badKeys.length > 0) {
+  console.error(`i18n:check — unresolved t() keys FAILED (${badKeys.length}):`);
+  for (const b of badKeys) console.error(b);
 }
 process.exit(1);

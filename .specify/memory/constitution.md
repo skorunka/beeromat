@@ -1,47 +1,36 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.3.0 → 1.4.0
-Bump rationale: MINOR. Encodes the six framework lessons (L1-L6) from
-the beeromat v1 post-implementation UX review
-(specs/001-beer-consumption-ledger/ux-review.md, 2026-05-21).
+Version change: 1.4.0 → 1.5.0
+Bump rationale: MINOR. Adds a "User Input & Forms" standard: the app
+must not rely on the browser's native validation UI or native
+date/time pickers. Form validation runs through a form library with a
+shared Zod schema and in-app error rendering; date/time entry uses a
+locale-aware picker component.
 
-The trigger: the entire v1 UI shipped English-only despite a Czech
-audience and a wired-up i18n stack, because "add translations" was a
-task line item no verification gate could observe. A green pipeline
-proved the code matched the spec; it could not prove the spec's
-intent was fully met. This amendment closes that class of gap.
+The trigger: a review of input handling found forms leaning on the
+HTML `required` attribute (which surfaces the browser's default,
+unstyled, locale-ignoring validation bubbles) with Zod validating only
+server-side. No native date/time picker exists in the app yet, so that
+half of the rule is preventative.
 
 Changes:
-  - Verification Gates → adds a SIXTH gate, `i18n:check`; "five
-    gates" becomes "six gates". The E2E gate description is updated
-    to reflect SMTP-to-Mailpit (the Resend-interception wording was
-    stale).
-  - Principle V (Auditable History) → new UI-reversibility clause:
-    a reversible action MUST be reversible from the screen that
-    performed it, not only in the data layer.
-  - Development Workflow → three new rules: (a) Verifiable Tasks —
-    no task may exist unless a gate or acceptance test can observe
-    its completion; (b) a mandatory persona set in every spec, with
-    acceptance scenarios naming the persona served; (c) verification
-    infrastructure is a Foundational-phase deliverable.
-  - Tech Stack table → transactional-email row updated: the app
-    sends via SMTP (nodemailer); Resend remains the production SMTP
-    provider; Mailpit is the local/test container.
-  - Test/Prod Code Separation → adds the email SMTP_URL swap as a
-    worked config-not-code example (lesson L6, positive feedback).
+  - New section "User Input & Forms" after Internationalization &
+    Localization.
 
 No principle removed or fundamentally redefined → MINOR, not MAJOR.
 
-Templates flagged for follow-up alignment:
-  WARN spec-template.md — add a mandatory "Personas" section; require
-    each Acceptance Scenario to name the persona it serves.
-  WARN tasks-template.md — add the Verifiable Tasks rule to the task
-    generation guidance.
-  WARN plan-template.md — list "verification infrastructure" as an
-    explicit Foundational-phase deliverable.
+Implementation note: the rule is ratified now; the migration of the
+~8 existing forms off native validation is scheduled as a separate
+v1.2 feature (the in-flight v1.1 stays scoped to the UX-review
+findings). No date/time picker work is needed until a feature first
+requires date entry.
 
 ----- Prior amendment history (for reference) -----
+1.3.0 → 1.4.0 (2026-05-21, MINOR): Encoded the six UX-review framework
+  lessons — sixth `i18n:check` gate, Principle V UI-reversibility
+  clause, Verifiable Tasks / mandatory personas / verification-infra
+  workflow rules, SMTP email stack row.
 1.2.0 → 1.3.0 (2026-05-19, MINOR): Added "Test/Prod Code Separation"
   hard rule (zero test-only branches in production source) and
   per-project non-default container port hygiene.
@@ -250,6 +239,38 @@ the host-port choices.
 - Date, time, and number formatting MUST use `Intl.*` APIs with the
   user's locale.
 
+## User Input & Forms
+
+The app MUST NOT delegate input handling to the browser's defaults.
+
+- **Validation.** Form validation MUST run through a form library
+  (the chosen standard is `react-hook-form` with a Zod resolver,
+  reusing the same Zod schemas the Server Actions already validate
+  with), and validation errors MUST be rendered in-app with catalog
+  strings. The HTML `required` attribute and other native constraints
+  MUST NOT be the user-facing validation mechanism — the browser's
+  default validation bubbles are unstyled, locale-ignoring, and
+  inconsistent across browsers. Server-side Zod validation in the
+  Server Action remains the authoritative boundary check; the client
+  library is the UX layer over the same schema.
+- **Date & time entry.** When a feature needs the user to pick a date
+  or time, it MUST use a locale-aware picker component (the chosen
+  standard is `react-day-picker`), never a native `<input type="date">`
+  / `type="time">` / `type="datetime-local">`, which render
+  inconsistently and ignore the application locale. Display-only dates
+  continue to use `Intl.*` (see Internationalization).
+
+**Rationale:** A clubhouse app on a range of phones must look and
+behave the same for every member; native validation popups and native
+date pickers vary by browser and OS and silently ignore the chosen
+language. Routing both through app-controlled, locale-aware components
+keeps the experience consistent and Czech-correct.
+
+**Status:** Ratified in v1.5.0. The chosen library versions are pinned
+when the v1.2 forms-migration feature is planned (web-verified latest
+stable at that time). Existing forms are migrated under that feature;
+new forms comply from creation.
+
 ## Development Workflow & Quality Gates
 
 - Work flows through the spec-kit pipeline: `/speckit-constitution` →
@@ -423,4 +444,4 @@ a review acknowledging the version-bump rationale.
 Constitution Check gate; principle violations must be justified or fixed,
 not waived informally.
 
-**Version**: 1.4.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-21
+**Version**: 1.5.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-21

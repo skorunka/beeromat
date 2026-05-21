@@ -1,4 +1,3 @@
-import type { Route } from 'next';
 import Link from 'next/link';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
@@ -6,9 +5,10 @@ import { Card } from '@/components/ui/card';
 import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
 import { formatMoney } from '@/lib/format';
-import { roleSatisfies } from '@/lib/permissions';
 
-// Home of the authenticated app — quick balance + entry points.
+// Home of the authenticated app — the dashboard. Daily destinations
+// live in the persistent bottom nav (US7); home shows the balance and
+// the one balance-dependent action, Settle up.
 export default async function AppHomePage({
   params,
 }: {
@@ -20,8 +20,6 @@ export default async function AppHomePage({
   const ctx = await requireUnlocked();
   const t = await getTranslations('home');
   const balanceMinor = await memberBalance(ctx.member.id);
-  const isTreasurer = roleSatisfies(ctx.member.role, 'treasurer');
-  const isStockManager = roleSatisfies(ctx.member.role, 'stock_manager');
 
   return (
     <main className="mx-auto max-w-md p-4">
@@ -39,73 +37,13 @@ export default async function AppHomePage({
         </div>
       </Card>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Link
-          href="/log"
-          className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-24 items-center justify-center rounded-lg text-lg font-semibold"
-        >
-          {t('logABeer')}
-        </Link>
-        <Link
-          href="/tab"
-          className="border-input bg-background hover:bg-accent flex h-24 items-center justify-center rounded-lg border text-lg font-semibold"
-        >
-          {t('myTab')}
-        </Link>
-      </div>
-
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <Link
-          href={'/bet' as Route}
-          className="border-input bg-background hover:bg-accent flex h-14 items-center justify-center rounded-lg border font-semibold"
-        >
-          {t('settleABet')}
-        </Link>
-        <Link
-          href={'/history' as Route}
-          className="border-input bg-background hover:bg-accent flex h-14 items-center justify-center rounded-lg border font-semibold"
-        >
-          {t('myHistory')}
-        </Link>
-      </div>
-
       {balanceMinor > 0n ? (
         <Link
           href="/settle"
-          className="bg-primary text-primary-foreground hover:bg-primary/90 mt-3 flex h-14 items-center justify-center rounded-lg text-lg font-semibold"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-14 items-center justify-center rounded-lg text-lg font-semibold"
         >
           {t('settleUp')}
         </Link>
-      ) : null}
-
-      {isTreasurer ? (
-        <div className="mt-6 flex flex-col gap-2">
-          <p className="text-muted-foreground text-sm font-medium">{t('treasurerSection')}</p>
-          <Link
-            href={'/admin/pending' as Route}
-            className="border-input bg-background hover:bg-accent flex h-12 items-center justify-center rounded-lg border font-medium"
-          >
-            {t('pendingPayments')}
-          </Link>
-          <Link
-            href={'/admin/balances' as Route}
-            className="border-input bg-background hover:bg-accent flex h-12 items-center justify-center rounded-lg border font-medium"
-          >
-            {t('memberBalances')}
-          </Link>
-        </div>
-      ) : null}
-
-      {isStockManager ? (
-        <div className="mt-6 flex flex-col gap-2">
-          <p className="text-muted-foreground text-sm font-medium">{t('stockSection')}</p>
-          <Link
-            href={'/admin/beer-types' as Route}
-            className="border-input bg-background hover:bg-accent flex h-12 items-center justify-center rounded-lg border font-medium"
-          >
-            {t('beerTypesStock')}
-          </Link>
-        </div>
       ) : null}
     </main>
   );

@@ -122,10 +122,10 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 
 **Independent Test**: Daily screens are one tap apart; the Admin hub lists members/banking/beer-types; role-gated entries hidden for plain members.
 
-- [ ] T026 [P] [US7] Create `components/nav/bottom-nav.tsx` — fixed bottom navigation; daily destinations (Home, Log, Tab, Bet, History) plus role-gated entries (Treasurer, Stock, Admin) received as props; strings from the `nav` namespace.
-- [ ] T027 [US7] Render the nav in `app/[locale]/(app)/layout.tsx` — compute role-visible entries server-side from the session; add bottom padding so content and the keyboard are not occluded (contract C3).
-- [ ] T028 [P] [US7] Create the Admin hub `app/[locale]/(app)/admin/page.tsx` — links to members, banking profile, beer-types (contract C4); strings from the `admin` namespace.
-- [ ] T029 [US7] Remove now-redundant ad-hoc navigation from `app/[locale]/(app)/page.tsx` (the Log/Tab/Bet/Settle/treasurer/stock link blocks) and the admin cross-links superseded by the hub + nav.
+- [X] T026 [P] [US7] Create `components/nav/bottom-nav.tsx` — fixed bottom navigation; daily destinations (Home, Log, Tab, Bet, History) plus role-gated entries (Treasurer, Stock, Admin) received as props; strings from the `nav` namespace.
+- [X] T027 [US7] Render the nav in `app/[locale]/(app)/layout.tsx` — compute role-visible entries server-side from the session; add bottom padding so content and the keyboard are not occluded (contract C3).
+- [X] T028 [P] [US7] Create the Admin hub `app/[locale]/(app)/admin/page.tsx` — links to members, banking profile, beer-types (contract C4); strings from the `admin` namespace.
+- [X] T029 [US7] Remove now-redundant ad-hoc navigation from `app/[locale]/(app)/page.tsx` (the Log/Tab/Bet/Settle/treasurer/stock link blocks) and the admin cross-links superseded by the hub + nav.
 - [ ] T030 [US7] E2E `tests/e2e/ux-navigation.spec.ts` — daily screens reachable one tap apart; Admin hub lists the three areas; role-gated nav entries hidden for a plain member (Acceptance Scenarios 1–3).
 
 **Checkpoint**: Navigation no longer routes through the home screen.

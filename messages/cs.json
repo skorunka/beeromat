@@ -207,6 +207,8 @@
     "bankingDesc": "Bankovní údaje pro platební QR kódy",
     "beerTypes": "Druhy piv a sklad",
     "beerTypesDesc": "Spravovat katalog a stav skladu",
+    "pendingDesc": "Potvrdit nebo zpochybnit platby členů",
+    "balancesDesc": "Co každý člen dluží klubu",
     "membersTitle": "Členové",
     "inviteHeading": "Pozvat nového člena",
     "emailLabel": "E-mail",

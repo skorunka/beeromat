@@ -207,6 +207,8 @@
     "bankingDesc": "Bank details for payment QR codes",
     "beerTypes": "Beer types & stock",
     "beerTypesDesc": "Manage the catalog and stock levels",
+    "pendingDesc": "Confirm or dispute member payment claims",
+    "balancesDesc": "What every member owes the club",
     "membersTitle": "Members",
     "inviteHeading": "Invite a new member",
     "emailLabel": "Email",

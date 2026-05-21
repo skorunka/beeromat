@@ -1,7 +1,7 @@
 import type { Route } from 'next';
 import Link from 'next/link';
 import { eq } from 'drizzle-orm';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { BankingForm } from '@/components/admin/banking-form';
 import { Card } from '@/components/ui/card';
@@ -18,6 +18,8 @@ export default async function BankingSettingsPage({
   setRequestLocale(locale);
 
   const ctx = await requireRole('club_admin');
+  const t = await getTranslations('admin');
+  const tCommon = await getTranslations('common');
   const profile = await db.query.clubBankingProfiles.findFirst({
     where: eq(clubBankingProfiles.clubId, ctx.club.id),
   });
@@ -25,10 +27,8 @@ export default async function BankingSettingsPage({
   return (
     <main className="mx-auto max-w-md p-4">
       <header className="mb-4">
-        <h1 className="text-xl font-semibold">Banking profile</h1>
-        <p className="text-muted-foreground text-sm">
-          Bank details used to generate members&apos; payment QR codes.
-        </p>
+        <h1 className="text-xl font-semibold">{t('bankingTitle')}</h1>
+        <p className="text-muted-foreground text-sm">{t('bankingSubtitle')}</p>
       </header>
 
       <Card className="p-4">
@@ -42,8 +42,8 @@ export default async function BankingSettingsPage({
         />
       </Card>
 
-      <Link href={'/' as Route} className="text-primary mt-4 inline-block text-sm underline">
-        Back home
+      <Link href={'/admin' as Route} className="text-primary mt-4 inline-block text-sm underline">
+        {tCommon('back')}
       </Link>
     </main>
   );

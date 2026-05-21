@@ -3,6 +3,7 @@
 import type { Route } from 'next';
 import Link from 'next/link';
 import { useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 import {
@@ -58,6 +59,8 @@ export function BeerTypeManager({
   beerTypes: BeerTypeManagerView[];
   currencyCode: string;
 }) {
+  const t = useTranslations('admin');
+  const tCommon = useTranslations('common');
   const [dialog, setDialog] = useState<DialogState>(null);
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
@@ -104,15 +107,15 @@ export function BeerTypeManager({
       const result = beer.isArchived
         ? await unarchiveBeerTypeAction(beer.id)
         : await archiveBeerTypeAction(beer.id);
-      if (result.ok) toast.success(beer.isArchived ? 'Unarchived.' : 'Archived.');
-      else toast.error('Beer type not found.');
+      if (result.ok) toast.success(beer.isArchived ? t('unarchivedToast') : t('archivedToast'));
+      else toast.error(t('beerTypeNotFound'));
     });
   }
 
   function submitCreate() {
     const priceMinor = toMinor(price);
     if (!name.trim() || priceMinor === null || priceMinor <= 0n) {
-      toast.error('Enter a name and a valid price.');
+      toast.error(t('beerTypeFieldsError'));
       return;
     }
     startTransition(async () => {
@@ -123,12 +126,12 @@ export function BeerTypeManager({
         lowStockThreshold: Number(threshold) || 0,
       });
       if (result.ok) {
-        toast.success('Beer type added.');
+        toast.success(t('beerTypeAdded'));
         close();
       } else if (result.code === 'DUPLICATE_NAME') {
-        toast.error('A beer type with that name already exists.');
+        toast.error(t('duplicateName'));
       } else {
-        toast.error('Check the fields and try again.');
+        toast.error(t('beerTypeFieldsError'));
       }
     });
   }
@@ -136,7 +139,7 @@ export function BeerTypeManager({
   function submitEdit(beer: BeerTypeManagerView) {
     const priceMinor = toMinor(price);
     if (!name.trim() || priceMinor === null || priceMinor <= 0n) {
-      toast.error('Enter a name and a valid price.');
+      toast.error(t('beerTypeFieldsError'));
       return;
     }
     startTransition(async () => {
@@ -149,12 +152,12 @@ export function BeerTypeManager({
         },
       });
       if (result.ok) {
-        toast.success('Beer type updated.');
+        toast.success(t('beerTypeUpdated'));
         close();
       } else if (result.code === 'DUPLICATE_NAME') {
-        toast.error('A beer type with that name already exists.');
+        toast.error(t('duplicateName'));
       } else {
-        toast.error('Could not update the beer type.');
+        toast.error(t('beerTypeFieldsError'));
       }
     });
   }
@@ -162,7 +165,7 @@ export function BeerTypeManager({
   function submitRestock(beer: BeerTypeManagerView) {
     const qty = Number(quantity);
     if (!Number.isInteger(qty) || qty <= 0) {
-      toast.error('Enter a positive whole number.');
+      toast.error(t('invalidQuantity'));
       return;
     }
     startTransition(async () => {
@@ -172,12 +175,12 @@ export function BeerTypeManager({
         reason: reason.trim() || undefined,
       });
       if (result.ok) {
-        toast.success(`Restocked — ${result.newStock} in stock.`);
+        toast.success(t('restocked', { stock: result.newStock }));
         close();
       } else if (result.code === 'ARCHIVED') {
-        toast.error('Cannot restock an archived beer type.');
+        toast.error(t('restockArchived'));
       } else {
-        toast.error('Could not record the restock.');
+        toast.error(t('restockFailed'));
       }
     });
   }
@@ -185,11 +188,11 @@ export function BeerTypeManager({
   function submitAdjust(beer: BeerTypeManagerView) {
     const d = Number(delta);
     if (!Number.isInteger(d) || d === 0) {
-      toast.error('Enter a non-zero whole number (use a minus sign to reduce).');
+      toast.error(t('invalidDelta'));
       return;
     }
     if (!reason.trim()) {
-      toast.error('A reason is required for an adjustment.');
+      toast.error(t('adjustReasonRequired'));
       return;
     }
     startTransition(async () => {
@@ -199,12 +202,12 @@ export function BeerTypeManager({
         reason: reason.trim(),
       });
       if (result.ok) {
-        toast.success(`Adjusted — ${result.newStock} in stock.`);
+        toast.success(t('adjusted', { stock: result.newStock }));
         close();
       } else if (result.code === 'WOULD_GO_NEGATIVE') {
-        toast.error('That adjustment would take stock below zero.');
+        toast.error(t('wouldGoNegative'));
       } else {
-        toast.error('Could not record the adjustment.');
+        toast.error(t('adjustmentFailed'));
       }
     });
   }
@@ -212,7 +215,7 @@ export function BeerTypeManager({
   return (
     <div className="flex flex-col gap-3">
       <Button type="button" onClick={openCreate}>
-        Add beer type
+        {t('addBeerType')}
       </Button>
 
       <ul className="flex flex-col gap-2">
@@ -223,57 +226,60 @@ export function BeerTypeManager({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 font-medium">
                     {beer.name}
-                    {beer.isArchived ? <Badge variant="outline">archived</Badge> : null}
+                    {beer.isArchived ? <Badge variant="outline">{t('archived')}</Badge> : null}
                     {beer.isOutOfStock && !beer.isArchived ? (
-                      <Badge variant="destructive">out</Badge>
+                      <Badge variant="destructive">{t('out')}</Badge>
                     ) : beer.isLowStock && !beer.isArchived ? (
-                      <Badge variant="secondary">low</Badge>
+                      <Badge variant="secondary">{t('low')}</Badge>
                     ) : null}
                   </div>
                   <div className="text-muted-foreground text-xs">
-                    {beer.priceDisplay} · {beer.currentStock} in stock · alert ≤{' '}
-                    {beer.lowStockThreshold}
+                    {t('stockSummary', {
+                      price: beer.priceDisplay,
+                      stock: beer.currentStock,
+                      threshold: beer.lowStockThreshold,
+                    })}
                   </div>
                 </div>
                 <Link
                   href={`/admin/beer-types/${beer.id}/history` as Route}
                   className="text-primary shrink-0 text-xs underline"
                 >
-                  History
+                  {t('historyLink')}
                 </Link>
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
                 {!beer.isArchived ? (
                   <>
-                    <Button size="sm" type="button" onClick={() => openRestock(beer)}>
-                      Restock
+                    <Button size="lg" type="button" onClick={() => openRestock(beer)}>
+                      {t('restock')}
                     </Button>
                     <Button
-                      size="sm"
+                      size="lg"
                       variant="outline"
                       type="button"
                       onClick={() => openAdjust(beer)}
                     >
-                      Adjust
+                      {t('adjust')}
                     </Button>
                     <Button
-                      size="sm"
+                      size="lg"
                       variant="outline"
                       type="button"
                       onClick={() => openEdit(beer)}
                     >
-                      Edit
+                      {t('edit')}
                     </Button>
                   </>
                 ) : null}
                 <Button
-                  size="sm"
+                  size="lg"
                   variant="ghost"
                   type="button"
                   disabled={isPending}
                   onClick={() => handleArchiveToggle(beer)}
                 >
-                  {beer.isArchived ? 'Unarchive' : 'Archive'}
+                  {beer.isArchived ? t('unarchive') : t('archive')}
                 </Button>
               </div>
             </Card>
@@ -281,7 +287,7 @@ export function BeerTypeManager({
         ))}
         {beerTypes.length === 0 ? (
           <li className="text-muted-foreground p-4 text-center text-sm">
-            No beer types yet — add the first one.
+            {t('noBeerTypes')}
           </li>
         ) : null}
       </ul>
@@ -292,15 +298,15 @@ export function BeerTypeManager({
             <>
               <DialogHeader>
                 <DialogTitle>
-                  {dialog.kind === 'create' ? 'Add beer type' : 'Edit beer type'}
+                  {dialog.kind === 'create' ? t('addBeerType') : t('editBeerType')}
                 </DialogTitle>
               </DialogHeader>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="bt-name">Name</Label>
+                <Label htmlFor="bt-name">{t('nameLabel')}</Label>
                 <Input id="bt-name" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="bt-price">Price ({currencyCode})</Label>
+                <Label htmlFor="bt-price">{t('priceLabel', { currency: currencyCode })}</Label>
                 <Input
                   id="bt-price"
                   inputMode="decimal"
@@ -311,7 +317,7 @@ export function BeerTypeManager({
               </div>
               {dialog.kind === 'create' ? (
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="bt-stock">Initial stock</Label>
+                  <Label htmlFor="bt-stock">{t('initialStockLabel')}</Label>
                   <Input
                     id="bt-stock"
                     inputMode="numeric"
@@ -321,7 +327,7 @@ export function BeerTypeManager({
                 </div>
               ) : null}
               <div className="flex flex-col gap-2">
-                <Label htmlFor="bt-threshold">Low-stock alert threshold</Label>
+                <Label htmlFor="bt-threshold">{t('thresholdLabel')}</Label>
                 <Input
                   id="bt-threshold"
                   inputMode="numeric"
@@ -336,7 +342,7 @@ export function BeerTypeManager({
                   dialog.kind === 'create' ? submitCreate() : submitEdit(dialog.beer)
                 }
               >
-                {isPending ? 'Saving…' : 'Save'}
+                {isPending ? tCommon('saving') : tCommon('save')}
               </Button>
             </>
           ) : null}
@@ -344,10 +350,10 @@ export function BeerTypeManager({
           {dialog?.kind === 'restock' ? (
             <>
               <DialogHeader>
-                <DialogTitle>Restock {dialog.beer.name}</DialogTitle>
+                <DialogTitle>{t('restockTitle', { name: dialog.beer.name })}</DialogTitle>
               </DialogHeader>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="bt-qty">Quantity received</Label>
+                <Label htmlFor="bt-qty">{t('quantityLabel')}</Label>
                 <Input
                   id="bt-qty"
                   inputMode="numeric"
@@ -356,7 +362,7 @@ export function BeerTypeManager({
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="bt-restock-reason">Note (optional)</Label>
+                <Label htmlFor="bt-restock-reason">{t('restockNoteLabel')}</Label>
                 <Input
                   id="bt-restock-reason"
                   value={reason}
@@ -364,7 +370,7 @@ export function BeerTypeManager({
                 />
               </div>
               <Button type="button" disabled={isPending} onClick={() => submitRestock(dialog.beer)}>
-                {isPending ? 'Saving…' : 'Record restock'}
+                {isPending ? tCommon('saving') : t('recordRestock')}
               </Button>
             </>
           ) : null}
@@ -372,10 +378,10 @@ export function BeerTypeManager({
           {dialog?.kind === 'adjust' ? (
             <>
               <DialogHeader>
-                <DialogTitle>Adjust {dialog.beer.name}</DialogTitle>
+                <DialogTitle>{t('adjustTitle', { name: dialog.beer.name })}</DialogTitle>
               </DialogHeader>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="bt-delta">Change (negative to reduce)</Label>
+                <Label htmlFor="bt-delta">{t('deltaLabel')}</Label>
                 <Input
                   id="bt-delta"
                   inputMode="numeric"
@@ -385,7 +391,7 @@ export function BeerTypeManager({
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="bt-adjust-reason">Reason</Label>
+                <Label htmlFor="bt-adjust-reason">{t('adjustReasonLabel')}</Label>
                 <Input
                   id="bt-adjust-reason"
                   value={reason}
@@ -393,7 +399,7 @@ export function BeerTypeManager({
                 />
               </div>
               <Button type="button" disabled={isPending} onClick={() => submitAdjust(dialog.beer)}>
-                {isPending ? 'Saving…' : 'Record adjustment'}
+                {isPending ? tCommon('saving') : t('recordAdjustment')}
               </Button>
             </>
           ) : null}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 import { updateBankingProfileAction } from '@/app/[locale]/(app)/admin/settings/actions';
@@ -18,6 +19,8 @@ interface BankingFormProps {
 }
 
 export function BankingForm({ initial }: BankingFormProps) {
+  const t = useTranslations('admin');
+  const tCommon = useTranslations('common');
   const [iban, setIban] = useState(initial.iban ?? '');
   const [accountHolderName, setAccountHolderName] = useState(
     initial.accountHolderName ?? '',
@@ -40,11 +43,11 @@ export function BankingForm({ initial }: BankingFormProps) {
         defaultQrMessage: norm(defaultQrMessage),
       });
       if (result.ok) {
-        toast.success('Banking profile saved.');
+        toast.success(t('bankingSaved'));
       } else if (result.code === 'INVALID_IBAN') {
-        toast.error('That IBAN is not valid. Check it and try again.');
+        toast.error(t('invalidIban'));
       } else {
-        toast.error('Could not save. Check the fields and try again.');
+        toast.error(t('bankingFailed'));
       }
     });
   }
@@ -52,7 +55,7 @@ export function BankingForm({ initial }: BankingFormProps) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="bank-iban">IBAN</Label>
+        <Label htmlFor="bank-iban">{t('ibanLabel')}</Label>
         <Input
           id="bank-iban"
           placeholder="CZ65 0800 0000 1920 0014 5399"
@@ -60,12 +63,10 @@ export function BankingForm({ initial }: BankingFormProps) {
           value={iban}
           onChange={(e) => setIban(e.target.value)}
         />
-        <p className="text-muted-foreground text-xs">
-          Required for QR-code payments. Clearing it disables member self-pay.
-        </p>
+        <p className="text-muted-foreground text-xs">{t('ibanHint')}</p>
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="bank-holder">Account holder name</Label>
+        <Label htmlFor="bank-holder">{t('accountHolderLabel')}</Label>
         <Input
           id="bank-holder"
           value={accountHolderName}
@@ -73,7 +74,7 @@ export function BankingForm({ initial }: BankingFormProps) {
         />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="bank-revolut">Revolut handle</Label>
+        <Label htmlFor="bank-revolut">{t('revolutLabel')}</Label>
         <Input
           id="bank-revolut"
           placeholder="@yourclub"
@@ -82,17 +83,17 @@ export function BankingForm({ initial }: BankingFormProps) {
         />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="bank-qr-message">Default QR message</Label>
+        <Label htmlFor="bank-qr-message">{t('qrMessageLabel')}</Label>
         <Input
           id="bank-qr-message"
-          placeholder="Tennis club beers"
+          placeholder={t('qrMessagePlaceholder')}
           maxLength={60}
           value={defaultQrMessage}
           onChange={(e) => setDefaultQrMessage(e.target.value)}
         />
       </div>
       <Button type="submit" disabled={isPending}>
-        {isPending ? 'Saving…' : 'Save banking profile'}
+        {isPending ? tCommon('saving') : t('saveBanking')}
       </Button>
     </form>
   );

@@ -1,4 +1,4 @@
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { BeerTypeManager, type BeerTypeManagerView } from '@/components/admin/beer-type-manager';
 import { requireRole } from '@/lib/auth/session';
@@ -15,6 +15,7 @@ export default async function BeerTypesAdminPage({
   setRequestLocale(locale);
 
   const ctx = await requireRole('stock_manager', 'club_admin');
+  const t = await getTranslations('admin');
   const beers = await getBeerTypeCatalog(ctx.club.id, { includeArchived: true });
   const { currencyCode, defaultLocale } = ctx.club;
 
@@ -32,7 +33,7 @@ export default async function BeerTypesAdminPage({
 
   return (
     <main className="mx-auto max-w-2xl p-4">
-      <h1 className="mb-4 text-xl font-semibold">Beer types &amp; stock</h1>
+      <h1 className="mb-4 text-xl font-semibold">{t('beerTypesTitle')}</h1>
       <BeerTypeManager beerTypes={view} currencyCode={currencyCode} />
     </main>
   );

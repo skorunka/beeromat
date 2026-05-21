@@ -1,6 +1,4 @@
-import type { Route } from 'next';
-import Link from 'next/link';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { eq } from 'drizzle-orm';
 
 import { Card } from '@/components/ui/card';
@@ -20,6 +18,7 @@ export default async function AdminMembersPage({
   setRequestLocale(locale);
 
   const ctx = await requireRole('treasurer', 'club_admin');
+  const t = await getTranslations('admin');
 
   const memberRows = await db
     .select()
@@ -27,29 +26,20 @@ export default async function AdminMembersPage({
     .where(eq(members.clubId, ctx.club.id));
 
   const invitationRows = await getPendingInvitations(ctx.club.id);
-
-  const isAdmin = ctx.member.role === 'club_admin';
+  const dateFmt = new Intl.DateTimeFormat(ctx.club.defaultLocale, { dateStyle: 'medium' });
 
   return (
     <main className="mx-auto max-w-3xl p-4">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Members</h1>
-        {isAdmin ? (
-          <Link
-            href={'/admin/settings/banking' as Route}
-            className="text-primary text-sm underline"
-          >
-            Banking profile
-          </Link>
-        ) : null}
-      </div>
+      <h1 className="mb-6 text-2xl font-bold">{t('membersTitle')}</h1>
 
       <Card className="mb-6 p-4">
-        <h2 className="mb-3 text-lg font-semibold">Invite a new member</h2>
+        <h2 className="mb-3 text-lg font-semibold">{t('inviteHeading')}</h2>
         <InviteForm />
       </Card>
 
-      <h2 className="mb-3 text-lg font-semibold">Active members ({memberRows.length})</h2>
+      <h2 className="mb-3 text-lg font-semibold">
+        {t('activeMembers', { count: memberRows.length })}
+      </h2>
       <ul className="mb-6 flex flex-col gap-2">
         {memberRows.map((m) => (
           <li
@@ -65,7 +55,7 @@ export default async function AdminMembersPage({
         ))}
       </ul>
 
-      <h2 className="mb-3 text-lg font-semibold">Recent invitations</h2>
+      <h2 className="mb-3 text-lg font-semibold">{t('recentInvitations')}</h2>
       <ul className="flex flex-col gap-2">
         {invitationRows.map((inv) => (
           <li
@@ -75,7 +65,10 @@ export default async function AdminMembersPage({
             <div>
               <div className="font-medium">{inv.email}</div>
               <div className="text-muted-foreground text-xs">
-                {inv.role} · invited {inv.createdAt.toISOString().slice(0, 10)}
+                {t('invitedOn', {
+                  role: inv.role,
+                  date: dateFmt.format(inv.createdAt),
+                })}
               </div>
             </div>
             <Badge variant={inv.status === 'pending' ? 'secondary' : 'outline'}>
@@ -85,7 +78,7 @@ export default async function AdminMembersPage({
         ))}
         {invitationRows.length === 0 ? (
           <li className="text-muted-foreground p-3 text-center text-sm">
-            No invitations yet.
+            {t('noInvitations')}
           </li>
         ) : null}
       </ul>

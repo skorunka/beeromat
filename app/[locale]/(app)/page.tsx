@@ -51,12 +51,20 @@ export default async function AppHomePage({
         </Link>
       </div>
 
-      <Link
-        href={'/bet' as Route}
-        className="border-input bg-background hover:bg-accent mt-3 flex h-14 items-center justify-center rounded-lg border text-lg font-semibold"
-      >
-        Settle a bet
-      </Link>
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        <Link
+          href={'/bet' as Route}
+          className="border-input bg-background hover:bg-accent flex h-14 items-center justify-center rounded-lg border font-semibold"
+        >
+          Settle a bet
+        </Link>
+        <Link
+          href={'/history' as Route}
+          className="border-input bg-background hover:bg-accent flex h-14 items-center justify-center rounded-lg border font-semibold"
+        >
+          My history
+        </Link>
+      </div>
 
       {balanceMinor > 0n ? (
         <Link

@@ -75,7 +75,11 @@ async function requestAndVerifyMagicLink(page: Page, email: string): Promise<boo
   // Read the freshly-created magic-link token and verify it → Better
   // Auth creates the session cookie and redirects to callbackURL (/).
   const token = await readMagicLinkToken(email);
-  await page.goto(`/api/auth/magic-link/verify?token=${encodeURIComponent(token)}&callbackURL=/`);
+  // callbackURL=/en so the post-verify landing is the English UI (the
+  // suite runs in English; see the page fixture in test.ts).
+  await page.goto(
+    `/api/auth/magic-link/verify?token=${encodeURIComponent(token)}&callbackURL=/en`,
+  );
 
   // The device-PIN setup gate (#pin) renders once the session is live.
   // A transient verify failure (e.g. a dropped pooled connection) drops

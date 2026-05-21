@@ -44,6 +44,25 @@ export interface SeedContext {
 }
 
 export const test = base.extend<{ seed: SeedContext }>({
+  // The app is bilingual (next-intl, default locale `cs`). The E2E
+  // suite pins itself to English by auto-prefixing every same-origin
+  // navigation with `/en` — so specs keep using bare paths (`/log`)
+  // and their English text assertions stay valid. `/api/*` routes and
+  // already-localed paths are left untouched.
+  page: async ({ page }, use) => {
+    const realGoto = page.goto.bind(page);
+    page.goto = ((url: string, options?: Parameters<typeof realGoto>[1]) => {
+      const localed =
+        url.startsWith('/') &&
+        !url.startsWith('/en') &&
+        !url.startsWith('/cs') &&
+        !url.startsWith('/api')
+          ? `/en${url}`
+          : url;
+      return realGoto(localed, options);
+    }) as typeof page.goto;
+    await use(page);
+  },
   seed: async ({}, use) => {
     assertLoopback(DIRECT_URL);
     const pool = new Pool({ connectionString: DIRECT_URL });

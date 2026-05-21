@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { setPinAction, unlockDeviceAction } from '@/lib/auth/actions';
+import { setPinAction, signOutDeviceAction, unlockDeviceAction } from '@/lib/auth/actions';
 
 type Mode = 'setup' | 'unlock';
 
@@ -24,6 +24,16 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
   const [confirmPin, setConfirmPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  // US5 — escape hatch before lock-out: clear this device's session +
+  // sign out, then go to /sign-in to request a fresh magic link
+  // (Turnstile + rate limited there). Spends no PIN attempts.
+  function handleForgotPin() {
+    startTransition(async () => {
+      await signOutDeviceAction();
+      window.location.href = '/sign-in';
+    });
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -116,6 +126,17 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
           {t(mode === 'setup' ? 'setup.submit' : 'unlock.submit')}
         </Button>
       </form>
+
+      {mode === 'unlock' ? (
+        <button
+          type="button"
+          onClick={handleForgotPin}
+          disabled={isPending}
+          className="text-muted-foreground text-sm underline disabled:opacity-50"
+        >
+          {t('unlock.forgotPin')}
+        </button>
+      ) : null}
     </main>
   );
 }

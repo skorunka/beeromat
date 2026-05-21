@@ -109,7 +109,7 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 
 **Independent Test**: From the unlock screen, forgot-PIN sends a sign-in link; no attempts spent.
 
-- [ ] T024 [US5] Add a "Forgot PIN — email me a sign-in link" affordance to the `unlock` mode of `components/pin/pin-gate.tsx` — calls the existing `requestMagicLinkAction` for the signed-in user's email, shows a check-email confirmation, consumes no PIN attempts; add strings to the `pin` namespace.
+- [X] T024 [US5] Add a "Forgot PIN — email me a sign-in link" affordance to the `unlock` mode of `components/pin/pin-gate.tsx` — calls the existing `requestMagicLinkAction` for the signed-in user's email, shows a check-email confirmation, consumes no PIN attempts; add strings to the `pin` namespace.
 - [ ] T025 [US5] E2E `tests/e2e/ux-forgot-pin.spec.ts` — from the unlock screen, forgot-PIN triggers a magic-link (verification row created) and spends no attempts (Acceptance Scenarios 1–2).
 
 **Checkpoint**: The occasional user can no longer get trapped.

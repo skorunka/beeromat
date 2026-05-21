@@ -46,7 +46,10 @@ export default defineConfig({
   webServer: {
     command: `pnpm build && pnpm start --port ${PORT}`,
     url: `${BASE_URL}/cs/sign-in`,
-    timeout: 240_000,
+    // Generous: a cold Turbopack production build on a loaded dev
+    // machine (Docker + a running dev server competing for CPU) can
+    // take several minutes before `next start` is reachable.
+    timeout: 420_000,
     // Never reuse a stale server — a server left over from a different
     // run could be pointed at the wrong DB / env, and the `env` below
     // is ignored when an existing server is reused. Always boot fresh.

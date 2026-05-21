@@ -3,6 +3,7 @@
 import { useTransition } from 'react';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 import { confirmTransferMadeAction } from '@/app/[locale]/(app)/settle/actions';
@@ -17,20 +18,22 @@ interface QrDisplayProps {
 
 export function QrDisplay({ qrSvg, amountDisplay, variableSymbol }: QrDisplayProps) {
   const router = useRouter();
+  const t = useTranslations('settle');
+  const tCommon = useTranslations('common');
   const [isPending, startTransition] = useTransition();
 
   function handlePaid() {
     startTransition(async () => {
       const result = await confirmTransferMadeAction({ variableSymbol });
       if (result.ok) {
-        toast.success('Marked as paid — awaiting treasurer confirmation.');
+        toast.success(t('markedPaid'));
         router.push('/' as Route);
       } else if (result.code === 'CLAIM_PENDING') {
-        toast.error('You already have a payment awaiting confirmation.');
+        toast.error(t('claimPending'));
       } else if (result.code === 'NO_BALANCE') {
-        toast.error('Your balance is already settled.');
+        toast.error(t('noBalance'));
       } else {
-        toast.error('Could not record the payment. Try again.');
+        toast.error(t('recordFailed'));
       }
     });
   }
@@ -44,24 +47,22 @@ export function QrDisplay({ qrSvg, amountDisplay, variableSymbol }: QrDisplayPro
       />
       <dl className="mt-4 space-y-1 text-sm">
         <div className="flex justify-between">
-          <dt className="text-muted-foreground">Amount</dt>
+          <dt className="text-muted-foreground">{t('amount')}</dt>
           <dd className="font-semibold">{amountDisplay}</dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-muted-foreground">Variable symbol</dt>
+          <dt className="text-muted-foreground">{t('variableSymbol')}</dt>
           <dd className="font-mono">{variableSymbol}</dd>
         </div>
       </dl>
-      <p className="text-muted-foreground mt-3 text-xs">
-        Scan with your banking app, then tap below once the transfer is done.
-      </p>
+      <p className="text-muted-foreground mt-3 text-xs">{t('scanHint')}</p>
       <Button
         type="button"
         className="mt-4 w-full"
         disabled={isPending}
         onClick={handlePaid}
       >
-        {isPending ? 'Saving…' : 'I paid'}
+        {isPending ? tCommon('saving') : t('iPaid')}
       </Button>
     </Card>
   );

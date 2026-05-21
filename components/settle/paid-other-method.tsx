@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 import { markPaidOtherMethodAction } from '@/app/[locale]/(app)/settle/actions';
@@ -31,6 +32,8 @@ function toMinor(major: string): bigint | null {
  */
 export function PaidOtherMethod({ defaultAmountMinor, currencyCode }: PaidOtherMethodProps) {
   const router = useRouter();
+  const t = useTranslations('settle');
+  const tCommon = useTranslations('common');
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState(
     (Number(BigInt(defaultAmountMinor)) / 100).toFixed(2),
@@ -42,11 +45,11 @@ export function PaidOtherMethod({ defaultAmountMinor, currencyCode }: PaidOtherM
     e.preventDefault();
     const amountMinor = toMinor(amount);
     if (amountMinor === null || amountMinor <= 0n) {
-      toast.error('Enter a valid amount.');
+      toast.error(t('invalidAmount'));
       return;
     }
     if (!note.trim()) {
-      toast.error('Add a short note (e.g. "cash to treasurer").');
+      toast.error(t('noteRequired'));
       return;
     }
     startTransition(async () => {
@@ -55,12 +58,12 @@ export function PaidOtherMethod({ defaultAmountMinor, currencyCode }: PaidOtherM
         note,
       });
       if (result.ok) {
-        toast.success('Recorded — awaiting treasurer confirmation.');
+        toast.success(t('recorded'));
         router.push('/' as Route);
       } else if (result.code === 'CLAIM_PENDING') {
-        toast.error('You already have a payment awaiting confirmation.');
+        toast.error(t('claimPending'));
       } else {
-        toast.error('Could not record the payment. Try again.');
+        toast.error(t('recordFailed'));
       }
     });
   }
@@ -72,7 +75,7 @@ export function PaidOtherMethod({ defaultAmountMinor, currencyCode }: PaidOtherM
         onClick={() => setOpen(true)}
         className="text-muted-foreground w-full py-2 text-sm underline"
       >
-        I paid another way (cash, direct transfer)
+        {t('paidOtherWay')}
       </button>
     );
   }
@@ -81,7 +84,7 @@ export function PaidOtherMethod({ defaultAmountMinor, currencyCode }: PaidOtherM
     <Card className="p-4">
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="other-amount">Amount ({currencyCode})</Label>
+          <Label htmlFor="other-amount">{t('amountLabel', { currency: currencyCode })}</Label>
           <Input
             id="other-amount"
             inputMode="decimal"
@@ -91,17 +94,17 @@ export function PaidOtherMethod({ defaultAmountMinor, currencyCode }: PaidOtherM
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="other-note">Note</Label>
+          <Label htmlFor="other-note">{t('noteLabel')}</Label>
           <Input
             id="other-note"
-            placeholder="cash to treasurer"
+            placeholder={t('notePlaceholder')}
             value={note}
             onChange={(e) => setNote(e.target.value)}
             required
           />
         </div>
         <Button type="submit" disabled={isPending}>
-          {isPending ? 'Saving…' : 'Record payment'}
+          {isPending ? tCommon('saving') : t('recordPayment')}
         </Button>
       </form>
     </Card>

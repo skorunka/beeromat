@@ -24,6 +24,7 @@ export default async function SettlePage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('settle');
+  const tCommon = await getTranslations('common');
   const { currencyCode, defaultLocale } = ctx.club;
   const result = await initiateSettleAction();
 
@@ -58,7 +59,7 @@ export default async function SettlePage({
             href={'/' as Route}
             className="text-primary mt-4 inline-block text-sm underline"
           >
-            {t('backHome')}
+            {tCommon('backHome')}
           </Link>
         </Card>
       </main>

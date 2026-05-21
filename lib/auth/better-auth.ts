@@ -49,6 +49,12 @@ export const auth = betterAuth({
       },
     }),
   ],
+  rateLimit: {
+    // On in production; a test rig (production build, many sign-ins)
+    // sets AUTH_RATE_LIMIT_ENABLED=false. Magic-link abuse is also
+    // fronted by Turnstile + checkMagicLinkLimits (lib/rate-limit).
+    enabled: env.AUTH_RATE_LIMIT_ENABLED === 'true',
+  },
   session: {
     // 30-day Better Auth session; device-PIN re-prompt is independent
     // (lib/auth/pin.ts handles inactivity-based re-prompt).

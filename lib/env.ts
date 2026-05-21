@@ -15,6 +15,12 @@ const envSchema = z.object({
   // Better Auth
   BETTER_AUTH_SECRET: z.string().min(32, 'BETTER_AUTH_SECRET must be at least 32 characters'),
   BETTER_AUTH_URL: z.string().url(),
+  // Better Auth's built-in request rate limiter. Defaults on. A
+  // deployment that fronts auth with its own limiter (Turnstile +
+  // checkMagicLinkLimits) or that is a test rig may set this 'false'.
+  // Configuration, not code — the E2E suite runs a production build and
+  // would otherwise throttle its own many sign-ins.
+  AUTH_RATE_LIMIT_ENABLED: z.enum(['true', 'false']).default('true'),
 
   // Email — SMTP connection URL (nodemailer). Local dev + E2E point at
   // the Mailpit container (smtp://localhost:11025); production points at

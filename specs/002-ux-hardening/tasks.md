@@ -161,9 +161,9 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 
 ## Phase 11: Polish & Cross-Cutting Concerns
 
-- [ ] T036 Run all six verification gates — `pnpm typecheck`, `pnpm lint`, `pnpm test:unit`, `pnpm build`, `pnpm test:e2e`, `pnpm i18n:check` — all green.
-- [ ] T037 Run the full Playwright suite and confirm the v1 specs (`us1-log-beer`, `us2-settle`, `us3-treasurer-confirm`, `us4-…`, `us5-…`, `us6-…`, `us7-…`, `us8-…`) still pass after the localization and navigation changes — fix any regression (e.g. selectors that relied on English text now needing locale-agnostic locators).
-- [ ] T038 Merge `002-ux-hardening` to `main` and update the `project-implementation-progress` memory to record v1.1 shipped.
+- [X] T036 Run all six verification gates — `pnpm typecheck`, `pnpm lint`, `pnpm test:unit`, `pnpm build`, `pnpm test:e2e`, `pnpm i18n:check` — all green.
+- [X] T037 Run the full Playwright suite and confirm the v1 specs (`us1-log-beer`, `us2-settle`, `us3-treasurer-confirm`, `us4-…`, `us5-…`, `us6-…`, `us7-…`, `us8-…`) still pass after the localization and navigation changes — fix any regression (e.g. selectors that relied on English text now needing locale-agnostic locators).
+- [X] T038 Merge `002-ux-hardening` to `main` and update the `project-implementation-progress` memory to record v1.1 shipped.
 
 ---
 

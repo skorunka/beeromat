@@ -1,45 +1,50 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.2.0 → 1.3.0
-Bump rationale: MINOR. Adds a new constitutional rule:
-"Test/Prod Code Separation" — zero test-only branches in production
-source files. Test/prod differences MUST be configuration (env-driven
-values consumed by the same code path), never code (different
-branches selecting test vs prod behaviour).
+Version change: 1.3.0 → 1.4.0
+Bump rationale: MINOR. Encodes the six framework lessons (L1-L6) from
+the beeromat v1 post-implementation UX review
+(specs/001-beer-consumption-ledger/ux-review.md, 2026-05-21).
 
-The rule was caught the hard way: an in-flight proposal to add a
-driver-swap if-statement to lib/db/client.ts for E2E testing was
-intercepted by review. A test-only branch in production source would
-have shipped to prod, run code paths no human ever exercised, and
-created a latent "works in test, breaks in prod" risk. Codifying the
-rule constitutionally so future contributors (and future-me) see it
-without relying on out-of-repo memory.
+The trigger: the entire v1 UI shipped English-only despite a Czech
+audience and a wired-up i18n stack, because "add translations" was a
+task line item no verification gate could observe. A green pipeline
+proved the code matched the spec; it could not prove the spec's
+intent was fully met. This amendment closes that class of gap.
 
-Also adds: per-project port hygiene — when running multiple projects
-on the same dev machine, container host ports MUST be non-default to
-avoid silent conflicts. Captured as a paragraph in the Tech Stack &
-Constraints section.
+Changes:
+  - Verification Gates → adds a SIXTH gate, `i18n:check`; "five
+    gates" becomes "six gates". The E2E gate description is updated
+    to reflect SMTP-to-Mailpit (the Resend-interception wording was
+    stale).
+  - Principle V (Auditable History) → new UI-reversibility clause:
+    a reversible action MUST be reversible from the screen that
+    performed it, not only in the data layer.
+  - Development Workflow → three new rules: (a) Verifiable Tasks —
+    no task may exist unless a gate or acceptance test can observe
+    its completion; (b) a mandatory persona set in every spec, with
+    acceptance scenarios naming the persona served; (c) verification
+    infrastructure is a Foundational-phase deliverable.
+  - Tech Stack table → transactional-email row updated: the app
+    sends via SMTP (nodemailer); Resend remains the production SMTP
+    provider; Mailpit is the local/test container.
+  - Test/Prod Code Separation → adds the email SMTP_URL swap as a
+    worked config-not-code example (lesson L6, positive feedback).
 
-No principles added, removed, or fundamentally redefined.
+No principle removed or fundamentally redefined → MINOR, not MAJOR.
 
-Sections modified:
-  - Development Workflow & Quality Gates → new "Test/Prod Code
-    Separation" subsection appended after "Verification Gates".
-  - Tech Stack & Constraints → "Local development infrastructure"
-    paragraph added documenting the Docker stack + non-default ports.
-
-All Principles I-VI, the rest of the Tech Stack table, the
-Internationalization section, and the Governance section are
-unchanged.
-
-Templates reviewed for alignment:
-  ✅ All templates remain workflow-agnostic; no changes needed.
-
-Follow-up TODOs:
-  - None deferred.
+Templates flagged for follow-up alignment:
+  WARN spec-template.md — add a mandatory "Personas" section; require
+    each Acceptance Scenario to name the persona it serves.
+  WARN tasks-template.md — add the Verifiable Tasks rule to the task
+    generation guidance.
+  WARN plan-template.md — list "verification infrastructure" as an
+    explicit Foundational-phase deliverable.
 
 ----- Prior amendment history (for reference) -----
+1.2.0 → 1.3.0 (2026-05-19, MINOR): Added "Test/Prod Code Separation"
+  hard rule (zero test-only branches in production source) and
+  per-project non-default container port hygiene.
 1.1.1 → 1.2.0 (2026-05-19, MINOR): Added Verification Gates
   (five-gate definition of "done" including Playwright E2E) and
   softened PR language to trunk-based-direct-to-main reality.
@@ -165,6 +170,12 @@ append-only from the user's perspective. Specifically:
 - Member balances and stock levels MAY be stored as cached aggregates
   for query performance, but MUST be reconstructible from the underlying
   rows.
+- **Reversibility is a UI property, not only a data property.** Where a
+  compensating row exists to undo an action, the screen that performed
+  that action MUST expose the undo. An auditable data model behind a
+  one-way-door interface still strands the user. (Added v1.4.0 — the v1
+  UX review found `voidConfirmedPayment` fully implemented in the action
+  layer but reachable from no screen.)
 
 **Rationale:** The original pain ("someone sent too much money, we can't
 reconstruct why") is fundamentally an audit-trail problem. Mutable rows
@@ -203,7 +214,7 @@ constitution amendment.
 | DB driver | `@neondatabase/serverless` | **^1.0** | GA; Neon's official driver, fits serverless functions on Vercel. |
 | Database | Neon Postgres | (managed) | Free tier: 0.5 GB, branching included. |
 | Auth | **Better Auth** | latest stable v1.x | Replaces Auth.js v5. Auth.js maintainers themselves direct new 2026 projects to Better Auth. Supports magic-link + custom PIN flow we need. |
-| Transactional email | Resend | latest SDK | 99.99% uptime YTD 2026; free tier covers our scale. |
+| Transactional email | SMTP via `nodemailer`; Resend as the production SMTP provider; Mailpit container locally | `nodemailer` latest | One code path, env-driven (`SMTP_URL`). Resend's SMTP gateway in prod; Mailpit catches dev/test mail. Changed v1.4.0 from the Resend SDK so local/test email never leaves the machine. |
 | Bot mitigation | Cloudflare Turnstile | (managed) + `@marsidev/react-turnstile` | Free, privacy-friendly, no clicking-buses UX. |
 | Styling | Tailwind CSS | **4.3.x** | v4 line has been stable since Jan 2025. |
 | Components | shadcn/ui CLI | latest | `new-york` style, `sonner` for toasts (older `toast` deprecated). |
@@ -256,6 +267,32 @@ the host-port choices.
   implementation begins. Any violation MUST be recorded in the
   Complexity Tracking table with a justification, not silently ignored.
 
+### Spec & Task Discipline
+
+These three rules were added in v1.4.0 from the v1 UX review. They
+exist because work that is *only* a task — not also an acceptance
+criterion or a gate — is structurally optional under deadline pressure
+and silently drops.
+
+- **Verifiable Tasks.** No task may exist in `tasks.md` unless its
+  completion is observable by a verification gate or an acceptance
+  test. If a task ("add translations", "add a11y labels") cannot be
+  verified mechanically, either make it verifiable (add the gate) or
+  fold it into an Acceptance Scenario. A task that cannot be checked
+  is a hope, not a task.
+- **Personas are a spec input.** Every `spec.md` MUST include a
+  Personas section (3-5 realistic users spanning age, role, device,
+  and tech comfort), and every Acceptance Scenario MUST name the
+  persona it serves. A user story that only ever serves the power
+  user is a flagged risk — the v1 review found the "occasional user"
+  systematically under-served because no such persona was a spec
+  input.
+- **Verification infrastructure is Foundational.** The E2E rig, test
+  database lifecycle, and seeding fixtures are a Phase-2 (Foundational)
+  deliverable that blocks user-story work — not something discovered
+  mid-stream. Built early, the rig pays compound interest: every
+  later story is cheaper to verify and bugs surface sooner.
+
 ### Verification Gates
 
 Every feature commit (and every commit that adds or changes
@@ -275,16 +312,23 @@ being pushed to `main`:
 5. **`pnpm test:e2e`** — Playwright runs the user-story spec(s)
    relevant to the change against the production-mode app (`pnpm
    build && pnpm start`) on an isolated test port, connected to an
-   **isolated test database** (Neon branch created and destroyed per
-   run; never a shared dev or prod DB), with Resend HTTP intercepted
-   so no real emails are sent, with Cloudflare Turnstile's
-   documented test site keys, and with the test DB seeded into the
-   precise state each test scenario requires. Every Acceptance
-   Scenario from the corresponding User Story in `spec.md` MUST have
-   a matching Playwright assertion. A scenario without a test is a
-   spec without verification, not a feature without a problem.
+   **isolated test database** (created and destroyed per run; never a
+   shared dev or prod DB), with email delivered over SMTP to a local
+   Mailpit container so no real mail is sent, with Cloudflare
+   Turnstile's documented test site keys, and with the test DB seeded
+   into the precise state each test scenario requires. Every
+   Acceptance Scenario from the corresponding User Story in `spec.md`
+   MUST have a matching Playwright assertion. A scenario without a
+   test is a spec without verification, not a feature without a
+   problem.
+6. **`pnpm i18n:check`** — every user-facing string resolves through
+   the `next-intl` catalog (no literal English in JSX/TSX outside
+   `messages/`), and the `cs` and `en` catalogs have identical key
+   sets. Added v1.4.0: the v1 UI shipped entirely untranslated while
+   gates 1-5 stayed green, because no gate could observe a hardcoded
+   string. A gate that cannot be skipped beats a task line that can.
 
-The five gates are non-negotiable for non-trivial changes. Skipping a
+The six gates are non-negotiable for non-trivial changes. Skipping a
 gate (e.g. shipping ahead of an E2E backfill) requires the same
 justification discipline as a Constitution Check violation: noted in
 the commit message as a `Skipped-Gate: <gate>` trailer with a
@@ -323,6 +367,12 @@ production code path consumes. Examples:
   private Neon mirror.
 - Production reads `EMAIL_FROM`; test sets it to a no-op address. Same
   code path.
+- Production reads `SMTP_URL` pointing at a real SMTP gateway (Resend);
+  local dev and test point it at the Mailpit container. One
+  `nodemailer` code path, one transport, just a different URL. This is
+  the worked example to cite: the v1.4.0 email refactor moved off the
+  Resend SDK precisely so the same code could target Mailpit without a
+  test branch — config, not code.
 
 Cleaner alternatives to test-branching, in order of preference:
 
@@ -373,4 +423,4 @@ a review acknowledging the version-bump rationale.
 Constitution Check gate; principle violations must be justified or fixed,
 not waived informally.
 
-**Version**: 1.3.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-19
+**Version**: 1.4.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-21

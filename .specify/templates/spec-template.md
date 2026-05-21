@@ -8,6 +8,22 @@
 
 **Input**: User description: "$ARGUMENTS"
 
+## Personas *(mandatory — constitution v1.4.0)*
+
+<!--
+  Define 3-5 realistic users spanning age, role, device, and tech comfort,
+  plus their usage habits (frequency, one-handed/mobile context). Personas
+  are a first-class spec INPUT, not a post-mortem artifact: every Acceptance
+  Scenario below must name the persona it serves. A user story that only
+  ever serves the power user is a flagged risk — the v1 review found the
+  "occasional user" systematically under-served because no such persona
+  was a spec input.
+-->
+
+- **[P1 — Name, age · role]**: [device, tech comfort, when/how they use the app, what they care about]
+- **[P2 — Name, age · role]**: [...]
+- **[P3 — Name, age · role]**: [...]
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--
@@ -31,10 +47,10 @@
 
 **Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
 
-**Acceptance Scenarios**:
+**Acceptance Scenarios** *(each names the persona it serves)*:
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-2. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **[Persona]** — **Given** [initial state], **When** [action], **Then** [expected outcome]
+2. **[Persona]** — **Given** [initial state], **When** [action], **Then** [expected outcome]
 
 ---
 

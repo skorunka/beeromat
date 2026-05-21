@@ -42,6 +42,17 @@
 
 [Gates determined based on constitution file]
 
+<!--
+  Constitution v1.4.0 reminders the plan MUST honour:
+  - Verification infrastructure (E2E rig, isolated test-DB lifecycle,
+    seeding fixtures) is a Phase-2 Foundational deliverable that blocks
+    user-story work. List it explicitly in the task plan.
+  - Every user-facing string flows through the i18n catalog; the
+    `i18n:check` gate is one of the six verification gates.
+  - Reversible actions must be reversible from the UI, not only the
+    data layer (Principle V).
+-->
+
 ## Project Structure
 
 ### Documentation (this feature)

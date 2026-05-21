@@ -19,6 +19,14 @@ description: "Task list template for feature implementation"
 - **[Story]**: Which user story this task belongs to (e.g., US1, US2, US3)
 - Include exact file paths in descriptions
 
+**Verifiable Tasks rule (constitution v1.4.0).** Every task MUST have its
+completion observable by a verification gate or an acceptance test. If a
+task cannot be checked mechanically (e.g. "add translations", "add a11y
+labels"), either make it verifiable — add the gate — or fold it into an
+Acceptance Scenario. Do NOT generate a task that no gate or test can
+confirm: it will silently drop under deadline pressure (the v1 build
+shipped its UI untranslated for exactly this reason).
+
 ## Path Conventions
 
 - **Single project**: `src/`, `tests/` at repository root
@@ -67,6 +75,11 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T005 [P] Implement authentication/authorization framework
 - [ ] T006 [P] Setup API routing and middleware structure
 - [ ] T007 Create base models/entities that all stories depend on
+- [ ] T008 Stand up the verification infrastructure — E2E rig, isolated
+      test-database lifecycle, and seeding fixtures. **Constitution
+      v1.4.0**: this is a Foundational deliverable, built before any
+      user story, not discovered mid-stream. Verify each piece in
+      isolation before stacking the next.
 - [ ] T008 Configure error handling and logging infrastructure
 - [ ] T009 Setup environment configuration management
 

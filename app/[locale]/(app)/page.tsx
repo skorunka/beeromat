@@ -20,6 +20,7 @@ export default async function AppHomePage({
   const ctx = await requireUnlocked();
   const balanceMinor = await memberBalance(ctx.member.id);
   const isTreasurer = roleSatisfies(ctx.member.role, 'treasurer');
+  const isStockManager = roleSatisfies(ctx.member.role, 'stock_manager');
 
   return (
     <main className="mx-auto max-w-md p-4">
@@ -80,6 +81,18 @@ export default async function AppHomePage({
             className="border-input bg-background hover:bg-accent flex h-12 items-center justify-center rounded-lg border font-medium"
           >
             Member balances
+          </Link>
+        </div>
+      ) : null}
+
+      {isStockManager ? (
+        <div className="mt-6 flex flex-col gap-2">
+          <p className="text-muted-foreground text-sm font-medium">Stock</p>
+          <Link
+            href={'/admin/beer-types' as Route}
+            className="border-input bg-background hover:bg-accent flex h-12 items-center justify-center rounded-lg border font-medium"
+          >
+            Beer types &amp; stock
           </Link>
         </div>
       ) : null}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 import {
@@ -27,6 +28,8 @@ export interface PendingClaimView {
 }
 
 export function PendingList({ claims }: { claims: PendingClaimView[] }) {
+  const t = useTranslations('treasurer');
+  const tCommon = useTranslations('common');
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [disputeTarget, setDisputeTarget] = useState<PendingClaimView | null>(null);
   const [disputeReason, setDisputeReason] = useState('');
@@ -44,9 +47,9 @@ export function PendingList({ claims }: { claims: PendingClaimView[] }) {
   function handleConfirm(id: string) {
     startTransition(async () => {
       const result = await confirmPaymentAction(id);
-      if (result.ok) toast.success('Payment confirmed.');
-      else if (result.code === 'INVALID_STATE') toast.error('That payment is no longer pending.');
-      else toast.error('Payment not found.');
+      if (result.ok) toast.success(t('paymentConfirmed'));
+      else if (result.code === 'INVALID_STATE') toast.error(t('noLongerPending'));
+      else toast.error(t('notFound'));
     });
   }
 
@@ -57,10 +60,10 @@ export function PendingList({ claims }: { claims: PendingClaimView[] }) {
       const result = await bulkConfirmPaymentsAction(ids);
       setSelected(new Set());
       if (result.confirmed.length > 0) {
-        toast.success(`Confirmed ${result.confirmed.length} payment(s).`);
+        toast.success(t('bulkConfirmed', { count: result.confirmed.length }));
       }
       if (result.skipped.length > 0) {
-        toast.error(`Skipped ${result.skipped.length} (no longer pending).`);
+        toast.error(t('bulkSkipped', { count: result.skipped.length }));
       }
     });
   }
@@ -74,13 +77,13 @@ export function PendingList({ claims }: { claims: PendingClaimView[] }) {
         reason: disputeReason.trim(),
       });
       if (result.ok) {
-        toast.success('Payment disputed — the member will be notified.');
+        toast.success(t('disputed'));
         setDisputeTarget(null);
         setDisputeReason('');
       } else if (result.code === 'INVALID_STATE') {
-        toast.error('That payment is no longer pending.');
+        toast.error(t('noLongerPending'));
       } else {
-        toast.error('Could not dispute the payment.');
+        toast.error(t('disputeFailed'));
       }
     });
   }
@@ -89,47 +92,51 @@ export function PendingList({ claims }: { claims: PendingClaimView[] }) {
     <div className="flex flex-col gap-3">
       {selected.size > 0 ? (
         <Button type="button" disabled={isPending} onClick={handleConfirmSelected}>
-          Confirm {selected.size} selected
+          {t('confirmSelected', { count: selected.size })}
         </Button>
       ) : null}
 
       <ul className="flex flex-col gap-2">
         {claims.map((claim) => (
           <li key={claim.paymentId}>
-            <Card className="flex items-center gap-3 p-3">
-              <input
-                type="checkbox"
-                aria-label={`Select ${claim.memberDisplayName}`}
-                checked={selected.has(claim.paymentId)}
-                onChange={() => toggle(claim.paymentId)}
-                className="size-4"
-              />
-              <div className="min-w-0 flex-1">
-                <div className="font-medium">{claim.memberDisplayName}</div>
-                <div className="text-muted-foreground text-xs">
-                  {claim.createdAtDisplay}
-                  {claim.variableSymbol ? ` · VS ${claim.variableSymbol}` : ''}
-                  {claim.note ? ` · ${claim.note}` : ''}
+            <Card className="flex flex-col gap-3 p-3">
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  aria-label={t('selectMember', { name: claim.memberDisplayName })}
+                  checked={selected.has(claim.paymentId)}
+                  onChange={() => toggle(claim.paymentId)}
+                  className="mt-1 size-5"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="font-semibold">{claim.memberDisplayName}</div>
+                  <div className="text-muted-foreground text-xs">
+                    {claim.createdAtDisplay}
+                    {claim.variableSymbol ? ` · VS ${claim.variableSymbol}` : ''}
+                    {claim.note ? ` · ${claim.note}` : ''}
+                  </div>
                 </div>
+                <div className="font-mono text-base font-semibold">{claim.amountDisplay}</div>
               </div>
-              <div className="font-mono text-sm font-semibold">{claim.amountDisplay}</div>
-              <Button
-                type="button"
-                size="sm"
-                disabled={isPending}
-                onClick={() => handleConfirm(claim.paymentId)}
-              >
-                Confirm received
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                disabled={isPending}
-                onClick={() => setDisputeTarget(claim)}
-              >
-                Dispute
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  className="h-11 flex-1"
+                  disabled={isPending}
+                  onClick={() => handleConfirm(claim.paymentId)}
+                >
+                  {t('confirmReceived')}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-11"
+                  disabled={isPending}
+                  onClick={() => setDisputeTarget(claim)}
+                >
+                  {t('dispute')}
+                </Button>
+              </div>
             </Card>
           </li>
         ))}
@@ -146,17 +153,20 @@ export function PendingList({ claims }: { claims: PendingClaimView[] }) {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Dispute payment</DialogTitle>
+            <DialogTitle>{t('disputeTitle')}</DialogTitle>
           </DialogHeader>
           <p className="text-muted-foreground text-sm">
             {disputeTarget
-              ? `Reject ${disputeTarget.memberDisplayName}'s claim of ${disputeTarget.amountDisplay}. The member sees the reason.`
+              ? t('disputeBody', {
+                  name: disputeTarget.memberDisplayName,
+                  amount: disputeTarget.amountDisplay,
+                })
               : null}
           </p>
           <textarea
             value={disputeReason}
             onChange={(e) => setDisputeReason(e.target.value.slice(0, 500))}
-            placeholder="e.g. no matching transfer on the bank statement"
+            placeholder={t('disputeReasonPlaceholder')}
             rows={3}
             className="border-input bg-background w-full rounded-md border p-2 text-sm"
           />
@@ -166,7 +176,7 @@ export function PendingList({ claims }: { claims: PendingClaimView[] }) {
             disabled={isPending || !disputeReason.trim()}
             onClick={handleDispute}
           >
-            {isPending ? 'Saving…' : 'Dispute payment'}
+            {isPending ? tCommon('saving') : t('disputeSubmit')}
           </Button>
         </DialogContent>
       </Dialog>

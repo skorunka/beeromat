@@ -1,6 +1,6 @@
 import type { Route } from 'next';
 import Link from 'next/link';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { PendingList } from '@/components/treasurer/pending-list';
 import { Card } from '@/components/ui/card';
@@ -18,6 +18,7 @@ export default async function PendingPaymentsPage({
   setRequestLocale(locale);
 
   const ctx = await requireRole('treasurer', 'club_admin');
+  const t = await getTranslations('treasurer');
   const claims = await getPendingClaimsForTreasurer(ctx.club.id);
   const dateFmt = new Intl.DateTimeFormat(ctx.club.defaultLocale, {
     dateStyle: 'medium',
@@ -36,15 +37,15 @@ export default async function PendingPaymentsPage({
   return (
     <main className="mx-auto max-w-2xl p-4">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Pending payments</h1>
+        <h1 className="text-xl font-semibold">{t('pendingTitle')}</h1>
         <Link href={'/admin/balances' as Route} className="text-primary text-sm underline">
-          All balances
+          {t('allBalances')}
         </Link>
       </div>
 
       {view.length === 0 ? (
         <Card className="p-6 text-center">
-          <p className="text-muted-foreground">No payments are awaiting confirmation.</p>
+          <p className="text-muted-foreground">{t('nothingPending')}</p>
         </Card>
       ) : (
         <PendingList claims={view} />

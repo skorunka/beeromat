@@ -1,6 +1,6 @@
 import type { Route } from 'next';
 import Link from 'next/link';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -18,15 +18,16 @@ export default async function BalancesPage({
   setRequestLocale(locale);
 
   const ctx = await requireRole('treasurer', 'club_admin');
+  const t = await getTranslations('treasurer');
   const balances = await getAllMemberBalances(ctx.club.id);
   const { currencyCode, defaultLocale } = ctx.club;
 
   return (
     <main className="mx-auto max-w-2xl p-4">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Member balances</h1>
+        <h1 className="text-xl font-semibold">{t('balancesTitle')}</h1>
         <Link href={'/admin/pending' as Route} className="text-primary text-sm underline">
-          Pending payments
+          {t('pendingTitle')}
         </Link>
       </div>
 
@@ -40,14 +41,19 @@ export default async function BalancesPage({
                     {b.displayName}
                     {b.isActive ? null : (
                       <Badge variant="outline" className="ml-2">
-                        inactive
+                        {t('inactive')}
                       </Badge>
                     )}
                   </div>
                   {b.pendingConfirmationMinor > 0n ? (
                     <div className="text-muted-foreground text-xs">
-                      {formatMoney(b.pendingConfirmationMinor, currencyCode, defaultLocale)} pending
-                      confirmation
+                      {t('pendingConfirmation', {
+                        amount: formatMoney(
+                          b.pendingConfirmationMinor,
+                          currencyCode,
+                          defaultLocale,
+                        ),
+                      })}
                     </div>
                   ) : null}
                 </div>
@@ -63,7 +69,7 @@ export default async function BalancesPage({
           </li>
         ))}
         {balances.length === 0 ? (
-          <li className="text-muted-foreground p-4 text-center text-sm">No members yet.</li>
+          <li className="text-muted-foreground p-4 text-center text-sm">{t('noMembers')}</li>
         ) : null}
       </ul>
     </main>

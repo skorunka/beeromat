@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 import { recordManualPaymentAction } from '@/app/[locale]/(app)/admin/balances/actions';
@@ -28,6 +29,9 @@ function toMinor(major: string): bigint | null {
  */
 export function ManualPaymentForm({ memberId, currencyCode }: ManualPaymentFormProps) {
   const router = useRouter();
+  const t = useTranslations('admin');
+  const tSettle = useTranslations('settle');
+  const tCommon = useTranslations('common');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [isPending, startTransition] = useTransition();
@@ -36,7 +40,7 @@ export function ManualPaymentForm({ memberId, currencyCode }: ManualPaymentFormP
     e.preventDefault();
     const amountMinor = toMinor(amount);
     if (amountMinor === null || amountMinor <= 0n) {
-      toast.error('Enter a valid amount.');
+      toast.error(tSettle('invalidAmount'));
       return;
     }
     startTransition(async () => {
@@ -46,14 +50,14 @@ export function ManualPaymentForm({ memberId, currencyCode }: ManualPaymentFormP
         note: note.trim() || undefined,
       });
       if (result.ok) {
-        toast.success('Payment recorded.');
+        toast.success(t('manualRecorded'));
         setAmount('');
         setNote('');
         router.refresh();
       } else if (result.code === 'NOT_FOUND') {
-        toast.error('Member not found.');
+        toast.error(t('manualMemberNotFound'));
       } else {
-        toast.error('Enter a valid amount.');
+        toast.error(tSettle('invalidAmount'));
       }
     });
   }
@@ -61,27 +65,27 @@ export function ManualPaymentForm({ memberId, currencyCode }: ManualPaymentFormP
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="manual-amount">Amount ({currencyCode})</Label>
+        <Label htmlFor="manual-amount">{tSettle('amountLabel', { currency: currencyCode })}</Label>
         <Input
           id="manual-amount"
           inputMode="decimal"
-          placeholder="120.00"
+          placeholder={t('manualAmountPlaceholder')}
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           required
         />
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor="manual-note">Note</Label>
+        <Label htmlFor="manual-note">{tSettle('noteLabel')}</Label>
         <Input
           id="manual-note"
-          placeholder="cash received"
+          placeholder={t('manualNotePlaceholder')}
           value={note}
           onChange={(e) => setNote(e.target.value)}
         />
       </div>
       <Button type="submit" disabled={isPending}>
-        {isPending ? 'Recording…' : 'Record payment'}
+        {isPending ? tCommon('saving') : tSettle('recordPayment')}
       </Button>
     </form>
   );

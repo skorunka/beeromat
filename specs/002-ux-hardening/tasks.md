@@ -49,7 +49,7 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 - [X] T005 [P] [US1] Localize the home screen `app/[locale]/(app)/page.tsx`, `app/[locale]/(app)/layout.tsx`, and `components/dispute-banner.tsx`.
 - [X] T006 [P] [US1] Localize `app/[locale]/(app)/log/page.tsx`, `app/[locale]/(app)/tab/page.tsx`, and `components/log/*`.
 - [X] T007 [P] [US1] Localize `app/[locale]/(app)/settle/page.tsx` and `components/settle/*`.
-- [ ] T008 [P] [US1] Localize `app/[locale]/(app)/admin/pending/page.tsx`, `app/[locale]/(app)/admin/balances/` (list + `[memberId]`), and `components/treasurer/*`.
+- [X] T008 [P] [US1] Localize `app/[locale]/(app)/admin/pending/page.tsx`, `app/[locale]/(app)/admin/balances/` (list + `[memberId]`), and `components/treasurer/*`.
 - [ ] T009 [P] [US1] Localize `app/[locale]/(app)/bet/page.tsx` and `components/bet/*`.
 - [ ] T010 [P] [US1] Localize `app/[locale]/(app)/history/` (list + `[sessionId]`).
 - [ ] T011 [P] [US1] Localize `app/[locale]/(app)/admin/members/page.tsx`, `app/[locale]/(app)/admin/settings/banking/page.tsx`, `app/[locale]/(app)/admin/beer-types/` (list + `[id]/history`), and `components/admin/*`.
@@ -81,7 +81,7 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 
 **Independent Test**: At 360×640 a pending row shows amount/name prominently; the two actions are clearly separated.
 
-- [ ] T018 [US3] Restructure the pending-claim row in `components/treasurer/pending-list.tsx` per contract C5 — amount and member name as the dominant elements; `Confirm received` and `Dispute` on a dedicated line with a clear separating gap; no ambiguous wrap at 360px.
+- [X] T018 [US3] Restructure the pending-claim row in `components/treasurer/pending-list.tsx` per contract C5 — amount and member name as the dominant elements; `Confirm received` and `Dispute` on a dedicated line with a clear separating gap; no ambiguous wrap at 360px.
 - [ ] T019 [US3] E2E `tests/e2e/ux-pending-row.spec.ts` — at 360×640, assert amount/name prominence and a measurable gap between Confirm and Dispute (Acceptance Scenarios 1–2).
 
 **Checkpoint**: Pending row safe and legible on a small phone.

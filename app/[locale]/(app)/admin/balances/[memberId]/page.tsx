@@ -2,7 +2,7 @@ import type { Route } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { and, eq } from 'drizzle-orm';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { ManualPaymentForm } from '@/components/treasurer/manual-payment-form';
 import { Card } from '@/components/ui/card';
@@ -22,6 +22,9 @@ export default async function MemberBalanceDetailPage({
   setRequestLocale(locale);
 
   const ctx = await requireRole('treasurer', 'club_admin');
+  const t = await getTranslations('treasurer');
+  const tHome = await getTranslations('home');
+  const tAdmin = await getTranslations('admin');
   const member = await db.query.members.findFirst({
     where: and(eq(members.id, memberId), eq(members.clubId, ctx.club.id)),
   });
@@ -36,24 +39,26 @@ export default async function MemberBalanceDetailPage({
   return (
     <main className="mx-auto max-w-md p-4">
       <Link href={'/admin/balances' as Route} className="text-primary text-sm underline">
-        ← All balances
+        ← {t('balancesTitle')}
       </Link>
       <h1 className="mt-2 mb-4 text-xl font-semibold">{member.displayName}</h1>
 
       <Card className="mb-6 p-6">
-        <div className="text-muted-foreground text-sm">Outstanding balance</div>
+        <div className="text-muted-foreground text-sm">{tHome('outstandingBalance')}</div>
         <div className="mt-1 text-3xl font-bold">
           {formatMoney(balanceMinor, currencyCode, defaultLocale)}
         </div>
         {pendingMinor > 0n ? (
           <div className="text-muted-foreground mt-1 text-sm">
-            {formatMoney(pendingMinor, currencyCode, defaultLocale)} pending confirmation
+            {t('pendingConfirmation', {
+              amount: formatMoney(pendingMinor, currencyCode, defaultLocale),
+            })}
           </div>
         ) : null}
       </Card>
 
       <Card className="p-4">
-        <h2 className="mb-3 text-lg font-semibold">Record a payment</h2>
+        <h2 className="mb-3 text-lg font-semibold">{tAdmin('recordPaymentHeading')}</h2>
         <ManualPaymentForm memberId={member.id} currencyCode={currencyCode} />
       </Card>
     </main>

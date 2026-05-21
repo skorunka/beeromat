@@ -23,7 +23,7 @@ test.describe('@ux-navigation persistent nav + admin hub', () => {
     await expect(page.getByRole('heading', { name: 'Log a beer' })).toBeVisible();
 
     await nav.getByRole('link', { name: 'History' }).click();
-    await expect(page.getByRole('heading', { name: 'My history' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
   });
 
   test('scenario 2: the Admin hub lists every admin area', async ({ page, seed }) => {

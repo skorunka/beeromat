@@ -37,8 +37,8 @@ test.describe('@ux-pending-row treasurer pending row', () => {
 
     // Confirm and Dispute do not sit mis-tap-close to each other.
     await expectSeparated(
-      page.getByRole('button', { name: /confirm received/i }),
-      page.getByRole('button', { name: /^dispute$/i }),
+      page.getByRole('button', { name: /got it/i }),
+      page.getByRole('button', { name: /something.s off/i }),
     );
   });
 });

@@ -20,10 +20,10 @@ test.describe('@ux-bet-no-session bet screen with no open session', () => {
     await page.goto('/bet');
 
     // Guidance is shown, not a bare dead end.
-    await expect(page.getByText(/a session starts when the first beer is logged/i)).toBeVisible();
+    await expect(page.getByText(/a round kicks off when someone logs the first beer/i)).toBeVisible();
 
     // The "log a beer to start" link goes to the log screen.
-    await page.getByRole('link', { name: /log a beer to start/i }).click();
+    await page.getByRole('link', { name: /log a beer to kick/i }).click();
     await expect(page.getByRole('heading', { name: 'Log a beer' })).toBeVisible();
   });
 });

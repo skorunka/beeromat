@@ -34,7 +34,7 @@ test.describe('@ux-loading route loading feedback', () => {
     await expect(page.locator('.animate-pulse').first()).toBeVisible({ timeout: 8000 });
 
     // Once the held request completes, the real screen arrives.
-    await expect(page.getByRole('heading', { name: 'My history' })).toBeVisible({
+    await expect(page.getByRole('heading', { name: 'History' })).toBeVisible({
       timeout: 15_000,
     });
   });

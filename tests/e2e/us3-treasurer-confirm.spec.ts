@@ -52,7 +52,7 @@ test.describe('@us3 treasurer confirms payments', () => {
 
     await page.goto('/admin/pending');
     // SC-007a: exactly one tap — no confirmation dialog, no form.
-    await page.getByRole('button', { name: /confirm received/i }).click();
+    await page.getByRole('button', { name: /got it/i }).click();
 
     await expect
       .poll(
@@ -88,7 +88,7 @@ test.describe('@us3 treasurer confirms payments', () => {
     await expect(checkboxes).toHaveCount(3);
     for (let i = 0; i < 3; i += 1) await checkboxes.nth(i).check();
 
-    await page.getByRole('button', { name: /confirm 3 selected/i }).click();
+    await page.getByRole('button', { name: /confirm 3/i }).click();
 
     await expect
       .poll(
@@ -118,11 +118,11 @@ test.describe('@us3 treasurer confirms payments', () => {
     await signInAndUnlock(page, { email: TREASURER_EMAIL, pin: TREASURER_PIN });
 
     await page.goto('/admin/pending');
-    await page.getByRole('button', { name: /dispute/i }).click();
+    await page.getByRole('button', { name: /something.s off/i }).click();
     await page
-      .getByPlaceholder(/no matching transfer/i)
+      .getByPlaceholder(/nothing matching/i)
       .fill('No matching transfer on the bank statement');
-    await page.getByRole('button', { name: /dispute payment/i }).click();
+    await page.getByRole('button', { name: /flag it/i }).click();
 
     await expect
       .poll(

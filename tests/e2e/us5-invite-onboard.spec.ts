@@ -19,7 +19,7 @@ test.describe('@us5 invite + onboard', () => {
 
     await page.goto('/admin/members');
     await page.locator('#invite-email').fill('fresh-invitee@example.test');
-    await page.getByRole('button', { name: /send invitation/i }).click();
+    await page.getByRole('button', { name: /send invite/i }).click();
 
     // The invitation row is created regardless of email delivery
     // (Resend is faked in E2E, so the UI may report a send failure —
@@ -51,12 +51,12 @@ test.describe('@us5 invite + onboard', () => {
 
     // Scenario 2: the invitation link shows the welcome form.
     await page.goto(`/invitation/${rawToken}`);
-    await expect(page.getByLabel(/display name/i)).toBeVisible();
+    await expect(page.getByLabel(/your name/i)).toBeVisible();
 
     // Scenario 3: submitting creates the member + shows the
     // check-inbox confirmation.
-    await page.getByLabel(/display name/i).fill('Nový Člen');
-    await page.getByRole('button', { name: /accept invitation/i }).click();
+    await page.getByLabel(/your name/i).fill('Nový Člen');
+    await page.getByRole('button', { name: /join the club/i }).click();
     await expect(page.getByText(/you'?re in/i)).toBeVisible();
 
     // A member row now exists for the invitee, in the right club.
@@ -75,9 +75,9 @@ test.describe('@us5 invite + onboard', () => {
     await seed.member({ clubId: club.id, role: 'club_admin', email: ADMIN_EMAIL });
 
     await page.goto('/invitation/this-token-does-not-exist');
-    await page.getByLabel(/display name/i).fill('Nobody');
-    await page.getByRole('button', { name: /accept invitation/i }).click();
+    await page.getByLabel(/your name/i).fill('Nobody');
+    await page.getByRole('button', { name: /join the club/i }).click();
 
-    await expect(page.getByText(/no longer valid|invalid/i)).toBeVisible();
+    await expect(page.getByText(/no longer good/i)).toBeVisible();
   });
 });

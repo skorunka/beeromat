@@ -18,7 +18,10 @@ const PIN = '1234';
  */
 async function logBeer(page: Page, beerName: string): Promise<void> {
   await page.getByRole('button', { name: new RegExp(beerName) }).click();
-  await expect(page.getByText(`+ ${beerName}`)).toBeVisible();
+  // Generous timeout: the logBeer transaction (session + consumption +
+  // stock) over the Neon proxy can outrun the 5s assertion default
+  // under full-suite load.
+  await expect(page.getByText(`+ ${beerName}`)).toBeVisible({ timeout: 15_000 });
 }
 
 test.describe('@us1 log a beer', () => {
@@ -97,6 +100,6 @@ test.describe('@us1 log a beer', () => {
     await page.getByRole('button', { name: /back|zpět|undo/i }).first().click();
 
     // The session total drops back to zero (Czech: "0,00 Kč").
-    await expect(page.getByText(/0[.,]00/)).toBeVisible();
+    await expect(page.getByText(/0[.,]00/)).toBeVisible({ timeout: 15_000 });
   });
 });

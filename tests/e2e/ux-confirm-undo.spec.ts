@@ -25,19 +25,19 @@ test.describe('@ux-confirm-undo undo a confirmation', () => {
     await signInAndUnlock(page, { email: TREASURER_EMAIL, pin: PIN });
 
     await page.goto('/admin/pending');
-    await page.getByRole('button', { name: /confirm received/i }).click();
+    await page.getByRole('button', { name: /got it/i }).click();
 
     // The confirmed payment now shows in the "Recently confirmed" list.
-    await expect(page.getByText(/recently confirmed/i)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/just confirmed/i)).toBeVisible({ timeout: 15_000 });
 
     // Undo it, supplying a reason.
-    await page.getByRole('button', { name: /undo confirmation/i }).first().click();
+    await page.getByRole('button', { name: /undo/i }).first().click();
     await page
-      .getByPlaceholder(/confirmed the wrong claim/i)
+      .getByPlaceholder(/wrong one/i)
       .fill('Confirmed the wrong claim by mistake');
     await page
       .locator('[data-slot="dialog-content"]')
-      .getByRole('button', { name: /undo confirmation/i })
+      .getByRole('button', { name: /undo/i })
       .click();
 
     // The payment leaves the confirmed state (voided).
@@ -71,8 +71,8 @@ test.describe('@ux-confirm-undo undo a confirmation', () => {
 
     // A claimed-only payment: the pending claim shows, but no
     // "Recently confirmed" section and no undo control.
-    await expect(page.getByRole('button', { name: /confirm received/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /undo confirmation/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /got it/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /undo/i })).toHaveCount(0);
 
     // Sanity: nothing is confirmed in the DB.
     const confirmed = await seed.db.query.payments.findMany({

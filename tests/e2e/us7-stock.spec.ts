@@ -19,7 +19,7 @@ test.describe('@us7 stock management', () => {
     await signInAndUnlock(page, { email: MANAGER_EMAIL, pin: MANAGER_PIN });
 
     await page.goto('/admin/beer-types');
-    await page.getByRole('button', { name: /add beer type/i }).click();
+    await page.getByRole('button', { name: /add a beer/i }).click();
     await page.locator('#bt-name').fill('Kozel Černý');
     await page.locator('#bt-price').fill('48.00');
     await page.locator('#bt-stock').fill('30');
@@ -58,7 +58,7 @@ test.describe('@us7 stock management', () => {
     await page.goto('/admin/beer-types');
     await page.getByRole('button', { name: /^restock$/i }).click();
     await page.locator('#bt-qty').fill('24');
-    await page.getByRole('button', { name: /record restock/i }).click();
+    await page.getByRole('button', { name: /add to stock/i }).click();
 
     await expect
       .poll(
@@ -93,7 +93,7 @@ test.describe('@us7 stock management', () => {
     await page.getByRole('button', { name: /^adjust$/i }).click();
     await page.locator('#bt-delta').fill('-5');
     await page.locator('#bt-adjust-reason').fill('stocktake correction');
-    await page.getByRole('button', { name: /record adjustment/i }).click();
+    await page.getByRole('button', { name: /save the change/i }).click();
 
     await expect(page.getByText(/below zero/i)).toBeVisible();
     // Stock is untouched.

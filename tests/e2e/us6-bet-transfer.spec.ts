@@ -64,7 +64,7 @@ test.describe('@us6 bet transfer', () => {
     await page.goto('/bet');
     // Bob's drink is offered; exactly one drink is transferable (not own).
     await expect(page.getByText(/Pilsner Urquell · Bob/)).toBeVisible();
-    await expect(page.getByRole('button', { name: /transfer to me/i })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: /take it/i })).toHaveCount(1);
   });
 
   test('scenario 2: transferring a drink moves the cost', async ({ page, seed }) => {
@@ -74,8 +74,8 @@ test.describe('@us6 bet transfer', () => {
     await signInAndUnlock(page, { email: ALICE_EMAIL, pin: ALICE_PIN });
 
     await page.goto('/bet');
-    await page.getByRole('button', { name: /transfer to me/i }).click();
-    await expect(page.getByText(/you took bob/i)).toBeVisible();
+    await page.getByRole('button', { name: /take it/i }).click();
+    await expect(page.getByText(/you took bob/i)).toBeVisible({ timeout: 15_000 });
 
     // A bet_transfers row was written: from Bob (winner) to Alice (loser).
     const transfer = await seed.db.query.betTransfers.findFirst({
@@ -98,12 +98,12 @@ test.describe('@us6 bet transfer', () => {
     await signInAndUnlock(page, { email: ALICE_EMAIL, pin: ALICE_PIN });
 
     await page.goto('/bet');
-    await page.getByRole('button', { name: /transfer to me/i }).click();
-    await expect(page.getByText(/you took bob/i)).toBeVisible();
+    await page.getByRole('button', { name: /take it/i }).click();
+    await expect(page.getByText(/you took bob/i)).toBeVisible({ timeout: 15_000 });
 
     // Bob's drink can no longer be picked.
-    await expect(page.getByRole('button', { name: /transfer to me/i })).toHaveCount(0);
-    await expect(page.getByText(/no other members have logged/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /take it/i })).toHaveCount(0);
+    await expect(page.getByText(/nobody else has logged/i)).toBeVisible();
   });
 
   test('scenario 4: undoing a transfer restores it to the pick list', async ({
@@ -116,12 +116,12 @@ test.describe('@us6 bet transfer', () => {
     await signInAndUnlock(page, { email: ALICE_EMAIL, pin: ALICE_PIN });
 
     await page.goto('/bet');
-    await page.getByRole('button', { name: /transfer to me/i }).click();
-    await expect(page.getByText(/you took bob/i)).toBeVisible();
+    await page.getByRole('button', { name: /take it/i }).click();
+    await expect(page.getByText(/you took bob/i)).toBeVisible({ timeout: 15_000 });
 
     await page.getByRole('button', { name: /undo/i }).click();
     // The drink is transferable again.
-    await expect(page.getByRole('button', { name: /transfer to me/i })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: /take it/i })).toHaveCount(1);
 
     const voided = await seed.db
       .select()

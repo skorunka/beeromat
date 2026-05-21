@@ -19,7 +19,7 @@ test.describe('@ux-i18n bilingual UI', () => {
     await expect(page.getByRole('heading', { name: 'Log a beer' })).toBeVisible();
 
     await page.goto('/en/admin/pending');
-    await expect(page.getByRole('heading', { name: 'Pending payments' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'To confirm' })).toBeVisible();
   });
 
   test('scenario 2: screens render in Czech', async ({ page, seed }) => {
@@ -32,7 +32,7 @@ test.describe('@ux-i18n bilingual UI', () => {
     await expect(page.getByRole('heading', { name: 'Zapsat pivo' })).toBeVisible();
 
     await page.goto('/cs/admin/pending');
-    await expect(page.getByRole('heading', { name: 'Čekající platby' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'K potvrzení' })).toBeVisible();
     // No raw catalog keys leak onto the page.
     await expect(page.locator('body')).not.toContainText('treasurer.');
   });

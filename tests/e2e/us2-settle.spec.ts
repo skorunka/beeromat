@@ -60,7 +60,7 @@ test.describe('@us2 settle via QR Platba', () => {
     await page.goto('/admin/settings/banking');
     await page.locator('#bank-iban').fill(VALID_IBAN);
     await page.locator('#bank-holder').fill('Tennis Club Treasurer');
-    await page.getByRole('button', { name: /save banking profile/i }).click();
+    await page.getByRole('button', { name: /save bank details/i }).click();
     await expect(page.getByText(/saved/i)).toBeVisible();
 
     await expect
@@ -82,8 +82,8 @@ test.describe('@us2 settle via QR Platba', () => {
     await page.goto('/admin/settings/banking');
     // Structurally plausible but fails the mod-97 checksum.
     await page.locator('#bank-iban').fill('CZ6508000000192000145390');
-    await page.getByRole('button', { name: /save banking profile/i }).click();
-    await expect(page.getByText(/not valid/i)).toBeVisible();
+    await page.getByRole('button', { name: /save bank details/i }).click();
+    await expect(page.getByText(/look right/i)).toBeVisible();
   });
 
   test('scenario 3: a member with a balance sees a payment QR', async ({ page, seed }) => {
@@ -110,7 +110,7 @@ test.describe('@us2 settle via QR Platba', () => {
     await signInAndUnlock(page, { email: MEMBER_EMAIL, pin: MEMBER_PIN });
 
     await page.goto('/settle');
-    await page.getByRole('button', { name: /^i paid$/i }).click();
+    await page.getByRole('button', { name: /i.ve paid/i }).click();
     // confirmTransferMade routes home on success; leaving /settle is the
     // stable signal the claim was recorded (the success toast is
     // transient and races a slow DB transaction over the proxy).
@@ -141,13 +141,13 @@ test.describe('@us2 settle via QR Platba', () => {
     await signInAndUnlock(page, { email: MEMBER_EMAIL, pin: MEMBER_PIN });
 
     await page.goto('/settle');
-    await page.getByRole('button', { name: /^i paid$/i }).click();
+    await page.getByRole('button', { name: /i.ve paid/i }).click();
     // Wait for the post-claim redirect rather than the transient toast.
     await page.waitForURL((url) => !url.pathname.includes('/settle'), { timeout: 30_000 });
 
     // Re-visiting settle now shows the pending-claim state, not a new QR.
     await page.goto('/settle');
-    await expect(page.getByText(/awaiting confirmation/i)).toBeVisible();
+    await expect(page.getByText(/waiting on the treasurer/i)).toBeVisible();
     await expect(page.getByText(/100[.,]00/).first()).toBeVisible();
   });
 
@@ -162,6 +162,6 @@ test.describe('@us2 settle via QR Platba', () => {
     await signInAndUnlock(page, { email: MEMBER_EMAIL, pin: MEMBER_PIN });
 
     await page.goto('/settle');
-    await expect(page.getByText(/all settled up/i)).toBeVisible();
+    await expect(page.getByText(/all square/i)).toBeVisible();
   });
 });

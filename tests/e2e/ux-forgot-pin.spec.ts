@@ -33,7 +33,7 @@ test.describe('@ux-forgot-pin recover a forgotten PIN', () => {
     await expect(page.locator('#confirmPin')).toHaveCount(0);
 
     // The forgot-PIN affordance is present before any lock-out.
-    await page.getByRole('button', { name: /forgot pin/i }).click();
+    await page.getByRole('button', { name: /forgot/i }).click();
 
     // It routes to the sign-in screen to request a fresh magic link.
     await page.waitForURL(/\/sign-in/, { timeout: 15_000 });

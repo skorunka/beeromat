@@ -24,8 +24,8 @@ test.describe('@ux-touch thumb-sized controls', () => {
     await setPhoneViewport(page);
     await page.goto('/admin/pending');
 
-    await expectThumbSized(page.getByRole('button', { name: /confirm received/i }));
-    await expectThumbSized(page.getByRole('button', { name: /^dispute$/i }));
+    await expectThumbSized(page.getByRole('button', { name: /got it/i }));
+    await expectThumbSized(page.getByRole('button', { name: /something.s off/i }));
   });
 
   test('the beer-types action buttons meet 44px at 360×640', async ({ page, seed }) => {
@@ -42,6 +42,6 @@ test.describe('@ux-touch thumb-sized controls', () => {
     await page.goto('/admin/beer-types');
 
     await expectThumbSized(page.getByRole('button', { name: /^restock$/i }));
-    await expectThumbSized(page.getByRole('button', { name: /add beer type/i }));
+    await expectThumbSized(page.getByRole('button', { name: /add a beer/i }));
   });
 });

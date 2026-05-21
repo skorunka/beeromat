@@ -1,4 +1,4 @@
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { BeerGrid } from '@/components/log/beer-grid';
 import { requireUnlocked } from '@/lib/auth/session';
@@ -13,15 +13,16 @@ export default async function LogPage({
   setRequestLocale(locale);
 
   const ctx = await requireUnlocked();
+  const t = await getTranslations('log');
   const beers = await getBeerTypeCatalog(ctx.club.id);
 
   return (
     <main className="mx-auto max-w-2xl p-4">
-      <h1 className="mb-4 text-xl font-semibold">Log a beer</h1>
+      <h1 className="mb-4 text-xl font-semibold">{t('title')}</h1>
       <BeerGrid
         beers={beers}
         currencyCode={ctx.club.currencyCode}
-        locale={ctx.member.role === 'club_admin' ? 'en' : ctx.club.defaultLocale}
+        locale={ctx.club.defaultLocale}
       />
     </main>
   );

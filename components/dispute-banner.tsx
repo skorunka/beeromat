@@ -1,6 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
+import { useTranslations } from 'next-intl';
 
 export interface DisputedClaimView {
   paymentId: string;
@@ -56,6 +57,7 @@ function dismissDispute(paymentId: string): void {
  * device, so a dispute the member has already seen stops nagging.
  */
 export function DisputeBanner({ claims }: { claims: DisputedClaimView[] }) {
+  const t = useTranslations('dispute');
   const dismissed = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const visible = claims.filter((c) => !dismissed.has(c.paymentId));
@@ -69,16 +71,17 @@ export function DisputeBanner({ claims }: { claims: DisputedClaimView[] }) {
           className="border-destructive/40 bg-destructive/10 text-destructive flex items-start justify-between gap-3 rounded-lg border p-3 text-sm"
         >
           <p>
-            Your payment claim of <strong>{claim.amountDisplay}</strong> was disputed
-            {claim.reason ? `: ${claim.reason}` : '.'}
+            {claim.reason
+              ? t('bannerWithReason', { amount: claim.amountDisplay, reason: claim.reason })
+              : t('banner', { amount: claim.amountDisplay })}
           </p>
           <button
             type="button"
             onClick={() => dismissDispute(claim.paymentId)}
             className="shrink-0 underline"
-            aria-label="Dismiss"
+            aria-label={t('dismiss')}
           >
-            Dismiss
+            {t('dismiss')}
           </button>
         </div>
       ))}

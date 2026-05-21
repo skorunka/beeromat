@@ -46,8 +46,8 @@ Existing Next.js App Router app at repo root: `app/[locale]/`, `components/`,
 **Independent Test**: Set locale `cs`, visit every screen — no English leaks; repeat for `en`; `cs`/`en` key sets match.
 
 - [X] T004 [P] [US1] Author the `common`, `nav`, `errors` namespaces in `messages/cs.json` and `messages/en.json` (shared labels, buttons, generic errors).
-- [ ] T005 [P] [US1] Localize the home screen `app/[locale]/(app)/page.tsx`, `app/[locale]/(app)/layout.tsx`, and `components/dispute-banner.tsx`.
-- [ ] T006 [P] [US1] Localize `app/[locale]/(app)/log/page.tsx`, `app/[locale]/(app)/tab/page.tsx`, and `components/log/*`.
+- [X] T005 [P] [US1] Localize the home screen `app/[locale]/(app)/page.tsx`, `app/[locale]/(app)/layout.tsx`, and `components/dispute-banner.tsx`.
+- [X] T006 [P] [US1] Localize `app/[locale]/(app)/log/page.tsx`, `app/[locale]/(app)/tab/page.tsx`, and `components/log/*`.
 - [ ] T007 [P] [US1] Localize `app/[locale]/(app)/settle/page.tsx` and `components/settle/*`.
 - [ ] T008 [P] [US1] Localize `app/[locale]/(app)/admin/pending/page.tsx`, `app/[locale]/(app)/admin/balances/` (list + `[memberId]`), and `components/treasurer/*`.
 - [ ] T009 [P] [US1] Localize `app/[locale]/(app)/bet/page.tsx` and `components/bet/*`.

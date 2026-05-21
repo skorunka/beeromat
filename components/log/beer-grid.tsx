@@ -34,9 +34,9 @@ export function BeerGrid({ beers, currencyCode, locale }: BeerGridProps) {
     startTransition(async () => {
       const result = await logBeerAction({ beerTypeId: beer.id });
       if (result.ok) {
-        toast.success(`+ ${beer.name}`);
+        toast.success(t('log.added', { name: beer.name }));
       } else if (result.code === 'OUT_OF_STOCK') {
-        toast.error('Out of stock');
+        toast.error(t('log.outOfStock'));
       } else {
         toast.error(t('common.error'));
       }
@@ -57,14 +57,14 @@ export function BeerGrid({ beers, currencyCode, locale }: BeerGridProps) {
             <div className="flex items-start justify-between gap-2">
               <span className="line-clamp-2 text-base font-semibold">{beer.name}</span>
               {beer.isLowStock && !beer.isOutOfStock ? (
-                <Badge variant="secondary">Low</Badge>
+                <Badge variant="secondary">{t('log.lowBadge')}</Badge>
               ) : null}
-              {beer.isOutOfStock ? <Badge variant="destructive">0</Badge> : null}
+              {beer.isOutOfStock ? <Badge variant="destructive">{t('log.outBadge')}</Badge> : null}
             </div>
             <div className="text-muted-foreground text-sm">
               {formatMoney(beer.unitPriceMinor, currencyCode, locale)}
               {' · '}
-              {beer.currentStock} left
+              {t('log.left', { count: beer.currentStock })}
             </div>
           </Card>
         </button>

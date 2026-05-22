@@ -7,5 +7,5 @@ same directory: `spec.md`, `research.md`, `data-model.md`,
 `specs/001-beer-consumption-ledger/` and `specs/002-ux-hardening/`
 (their `plan.md`, `data-model.md`, and `contracts/` remain the source
 of truth for the data model and server actions, which v1.2 does not
-change). Constitution at `.specify/memory/constitution.md` (v1.5.0).
+change). Constitution at `.specify/memory/constitution.md` (v1.6.0).
 <!-- SPECKIT END -->

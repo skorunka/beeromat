@@ -1,6 +1,6 @@
 /**
- * forms:check — the seventh verification gate (constitution v1.5.0,
- * "User Input & Forms").
+ * forms:check — the seventh verification gate (constitution v1.6.0;
+ * enforces the "User Input & Forms" standard ratified in v1.5.0).
  *
  * Fails (exit 1) when an app/** or components/** .tsx file contains a
  * browser-native input-handling construct that v1.2 forbids:

@@ -1,32 +1,31 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.4.0 → 1.5.0
-Bump rationale: MINOR. Adds a "User Input & Forms" standard: the app
-must not rely on the browser's native validation UI or native
-date/time pickers. Form validation runs through a form library with a
-shared Zod schema and in-app error rendering; date/time entry uses a
-locale-aware picker component.
-
-The trigger: a review of input handling found forms leaning on the
-HTML `required` attribute (which surfaces the browser's default,
-unstyled, locale-ignoring validation bubbles) with Zod validating only
-server-side. No native date/time picker exists in the app yet, so that
-half of the rule is preventative.
+Version change: 1.5.0 → 1.6.0
+Bump rationale: MINOR. The "User Input & Forms" standard added in
+v1.5.0 is now fully implemented — the v1.2 feature
+(`specs/003-forms-input-hardening/`, merged 2026-05-22) migrated all
+11 existing forms onto react-hook-form with a shared Zod schema and
+in-app, locale-aware error rendering. This amendment adds the seventh
+verification gate, `forms:check`, which fails the build on a native
+date/time input or a native `required`/`pattern` attribute — making
+the standard enforced rather than only reviewed — and updates the
+standard's Status line with the pinned library versions.
 
 Changes:
-  - New section "User Input & Forms" after Internationalization &
-    Localization.
+  - Verification Gates: added gate 7, `pnpm forms:check`;
+    "six gates" → "seven gates".
+  - "User Input & Forms" Status line: marked implemented; the chosen
+    libraries pinned (react-hook-form 7.76.0, @hookform/resolvers
+    5.4.0, over the existing zod 4.x).
 
 No principle removed or fundamentally redefined → MINOR, not MAJOR.
 
-Implementation note: the rule is ratified now; the migration of the
-~8 existing forms off native validation is scheduled as a separate
-v1.2 feature (the in-flight v1.1 stays scoped to the UX-review
-findings). No date/time picker work is needed until a feature first
-requires date entry.
-
 ----- Prior amendment history (for reference) -----
+1.4.0 → 1.5.0 (2026-05-21, MINOR): Added the "User Input & Forms"
+  standard — no native validation UI or native date/time pickers;
+  form validation through a form library with a shared Zod schema and
+  in-app error rendering; date/time entry via a locale-aware picker.
 1.3.0 → 1.4.0 (2026-05-21, MINOR): Encoded the six UX-review framework
   lessons — sixth `i18n:check` gate, Principle V UI-reversibility
   clause, Verifiable Tasks / mandatory personas / verification-infra
@@ -266,10 +265,16 @@ date pickers vary by browser and OS and silently ignore the chosen
 language. Routing both through app-controlled, locale-aware components
 keeps the experience consistent and Czech-correct.
 
-**Status:** Ratified in v1.5.0. The chosen library versions are pinned
-when the v1.2 forms-migration feature is planned (web-verified latest
-stable at that time). Existing forms are migrated under that feature;
-new forms comply from creation.
+**Status:** Ratified in v1.5.0; **fully implemented in v1.2**
+(`specs/003-forms-input-hardening/`, merged 2026-05-22). The pinned
+libraries are `react-hook-form` 7.76.0 and `@hookform/resolvers` 5.4.0
+over the existing `zod` 4.x. All 11 existing forms were migrated to
+in-app, locale-aware validation; new forms comply from creation, and
+the `forms:check` gate (see Verification Gates) fails the build on a
+native date/time input or a native `required`/`pattern` constraint.
+The locale-aware date-picker component itself remains deferred — no
+screen collects a date yet; `react-day-picker` stays the standard for
+the first feature that needs one.
 
 ## Development Workflow & Quality Gates
 
@@ -348,8 +353,15 @@ being pushed to `main`:
    sets. Added v1.4.0: the v1 UI shipped entirely untranslated while
    gates 1-5 stayed green, because no gate could observe a hardcoded
    string. A gate that cannot be skipped beats a task line that can.
+7. **`pnpm forms:check`** — no form delegates input handling to the
+   browser: the scan rejects a native date/time input
+   (`type="date"|"time"|"datetime-local"`) and the native `required`
+   / `pattern` validation attributes anywhere in `app/**` or
+   `components/**`. Added v1.6.0 with the v1.2 forms migration, it
+   makes the "User Input & Forms" standard enforced rather than only
+   reviewed.
 
-The six gates are non-negotiable for non-trivial changes. Skipping a
+The seven gates are non-negotiable for non-trivial changes. Skipping a
 gate (e.g. shipping ahead of an E2E backfill) requires the same
 justification discipline as a Constitution Check violation: noted in
 the commit message as a `Skipped-Gate: <gate>` trailer with a
@@ -444,4 +456,4 @@ a review acknowledging the version-bump rationale.
 Constitution Check gate; principle violations must be justified or fixed,
 not waived informally.
 
-**Version**: 1.5.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-21
+**Version**: 1.6.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-22

@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-22
 
-**Status**: Draft
+**Status**: Shipped — merged to `main` 2026-05-22 (all 33 tasks complete, all seven verification gates green)
 
 **Input**: User description: "beeromat v1.2 — forms & input hardening. Replace browser-default form validation and native date/time picker controls across the whole app with a consistent, accessible, locale-aware form layer, per constitution v1.5.0's forms standard."
 

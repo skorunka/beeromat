@@ -100,9 +100,9 @@ it without a manual revisit.
 **Independent Test**: From the account hub, use sign-out; the session ends and
 a protected screen then requires signing in again.
 
-- [ ] T013 [P] [US4] Create `components/account/sign-out-button.tsx` — a client control that invokes the existing `signOutDeviceAction` and then sends the member to the signed-out entry point. Catalog string for the label.
-- [ ] T014 [US4] Add the `SignOutButton` to the `/account` hub (`app/[locale]/(app)/account/page.tsx`), ≥44 px.
-- [ ] T015 [P] [US4] Create `tests/e2e/ux2-sign-out.spec.ts` asserting US4 scenarios 1–2: the control is present on the hub; using it ends the session and a protected screen afterwards requires a fresh sign-in.
+- [X] T013 [P] [US4] Create `components/account/sign-out-button.tsx` — a client control that invokes the existing `signOutDeviceAction` and then sends the member to the signed-out entry point. Catalog string for the label.
+- [X] T014 [US4] Add the `SignOutButton` to the `/account` hub (`app/[locale]/(app)/account/page.tsx`), ≥44 px.
+- [X] T015 [P] [US4] Create `tests/e2e/ux2-sign-out.spec.ts` asserting US4 scenarios 1–2: the control is present on the hub; using it ends the session and a protected screen afterwards requires a fresh sign-in.
 
 **Checkpoint**: Sign-out is reachable; US1–US4 testable.
 

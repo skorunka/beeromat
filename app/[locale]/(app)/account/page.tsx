@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Card } from '@/components/ui/card';
+import { SignOutButton } from '@/components/account/sign-out-button';
 import { Link } from '@/lib/i18n/navigation';
 import { requireUnlocked } from '@/lib/auth/session';
 
@@ -31,7 +32,7 @@ export default async function AccountPage({
         >
           {t('paymentHistory')}
         </Link>
-        {/* US4 adds the sign-out control below. */}
+        <SignOutButton />
       </Card>
     </main>
   );

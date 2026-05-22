@@ -132,9 +132,9 @@ only; no date-picker component is built — see spec.md US4.)
 **Independent Test**: The gate fails when a native date/time input is injected
 into the app source and passes against the migrated v1.2 source.
 
-- [ ] T028 [US4] Create `scripts/forms-check.ts` (mirroring `scripts/i18n-check.ts`) — scans `app/` and `components/` and exits non-zero on G1 native `type="date"|"time"|"datetime-local"`, G2 the `required` attribute, or G3 the `pattern` attribute (allowing `maxLength`/`inputMode`/`type="tel|email|number"`) per contracts/forms.md §4; add the `forms:check` script to `package.json`.
-- [ ] T029 [US4] Create `tests/unit/forms-check.test.ts` — a Vitest test that runs the gate's scan logic against a fixture containing a native `<input type="date">` (expect failure) and against clean markup (expect pass).
-- [ ] T030 [US4] Wire `pnpm forms:check` into the project's CI gate list (`.github/workflows/`, alongside `i18n:check`); confirm `pnpm forms:check` passes against the fully migrated source.
+- [X] T028 [US4] Create `scripts/forms-check.ts` (mirroring `scripts/i18n-check.ts`) — scans `app/` and `components/` and exits non-zero on G1 native `type="date"|"time"|"datetime-local"`, G2 the `required` attribute, or G3 the `pattern` attribute (allowing `maxLength`/`inputMode`/`type="tel|email|number"`) per contracts/forms.md §4; add the `forms:check` script to `package.json`.
+- [X] T029 [US4] Create `tests/unit/forms-check.test.ts` — a Vitest test that runs the gate's scan logic against a fixture containing a native `<input type="date">` (expect failure) and against clean markup (expect pass).
+- [X] T030 [US4] Wire `pnpm forms:check` into the project's CI gate list (`.github/workflows/`, alongside `i18n:check`); confirm `pnpm forms:check` passes against the fully migrated source.
 
 **Checkpoint**: The date-entry guardrail is enforced; all four stories complete.
 

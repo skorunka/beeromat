@@ -86,8 +86,8 @@ it without a manual revisit.
 
 **Independent Test**: Log a beer → home balance rises; undo it → balance drops.
 
-- [ ] T011 [US3] In `app/[locale]/(app)/log/actions.ts`, add `revalidatePath('/')` to both the log-consumption action and the undo/void action (alongside the existing `revalidatePath('/log')` / `revalidatePath('/tab')`), so the home Server Component recomputes the balance. No change to the balance calculation.
-- [ ] T012 [P] [US3] Create `tests/e2e/ux2-home-balance.spec.ts` asserting US3 scenarios 1–2: the home balance increases after a log and decreases after an undo.
+- [X] T011 [US3] In `app/[locale]/(app)/log/actions.ts`, add `revalidatePath('/')` to both the log-consumption action and the undo/void action (alongside the existing `revalidatePath('/log')` / `revalidatePath('/tab')`), so the home Server Component recomputes the balance. No change to the balance calculation.
+- [X] T012 [P] [US3] Create `tests/e2e/ux2-home-balance.spec.ts` asserting US3 scenarios 1–2: the home balance increases after a log and decreases after an undo.
 
 **Checkpoint**: The home balance is live; US1–US3 testable.
 

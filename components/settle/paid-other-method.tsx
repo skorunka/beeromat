@@ -3,6 +3,8 @@
 import { useState, useTransition } from 'react';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
@@ -10,19 +12,25 @@ import { markPaidOtherMethodAction } from '@/app/[locale]/(app)/settle/actions';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormRootError,
+} from '@/components/ui/form';
+import { toMinor } from '@/lib/validation/money';
+import {
+  paidOtherMethodSchema,
+  type PaidOtherMethodValues,
+} from '@/lib/validation/payments';
 
 interface PaidOtherMethodProps {
   /** Outstanding balance in minor units (string-serialised bigint). */
   defaultAmountMinor: string;
   currencyCode: string;
-}
-
-/** Major-unit decimal string → integer minor units. */
-function toMinor(major: string): bigint | null {
-  if (!/^\d+([.,]\d{1,2})?$/.test(major.trim())) return null;
-  const [whole = '0', frac = ''] = major.trim().replace(',', '.').split('.');
-  return BigInt(whole) * 100n + BigInt(frac.padEnd(2, '0'));
 }
 
 /**
@@ -35,35 +43,33 @@ export function PaidOtherMethod({ defaultAmountMinor, currencyCode }: PaidOtherM
   const t = useTranslations('settle');
   const tCommon = useTranslations('common');
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState(
-    (Number(BigInt(defaultAmountMinor)) / 100).toFixed(2),
-  );
-  const [note, setNote] = useState('');
   const [isPending, startTransition] = useTransition();
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const amountMinor = toMinor(amount);
-    if (amountMinor === null || amountMinor <= 0n) {
-      toast.error(t('invalidAmount'));
-      return;
-    }
-    if (!note.trim()) {
-      toast.error(t('noteRequired'));
-      return;
-    }
+  const form = useForm<PaidOtherMethodValues>({
+    resolver: zodResolver(paidOtherMethodSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      amount: (Number(BigInt(defaultAmountMinor)) / 100).toFixed(2),
+      note: '',
+    },
+  });
+
+  function onSubmit(values: PaidOtherMethodValues) {
+    const amountMinor = toMinor(values.amount);
+    // The schema already guarantees a parseable, positive amount.
+    if (amountMinor === null) return;
     startTransition(async () => {
       const result = await markPaidOtherMethodAction({
         amountMinor: amountMinor.toString(),
-        note,
+        note: values.note,
       });
       if (result.ok) {
         toast.success(t('recorded'));
         router.push('/' as Route);
       } else if (result.code === 'CLAIM_PENDING') {
-        toast.error(t('claimPending'));
+        form.setError('root', { message: 'settle.claimPending' });
       } else {
-        toast.error(t('recordFailed'));
+        form.setError('root', { message: 'settle.recordFailed' });
       }
     });
   }
@@ -82,31 +88,44 @@ export function PaidOtherMethod({ defaultAmountMinor, currencyCode }: PaidOtherM
 
   return (
     <Card className="p-4">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="other-amount">{t('amountLabel', { currency: currencyCode })}</Label>
-          <Input
-            id="other-amount"
-            inputMode="decimal"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          noValidate
+          className="flex flex-col gap-3"
+        >
+          <FormField
+            control={form.control}
+            name="amount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('amountLabel', { currency: currencyCode })}</FormLabel>
+                <FormControl>
+                  <Input inputMode="decimal" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="other-note">{t('noteLabel')}</Label>
-          <Input
-            id="other-note"
-            placeholder={t('notePlaceholder')}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            required
+          <FormField
+            control={form.control}
+            name="note"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('noteLabel')}</FormLabel>
+                <FormControl>
+                  <Input placeholder={t('notePlaceholder')} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        <Button type="submit" disabled={isPending}>
-          {isPending ? tCommon('saving') : t('recordPayment')}
-        </Button>
-      </form>
+          <FormRootError />
+          <Button type="submit" disabled={isPending}>
+            {isPending ? tCommon('saving') : t('recordPayment')}
+          </Button>
+        </form>
+      </Form>
     </Card>
   );
 }

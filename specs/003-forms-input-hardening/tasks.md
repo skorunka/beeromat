@@ -90,11 +90,11 @@ Server Action runs.
 a required note → in-app localized message, no native bubble, the action does
 not fire; a valid entry records exactly as in v1.
 
-- [ ] T014 [P] [US2] Create `lib/validation/payments.ts` — the schemas for the settle "paid another way" form (`amountMajor` decimal → minor units > 0, `note` trimmed non-empty) and the treasurer manual-payment form (`amountMajor` > 0, optional `note`), using `toMinor` from `lib/validation/money.ts` and emitting `settle.invalidAmount` / `settle.noteRequired`.
-- [ ] T015 [US2] Migrate `components/settle/paid-other-method.tsx` to `react-hook-form` + the `Form` primitives + `lib/validation/payments.ts`; remove native `required`.
-- [ ] T016 [US2] Migrate `components/treasurer/manual-payment-form.tsx` to `react-hook-form` + `lib/validation/payments.ts`; replace the `toast.error` validation feedback with `FormMessage`; remove native `required`; **keep the `#manual-amount` and `#manual-note` input ids** that `tests/e2e/us4-treasurer-manual.spec.ts` depends on.
-- [ ] T017 [US2] Wire the shared schemas into `markPaidOtherMethodAction` (`app/[locale]/(app)/settle/actions.ts`) and `recordManualPaymentAction` (`app/[locale]/(app)/admin/balances/actions.ts`) — replace the inline/hand-rolled validation; keep action signatures and return types unchanged (FR-014).
-- [ ] T018 [P] [US2] Create `tests/e2e/forms-money.spec.ts` asserting US2 acceptance scenarios 1–4: non-numeric/zero/negative amount and missing required note → in-app localized message, no native bubble, action not fired; a valid amount + note records as in v1.
+- [X] T014 [P] [US2] Create `lib/validation/payments.ts` — the schemas for the settle "paid another way" form (`amountMajor` decimal → minor units > 0, `note` trimmed non-empty) and the treasurer manual-payment form (`amountMajor` > 0, optional `note`), using `toMinor` from `lib/validation/money.ts` and emitting `settle.invalidAmount` / `settle.noteRequired`.
+- [X] T015 [US2] Migrate `components/settle/paid-other-method.tsx` to `react-hook-form` + the `Form` primitives + `lib/validation/payments.ts`; remove native `required`.
+- [X] T016 [US2] Migrate `components/treasurer/manual-payment-form.tsx` to `react-hook-form` + `lib/validation/payments.ts`; replace the `toast.error` validation feedback with `FormMessage`; remove native `required`; **keep the `#manual-amount` and `#manual-note` input ids** that `tests/e2e/us4-treasurer-manual.spec.ts` depends on.
+- [X] T017 [US2] Wire the shared schemas into `markPaidOtherMethodAction` (`app/[locale]/(app)/settle/actions.ts`) and `recordManualPaymentAction` (`app/[locale]/(app)/admin/balances/actions.ts`) — replace the inline/hand-rolled validation; keep action signatures and return types unchanged (FR-014).
+- [X] T018 [P] [US2] Create `tests/e2e/forms-money.spec.ts` asserting US2 acceptance scenarios 1–4: non-numeric/zero/negative amount and missing required note → in-app localized message, no native bubble, action not fired; a valid amount + note records as in v1.
 
 **Checkpoint**: US1 and US2 form groups both hardened and independently testable.
 

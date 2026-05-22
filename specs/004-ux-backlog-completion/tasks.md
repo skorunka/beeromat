@@ -115,9 +115,9 @@ a protected screen then requires signing in again.
 **Independent Test**: The log screen with no beer types shows friendly copy;
 the dispute banner includes an actionable link.
 
-- [ ] T016 [US5] Give the log screen a friendly empty state when the club has no beer types — localized copy consistent in tone with the history/balances empty states (in `app/[locale]/(app)/log/page.tsx` or the beer grid it renders). Add/adjust the `log.empty` catalog keys (cs + en).
-- [ ] T017 [US5] In `components/dispute-banner.tsx`, add an actionable link to the Settle screen alongside the explanation (FR-013); confirm the banner still disappears once the payment leaves the disputed state (FR-014). Add the banner action-link catalog key (cs + en).
-- [ ] T018 [P] [US5] Create `tests/e2e/ux2-guidance.spec.ts` asserting US5 scenarios 1–2: the log empty state shows for a club with no beer types; the dispute banner shows an actionable link for a member with a disputed payment.
+- [X] T016 [US5] Give the log screen a friendly empty state when the club has no beer types — localized copy consistent in tone with the history/balances empty states (in `app/[locale]/(app)/log/page.tsx` or the beer grid it renders). Add/adjust the `log.empty` catalog keys (cs + en).
+- [X] T017 [US5] In `components/dispute-banner.tsx`, add an actionable link to the Settle screen alongside the explanation (FR-013); confirm the banner still disappears once the payment leaves the disputed state (FR-014). Add the banner action-link catalog key (cs + en).
+- [X] T018 [P] [US5] Create `tests/e2e/ux2-guidance.spec.ts` asserting US5 scenarios 1–2: the log empty state shows for a club with no beer types; the dispute banner shows an actionable link for a member with a disputed payment.
 
 **Checkpoint**: The dead-end screens now guide; US1–US5 testable.
 

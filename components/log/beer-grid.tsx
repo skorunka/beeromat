@@ -43,6 +43,14 @@ export function BeerGrid({ beers, currencyCode, locale }: BeerGridProps) {
     });
   }
 
+  // A friendly empty state when the club has no beer types yet — rather
+  // than a bleak empty grid (v1.3 UX review F16).
+  if (beers.length === 0) {
+    return (
+      <p className="text-muted-foreground p-6 text-center text-sm">{t('log.empty')}</p>
+    );
+  }
+
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {beers.map((beer) => (

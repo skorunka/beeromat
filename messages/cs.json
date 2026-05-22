@@ -318,6 +318,7 @@
   "dispute": {
     "banner": "Echo: u tvojí platby {amount} něco nesedí",
     "bannerWithReason": "Echo: u tvojí platby {amount} něco nesedí — {reason}",
+    "action": "Pojď to vyřešit",
     "dismiss": "Jasně"
   },
   "errors": {

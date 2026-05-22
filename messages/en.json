@@ -318,6 +318,7 @@
   "dispute": {
     "banner": "Heads-up: your {amount} payment got flagged",
     "bannerWithReason": "Heads-up: your {amount} payment got flagged — {reason}",
+    "action": "Sort it out",
     "dismiss": "Got it"
   },
   "errors": {

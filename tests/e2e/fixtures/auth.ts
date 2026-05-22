@@ -93,13 +93,32 @@ async function requestAndVerifyMagicLink(page: Page, email: string): Promise<boo
 }
 
 /**
- * Sign a seeded member in and set their device PIN, leaving `page` on
- * the authenticated app home.
+ * Sign a seeded member in and leave `page` on the device-PIN **setup**
+ * gate (PinGate in 'setup' mode), without completing it. Useful for
+ * specs that exercise the PIN-setup form itself.
  *
  * The magic-link request/verify is retried: each magic link is single-
  * use and a transient verify failure must restart from a fresh link
  * rather than replay a consumed token. A persistent failure still
  * surfaces — every attempt fails the same way.
+ */
+export async function reachPinSetupGate(page: Page, email: string): Promise<void> {
+  const MAX_ATTEMPTS = 3;
+  let reachedPinGate = false;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS && !reachedPinGate; attempt += 1) {
+    reachedPinGate = await requestAndVerifyMagicLink(page, email);
+  }
+  if (!reachedPinGate) {
+    throw new Error(
+      `reachPinSetupGate: device-PIN gate never appeared for ${email} ` +
+        `after ${MAX_ATTEMPTS} sign-in attempts (last URL: ${page.url()})`,
+    );
+  }
+}
+
+/**
+ * Sign a seeded member in and set their device PIN, leaving `page` on
+ * the authenticated app home.
  */
 export async function signInAndUnlock(
   page: Page,
@@ -109,17 +128,7 @@ export async function signInAndUnlock(
     throw new Error('signInAndUnlock: pin must be exactly 4 digits');
   }
 
-  const MAX_ATTEMPTS = 3;
-  let reachedPinGate = false;
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS && !reachedPinGate; attempt += 1) {
-    reachedPinGate = await requestAndVerifyMagicLink(page, opts.email);
-  }
-  if (!reachedPinGate) {
-    throw new Error(
-      `signInAndUnlock: device-PIN gate never appeared for ${opts.email} ` +
-        `after ${MAX_ATTEMPTS} sign-in attempts (last URL: ${page.url()})`,
-    );
-  }
+  await reachPinSetupGate(page, opts.email);
 
   // Device-PIN setup gate (first sign-in on this browser → no device
   // session yet → PinGate renders in 'setup' mode).

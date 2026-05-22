@@ -1,13 +1,23 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useForm, type Resolver } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { setPinAction, signOutDeviceAction, unlockDeviceAction } from '@/lib/auth/actions';
+import { pinSetupSchema, pinUnlockSchema } from '@/lib/validation/auth';
 
 type Mode = 'setup' | 'unlock';
 
@@ -16,18 +26,41 @@ interface PinGateProps {
   onUnlocked?: () => void;
 }
 
+interface PinFormValues {
+  pin: string;
+  confirmPin: string;
+}
+
 const PIN_LENGTH = 4;
+
+/** Keep only digits, capped at the PIN length. */
+function digits(value: string): string {
+  return value.replace(/\D/g, '').slice(0, PIN_LENGTH);
+}
 
 export function PinGate({ mode, onUnlocked }: PinGateProps) {
   const t = useTranslations('pin');
-  const [pin, setPin] = useState('');
-  const [confirmPin, setConfirmPin] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  // Server-side outcomes (wrong PIN with attempts-remaining, lock-out) are
+  // not field-validation errors — they carry a runtime count and arrive
+  // after a round trip, so they render as a distinct form-level message,
+  // separate from the react-hook-form field errors (FR-012).
+  const [serverError, setServerError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const form = useForm<PinFormValues>({
+    // The active schema depends on mode. Both validate `pin`; only setup
+    // also validates `confirmPin`, so the unlock resolver is a structural
+    // subset — cast through `unknown` to the form's value shape.
+    resolver: zodResolver(
+      mode === 'setup' ? pinSetupSchema : pinUnlockSchema,
+    ) as unknown as Resolver<PinFormValues>,
+    mode: 'onTouched',
+    defaultValues: { pin: '', confirmPin: '' },
+  });
+
   // US5 — escape hatch before lock-out: clear this device's session +
-  // sign out, then go to /sign-in to request a fresh magic link
-  // (Turnstile + rate limited there). Spends no PIN attempts.
+  // sign out, then go to /sign-in for a fresh magic link. Spends no
+  // PIN attempts.
   function handleForgotPin() {
     startTransition(async () => {
       await signOutDeviceAction();
@@ -35,25 +68,13 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
     });
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-
-    if (!/^\d{4}$/.test(pin)) {
-      setError(t(mode === 'setup' ? 'setup.invalidFormat' : 'unlock.wrongPin', { remaining: 0 }));
-      return;
-    }
-
-    if (mode === 'setup' && pin !== confirmPin) {
-      setError(t('setup.mismatch'));
-      return;
-    }
-
+  function onSubmit(values: PinFormValues) {
+    setServerError(null);
     startTransition(async () => {
       const result =
         mode === 'setup'
-          ? await setPinAction({ pin })
-          : await unlockDeviceAction({ pin });
+          ? await setPinAction({ pin: values.pin })
+          : await unlockDeviceAction({ pin: values.pin });
 
       if (result.ok) {
         toast.success(t(mode === 'setup' ? 'setup.title' : 'unlock.title'));
@@ -61,12 +82,12 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
         // Reload so the server-side gate sees the new device session.
         window.location.reload();
       } else if (result.code === 'WRONG_PIN') {
-        setError(t('unlock.wrongPin', { remaining: result.attemptsRemaining ?? 0 }));
-        setPin('');
+        setServerError(t('unlock.wrongPin', { remaining: result.attemptsRemaining ?? 0 }));
+        form.resetField('pin');
       } else if (result.code === 'LOCKED') {
-        setError(t('unlock.lockedBody'));
+        setServerError(t('unlock.lockedBody'));
       } else {
-        setError(t('setup.invalidFormat'));
+        setServerError(t('setup.invalidFormat'));
       }
     });
   }
@@ -82,50 +103,80 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
         ) : null}
       </div>
 
-      <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="pin">{t('setup.pinLabel')}</Label>
-          <Input
-            id="pin"
-            type="tel"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={PIN_LENGTH}
-            value={pin}
-            onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, PIN_LENGTH))}
-            className="text-center text-2xl tracking-widest"
-            autoFocus
-          />
-        </div>
-
-        {mode === 'setup' ? (
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="confirmPin">{t('setup.confirmLabel')}</Label>
-            <Input
-              id="confirmPin"
-              type="tel"
-              inputMode="numeric"
-              maxLength={PIN_LENGTH}
-              value={confirmPin}
-              onChange={(e) =>
-                setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, PIN_LENGTH))
-              }
-              className="text-center text-2xl tracking-widest"
-            />
-          </div>
-        ) : null}
-
-        {error ? <p className="text-destructive text-sm">{error}</p> : null}
-
-        <Button
-          type="submit"
-          size="lg"
-          disabled={isPending || pin.length !== PIN_LENGTH}
-          className="h-14 text-lg"
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          noValidate
+          className="flex w-full flex-col gap-4"
         >
-          {t(mode === 'setup' ? 'setup.submit' : 'unlock.submit')}
-        </Button>
-      </form>
+          <FormField
+            control={form.control}
+            name="pin"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('setup.pinLabel')}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={PIN_LENGTH}
+                    className="text-center text-2xl tracking-widest"
+                    autoFocus
+                    name={field.name}
+                    ref={field.ref}
+                    value={field.value}
+                    onBlur={field.onBlur}
+                    onChange={(e) => field.onChange(digits(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {mode === 'setup' ? (
+            <FormField
+              control={form.control}
+              name="confirmPin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('setup.confirmLabel')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={PIN_LENGTH}
+                      className="text-center text-2xl tracking-widest"
+                      name={field.name}
+                      ref={field.ref}
+                      value={field.value}
+                      onBlur={field.onBlur}
+                      onChange={(e) => field.onChange(digits(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : null}
+
+          {serverError ? (
+            <p role="alert" className="text-destructive text-sm">
+              {serverError}
+            </p>
+          ) : null}
+
+          <Button
+            type="submit"
+            size="lg"
+            disabled={isPending}
+            className="h-14 text-lg"
+          >
+            {t(mode === 'setup' ? 'setup.submit' : 'unlock.submit')}
+          </Button>
+        </form>
+      </Form>
 
       {mode === 'unlock' ? (
         <button

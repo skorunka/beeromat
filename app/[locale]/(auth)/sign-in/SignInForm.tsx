@@ -1,13 +1,23 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { TurnstileWidget } from '@/components/turnstile-widget';
 import { requestMagicLinkAction } from '@/lib/auth/actions';
+import { signInSchema, type SignInValues } from '@/lib/validation/auth';
 
 interface SignInFormProps {
   turnstileSiteKey: string;
@@ -15,16 +25,21 @@ interface SignInFormProps {
 
 export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
   const t = useTranslations('auth.signIn');
-  const [email, setEmail] = useState('');
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const form = useForm<SignInValues>({
+    resolver: zodResolver(signInSchema),
+    mode: 'onTouched',
+    defaultValues: { email: '' },
+  });
+
+  function onSubmit(values: SignInValues) {
+    // The submit button is gated on a Turnstile token; this is a guard.
     if (!turnstileToken) return;
     startTransition(async () => {
-      await requestMagicLinkAction({ email, turnstileToken });
+      await requestMagicLinkAction({ email: values.email, turnstileToken });
       setSent(true);
     });
   }
@@ -43,44 +58,56 @@ export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 p-8">
       <h1 className="text-2xl font-bold">{t('title')}</h1>
 
-      <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="email">{t('emailLabel')}</Label>
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            inputMode="email"
-            placeholder={t('emailPlaceholder')}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoFocus
-          />
-        </div>
-
-        {turnstileSiteKey ? (
-          <TurnstileWidget
-            siteKey={turnstileSiteKey}
-            onSuccess={(token) => setTurnstileToken(token)}
-            onError={() => setTurnstileToken(null)}
-            onExpire={() => setTurnstileToken(null)}
-          />
-        ) : (
-          <p className="text-destructive text-sm">{t('turnstileMissing')}</p>
-        )}
-
-        <Button
-          type="submit"
-          size="lg"
-          disabled={!email || !turnstileToken || isPending}
-          className="h-14 text-lg"
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          noValidate
+          className="flex w-full flex-col gap-4"
         >
-          {t('submit')}
-        </Button>
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('emailLabel')}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    inputMode="email"
+                    placeholder={t('emailPlaceholder')}
+                    autoFocus
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <p className="text-muted-foreground text-xs">{t('checkInbox')}</p>
-      </form>
+          {turnstileSiteKey ? (
+            <TurnstileWidget
+              siteKey={turnstileSiteKey}
+              onSuccess={(token) => setTurnstileToken(token)}
+              onError={() => setTurnstileToken(null)}
+              onExpire={() => setTurnstileToken(null)}
+            />
+          ) : (
+            <p className="text-destructive text-sm">{t('turnstileMissing')}</p>
+          )}
+
+          <Button
+            type="submit"
+            size="lg"
+            disabled={!turnstileToken || isPending}
+            className="h-14 text-lg"
+          >
+            {t('submit')}
+          </Button>
+
+          <p className="text-muted-foreground text-xs">{t('checkInbox')}</p>
+        </form>
+      </Form>
     </main>
   );
 }

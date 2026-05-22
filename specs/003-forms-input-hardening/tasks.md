@@ -67,14 +67,14 @@ in-app, in the active locale, with no native browser bubble.
 in-app localized message appears beside the field, no native bubble; correct
 it → the message clears; switch language → the message re-renders translated.
 
-- [ ] T006 [P] [US1] Create `lib/validation/auth.ts` — the sign-in email schema and the PIN setup/unlock schemas (exactly 4 digits; setup adds a cross-field refinement that `confirmPin` equals `pin`), each emitting catalog keys per data-model.md (`forms.email`, `pin.setup.invalidFormat`, `pin.setup.mismatch`).
-- [ ] T007 [P] [US1] Create `lib/validation/invitation.ts` — the invitation-accept `displayName` schema (trimmed, non-empty, max 80) emitting `invitation.errorNameRequired`.
-- [ ] T008 [US1] Migrate `app/[locale]/(auth)/sign-in/SignInForm.tsx` to `react-hook-form` + the `Form` primitives + `lib/validation/auth.ts`; remove the native `required` attribute; map a Turnstile failure to `FormRootError` (not a field error).
-- [ ] T009 [US1] Migrate `components/pin/pin-gate.tsx` (both `setup` and `unlock` modes) to `react-hook-form` + `lib/validation/auth.ts`; render the PIN-mismatch cross-field error via `FormMessage`; preserve the forgot-PIN escape, the wrong-PIN attempts-remaining message, and the lockout handling as `FormRootError`.
-- [ ] T010 [US1] Migrate `app/[locale]/(auth)/invitation/[token]/InvitationForm.tsx` to `react-hook-form` + the `Form` primitives + `lib/validation/invitation.ts`; remove native constraints; map action error codes to `FormRootError`.
-- [ ] T011 [US1] Wire the shared schemas into the sign-in / PIN / invitation Server Actions in `lib/auth/actions.ts` and the invitation-accept action — replace the hand-rolled checks with `schema.safeParse`, transcribing the rules 1:1; keep every action signature and return type unchanged (FR-014).
-- [ ] T012 [US1] Update `tests/e2e/fixtures/auth.ts` (`signInAndUnlock`) for any input `id`/role/selector changed by T008–T010, so the existing v1 E2E suite still drives sign-in + PIN; run a smoke E2E to confirm the auth fixture works.
-- [ ] T013 [P] [US1] Create `tests/e2e/forms-auth.spec.ts` asserting US1 acceptance scenarios 1–6: invalid PIN/email/name → in-app localized message and **no native validation bubble**; PIN mismatch cross-field message; locale switch re-renders a visible error; double-tap submit fires the action once.
+- [X] T006 [P] [US1] Create `lib/validation/auth.ts` — the sign-in email schema and the PIN setup/unlock schemas (exactly 4 digits; setup adds a cross-field refinement that `confirmPin` equals `pin`), each emitting catalog keys per data-model.md (`forms.email`, `pin.setup.invalidFormat`, `pin.setup.mismatch`).
+- [X] T007 [P] [US1] Create `lib/validation/invitation.ts` — the invitation-accept `displayName` schema (trimmed, non-empty, max 80) emitting `invitation.errorNameRequired`.
+- [X] T008 [US1] Migrate `app/[locale]/(auth)/sign-in/SignInForm.tsx` to `react-hook-form` + the `Form` primitives + `lib/validation/auth.ts`; remove the native `required` attribute; map a Turnstile failure to `FormRootError` (not a field error).
+- [X] T009 [US1] Migrate `components/pin/pin-gate.tsx` (both `setup` and `unlock` modes) to `react-hook-form` + `lib/validation/auth.ts`; render the PIN-mismatch cross-field error via `FormMessage`; preserve the forgot-PIN escape, the wrong-PIN attempts-remaining message, and the lockout handling as `FormRootError`.
+- [X] T010 [US1] Migrate `app/[locale]/(auth)/invitation/[token]/InvitationForm.tsx` to `react-hook-form` + the `Form` primitives + `lib/validation/invitation.ts`; remove native constraints; map action error codes to `FormRootError`.
+- [X] T011 [US1] Wire the shared schemas into the sign-in / PIN / invitation Server Actions in `lib/auth/actions.ts` and the invitation-accept action — replace the hand-rolled checks with `schema.safeParse`, transcribing the rules 1:1; keep every action signature and return type unchanged (FR-014).
+- [X] T012 [US1] Update `tests/e2e/fixtures/auth.ts` (`signInAndUnlock`) for any input `id`/role/selector changed by T008–T010, so the existing v1 E2E suite still drives sign-in + PIN; run a smoke E2E to confirm the auth fixture works.
+- [X] T013 [P] [US1] Create `tests/e2e/forms-auth.spec.ts` asserting US1 acceptance scenarios 1–6: invalid PIN/email/name → in-app localized message and **no native validation bubble**; PIN mismatch cross-field message; locale switch re-renders a visible error; double-tap submit fires the action once.
 
 **Checkpoint**: Auth & onboarding forms fully hardened and independently testable.
 

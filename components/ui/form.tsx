@@ -5,10 +5,16 @@
 // Building every form from these primitives is what makes consistent,
 // accessible, in-app validation a structural property rather than 11
 // hand-built repetitions (contracts/forms.md §1):
-//   - FormControl wires aria-invalid / aria-describedby onto the input.
+//   - FormControl wires id + aria-invalid / aria-describedby onto the input.
 //   - FormMessage renders a *catalog key* through next-intl — so a locale
 //     switch re-translates a visible error (FR-008) — and carries role=alert.
 //   - FormRootError renders form-level (non-field) errors distinctly (FR-012).
+//
+// The DOM id of a control is its react-hook-form field `name` (e.g. a field
+// named `email` gets id="email"). That keeps ids predictable and stable for
+// the E2E suite, and keeps the label/control/message wiring coherent. Two
+// fields with the same name on one page would collide — the app never mounts
+// two such forms simultaneously.
 
 import * as React from 'react';
 import {
@@ -45,43 +51,30 @@ function FormField<
   );
 }
 
-interface FormItemContextValue {
-  id: string;
-}
-const FormItemContext = React.createContext<FormItemContextValue | null>(null);
-
-/** Layout wrapper for one field; mints the id shared by label/control/message. */
+/** Layout wrapper for one field — label, control, and message stacked. */
 function FormItem({ className, ...props }: React.ComponentProps<'div'>) {
-  const id = React.useId();
   return (
-    <FormItemContext.Provider value={{ id }}>
-      <div data-slot="form-item" className={cn('flex flex-col gap-2', className)} {...props} />
-    </FormItemContext.Provider>
+    <div data-slot="form-item" className={cn('flex flex-col gap-2', className)} {...props} />
   );
 }
 
-/** Field state + the wired-up element ids, for label/control/message. */
+/** Field state + the wired-up element ids, derived from the field name. */
 function useFormField() {
   const fieldContext = React.useContext(FormFieldContext);
-  const itemContext = React.useContext(FormItemContext);
   const { getFieldState } = useFormContext();
   const formState = useFormState({ name: fieldContext?.name });
 
   if (!fieldContext) {
     throw new Error('useFormField must be used within <FormField>');
   }
-  if (!itemContext) {
-    throw new Error('useFormField must be used within <FormItem>');
-  }
 
-  const fieldState = getFieldState(fieldContext.name, formState);
-  const { id } = itemContext;
+  const { name } = fieldContext;
+  const fieldState = getFieldState(name, formState);
   return {
-    id,
-    name: fieldContext.name,
-    formItemId: `${id}-form-item`,
-    formDescriptionId: `${id}-form-item-description`,
-    formMessageId: `${id}-form-item-message`,
+    name,
+    formItemId: name,
+    formDescriptionId: `${name}-description`,
+    formMessageId: `${name}-message`,
     ...fieldState,
   };
 }

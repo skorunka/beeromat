@@ -23,9 +23,9 @@ export default async function BalancesPage({
   const { currencyCode, defaultLocale } = ctx.club;
 
   return (
-    <main className="mx-auto max-w-2xl p-4">
+    <main className="mx-auto max-w-2xl p-5">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{t('balancesTitle')}</h1>
+        <h1 className="text-2xl font-bold">{t('balancesTitle')}</h1>
         <Link href={'/admin/pending' as Route} className="text-primary text-sm underline">
           {t('pendingTitle')}
         </Link>

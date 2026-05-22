@@ -40,14 +40,14 @@ export default async function StockHistoryPage({
   });
 
   return (
-    <main className="mx-auto max-w-2xl p-4">
+    <main className="mx-auto max-w-2xl p-5">
       <Link
         href={'/admin/beer-types' as Route}
         className="text-primary text-sm underline"
       >
         ← {t('beerTypesBack')}
       </Link>
-      <h1 className="mt-2 mb-4 text-xl font-semibold">
+      <h1 className="mt-2 mb-4 text-2xl font-bold">
         {t('stockHistoryTitle', { name: beer.name })}
       </h1>
 

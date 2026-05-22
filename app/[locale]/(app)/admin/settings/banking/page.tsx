@@ -25,9 +25,9 @@ export default async function BankingSettingsPage({
   });
 
   return (
-    <main className="mx-auto max-w-md p-4">
+    <main className="mx-auto max-w-md p-5">
       <header className="mb-4">
-        <h1 className="text-xl font-semibold">{t('bankingTitle')}</h1>
+        <h1 className="text-2xl font-bold">{t('bankingTitle')}</h1>
         <p className="text-muted-foreground text-sm">{t('bankingSubtitle')}</p>
       </header>
 

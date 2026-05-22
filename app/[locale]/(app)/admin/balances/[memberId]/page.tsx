@@ -37,11 +37,11 @@ export default async function MemberBalanceDetailPage({
   const { currencyCode, defaultLocale } = ctx.club;
 
   return (
-    <main className="mx-auto max-w-md p-4">
+    <main className="mx-auto max-w-md p-5">
       <Link href={'/admin/balances' as Route} className="text-primary text-sm underline">
         ← {t('balancesTitle')}
       </Link>
-      <h1 className="mt-2 mb-4 text-xl font-semibold">{member.displayName}</h1>
+      <h1 className="mt-2 mb-4 text-2xl font-bold">{member.displayName}</h1>
 
       <Card className="mb-6 p-6">
         <div className="text-muted-foreground text-sm">{tHome('outstandingBalance')}</div>

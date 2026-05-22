@@ -203,3 +203,28 @@ test.describe('@ux3-redesign US4 — the welcome hero', () => {
     expect(overflow).toBeLessThanOrEqual(1);
   });
 });
+
+test.describe('@ux3-redesign US5 — admin screens', () => {
+  test.use({ viewport: { width: 360, height: 640 } });
+
+  test('scenario: an admin screen uses the Clubhouse surface, like the member screens', async ({
+    page,
+    seed,
+  }) => {
+    const club = await seed.club();
+    const email = 'ux3-admin@example.test';
+    await seed.member({ clubId: club.id, role: 'club_admin', email });
+    await signInAndUnlock(page, { email, pin: '6363' });
+
+    await page.goto('/admin');
+    // Foam Cream — the same ground as every member screen.
+    const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+    expect(rgb(bg)).toEqual([246, 238, 221]);
+
+    // And the same 360px fit — no horizontal scroll.
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(1);
+  });
+});

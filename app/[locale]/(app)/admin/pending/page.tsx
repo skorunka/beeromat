@@ -47,9 +47,9 @@ export default async function PendingPaymentsPage({
   }));
 
   return (
-    <main className="mx-auto max-w-2xl p-4">
+    <main className="mx-auto max-w-2xl p-5">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">{t('pendingTitle')}</h1>
+        <h1 className="text-2xl font-bold">{t('pendingTitle')}</h1>
         <Link href={'/admin/balances' as Route} className="text-primary text-sm underline">
           {t('allBalances')}
         </Link>

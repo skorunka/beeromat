@@ -124,9 +124,9 @@ can proceed into the existing sign-in flow.
 **Independent Test**: Each admin screen uses the Clubhouse components and
 layout conventions; nothing on an admin screen shows the pre-redesign look.
 
-- [ ] T017 [US5] Restyle the Admin hub (`app/[locale]/(app)/admin/page.tsx`), the members screen, and the banking screen into the Clubhouse system.
-- [ ] T018 [US5] Restyle the beer-types, pending, and balances admin screens (`app/[locale]/(app)/admin/beer-types/`, `pending/`, `balances/`) into the Clubhouse system.
-- [ ] T019 [P] [US5] Extend `tests/e2e/ux3-redesign.spec.ts` with the US5 assertion: an admin screen's computed surface uses the Clubhouse tokens, consistent with the member screens.
+- [X] T017 [US5] Restyle the Admin hub (`app/[locale]/(app)/admin/page.tsx`), the members screen, and the banking screen into the Clubhouse system.
+- [X] T018 [US5] Restyle the beer-types, pending, and balances admin screens (`app/[locale]/(app)/admin/beer-types/`, `pending/`, `balances/`) into the Clubhouse system.
+- [X] T019 [P] [US5] Extend `tests/e2e/ux3-redesign.spec.ts` with the US5 assertion: an admin screen's computed surface uses the Clubhouse tokens, consistent with the member screens.
 
 **Checkpoint**: Every screen — member, auth, admin — is on the Clubhouse design system.
 

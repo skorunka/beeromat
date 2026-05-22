@@ -144,9 +144,9 @@ into the app source and passes against the migrated v1.2 source.
 
 **Purpose**: Confirm the migration broke nothing and every gate is green.
 
-- [ ] T031 Run the full Playwright E2E suite (`pnpm exec playwright test`); fix any pre-existing v1/v1.1 spec that broke because a migrated form's markup changed (removed `required`, relocated error text from toast to `FormMessage`, changed selectors) — update the spec assertions, not the app behaviour.
-- [ ] T032 Run all seven verification gates — `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm i18n:check`, `pnpm forms:check`, `pnpm build`, `pnpm exec playwright test` — and confirm every one passes.
-- [ ] T033 Walk through `specs/003-forms-input-hardening/quickstart.md` "Manually verifying the hardening" against `pnpm dev` in both locales; confirm no native bubble appears on any of the 11 forms.
+- [X] T031 Run the full Playwright E2E suite (`pnpm exec playwright test`); fix any pre-existing v1/v1.1 spec that broke because a migrated form's markup changed (removed `required`, relocated error text from toast to `FormMessage`, changed selectors) — update the spec assertions, not the app behaviour.
+- [X] T032 Run all seven verification gates — `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm i18n:check`, `pnpm forms:check`, `pnpm build`, `pnpm exec playwright test` — and confirm every one passes.
+- [X] T033 Walk through `specs/003-forms-input-hardening/quickstart.md` "Manually verifying the hardening" against `pnpm dev` in both locales; confirm no native bubble appears on any of the 11 forms.
 
 ---
 

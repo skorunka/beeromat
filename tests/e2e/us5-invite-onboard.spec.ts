@@ -25,12 +25,17 @@ test.describe('@us5 invite + onboard', () => {
     // (Resend is faked in E2E, so the UI may report a send failure —
     // but inviteMemberAction persists the invitation before the send).
     await expect
-      .poll(async () => {
-        const row = await seed.db.query.invitations.findFirst({
-          where: eq(invitations.email, 'fresh-invitee@example.test'),
-        });
-        return row?.status ?? null;
-      })
+      .poll(
+        async () => {
+          const row = await seed.db.query.invitations.findFirst({
+            where: eq(invitations.email, 'fresh-invitee@example.test'),
+          });
+          return row?.status ?? null;
+        },
+        // The invite Server Action over the Neon proxy can outrun the 5s
+        // poll default under full-suite load.
+        { timeout: 15_000 },
+      )
       .toBe('pending');
   });
 
@@ -57,16 +62,21 @@ test.describe('@us5 invite + onboard', () => {
     // check-inbox confirmation.
     await page.getByLabel(/your name/i).fill('Nový Člen');
     await page.getByRole('button', { name: /join the club/i }).click();
-    await expect(page.getByText(/you'?re in/i)).toBeVisible();
+    // Generous timeout: acceptInvitationAction over the Neon proxy can
+    // outrun the 5s assertion default under full-suite load.
+    await expect(page.getByText(/you'?re in/i)).toBeVisible({ timeout: 15_000 });
 
     // A member row now exists for the invitee, in the right club.
     await expect
-      .poll(async () => {
-        const row = await seed.db.query.members.findFirst({
-          where: eq(members.email, 'newbie@example.test'),
-        });
-        return row ? `${row.clubId}:${row.role}` : null;
-      })
+      .poll(
+        async () => {
+          const row = await seed.db.query.members.findFirst({
+            where: eq(members.email, 'newbie@example.test'),
+          });
+          return row ? `${row.clubId}:${row.role}` : null;
+        },
+        { timeout: 15_000 },
+      )
       .toBe(`${club.id}:member`);
   });
 

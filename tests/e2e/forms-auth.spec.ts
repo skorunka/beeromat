@@ -125,8 +125,10 @@ test.describe('@forms-auth auth & onboarding form validation', () => {
     await submit.click({ timeout: 1000 }).catch(() => {});
 
     // The form reaches the single "link sent" screen exactly once.
+    // Generous timeout: the magic-link Server Action over the Neon proxy
+    // can outrun the 5s assertion default under full-suite load.
     await expect(
       page.getByRole('heading', { name: 'Link sent — check your email.' }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 15_000 });
   });
 });

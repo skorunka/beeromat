@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-22
 
-**Status**: Draft
+**Status**: Shipped — v1.3 delivered; all 23 tasks complete, seven gates verified (E2E run in three batches: 55 + 17 + 13 = 85/85).
 
 **Input**: User description: "beeromat v1.3 — UX backlog completion. Close the remaining items (9–15) of the post-v1 UX review."
 

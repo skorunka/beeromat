@@ -42,9 +42,10 @@ test.describe('@ux2-payment-history member payment history', () => {
 
     await expect(page.getByRole('heading', { name: 'Payment history' })).toBeVisible();
     await expect(page.getByText(/123/)).toBeVisible();
-    await expect(page.getByText('Confirmed')).toBeVisible();
+    // `exact` — the status badge text, not the "Confirmed {date}" line.
+    await expect(page.getByText('Confirmed', { exact: true })).toBeVisible();
     await expect(page.getByText(/45/)).toBeVisible();
-    await expect(page.getByText('Waiting on the treasurer')).toBeVisible();
+    await expect(page.getByText('Waiting on the treasurer', { exact: true })).toBeVisible();
   });
 
   test('scenario 2: a disputed payment shows the disputed state', async ({ page, seed }) => {
@@ -66,7 +67,7 @@ test.describe('@ux2-payment-history member payment history', () => {
     await signInAndUnlock(page, { email: EMAIL, pin: PIN });
 
     await page.goto('/account/payments');
-    await expect(page.getByText('Flagged')).toBeVisible();
+    await expect(page.getByText('Flagged', { exact: true })).toBeVisible();
   });
 
   test('scenario 3: a member with no payments sees a friendly empty state', async ({
@@ -101,7 +102,7 @@ test.describe('@ux2-payment-history member payment history', () => {
 
     await page.goto('/cs/account/payments');
     await expect(page.getByRole('heading', { name: 'Historie plateb' })).toBeVisible();
-    await expect(page.getByText('Potvrzeno')).toBeVisible();
+    await expect(page.getByText('Potvrzeno', { exact: true })).toBeVisible();
   });
 
   test('scenario 5: a member sees only their own payments', async ({ page, seed }) => {

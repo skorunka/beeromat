@@ -141,8 +141,8 @@ bet transfers this session sees a running tally.
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T022 Run the full Playwright suite (`pnpm exec playwright test`); fix any pre-existing v1/v1.1/v1.2 spec broken by a v1.3 markup change — notably `tests/e2e/us7-stock.spec.ts` (the adjust form's `#delta` field is replaced by a quantity + Add/Remove choice) and any spec that interacted with the home greeting now being a link. Update spec assertions, not app behaviour.
-- [ ] T023 Run all seven verification gates — `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm i18n:check`, `pnpm forms:check`, `pnpm build`, `pnpm exec playwright test` — and confirm every one passes; walk the `quickstart.md` verification in both locales.
+- [X] T022 Run the full Playwright suite (`pnpm exec playwright test`); fix any pre-existing v1/v1.1/v1.2 spec broken by a v1.3 markup change — notably `tests/e2e/us7-stock.spec.ts` (the adjust form's `#delta` field is replaced by a quantity + Add/Remove choice) and any spec that interacted with the home greeting now being a link. Update spec assertions, not app behaviour.
+- [X] T023 Run all seven verification gates — `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm i18n:check`, `pnpm forms:check`, `pnpm build`, `pnpm exec playwright test` — and confirm every one passes; walk the `quickstart.md` verification in both locales.
 
 ---
 

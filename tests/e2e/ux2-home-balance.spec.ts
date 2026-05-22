@@ -56,7 +56,8 @@ test.describe('@ux2-home-balance live home balance', () => {
     await expect(page.getByText('Pilsner Urquell')).toBeVisible();
     await page.getByRole('button', { name: /back|zpět|undo/i }).first().click();
     // The tab's session total drops back to zero — the void has landed.
-    await expect(page.getByText(/0[.,]00/)).toBeVisible({ timeout: 15_000 });
+    // (The voided row and the session total both read 0,00 — first match.)
+    await expect(page.getByText(/0[.,]00/).first()).toBeVisible({ timeout: 15_000 });
 
     // Home balance reflects the removal.
     await page.goto('/');

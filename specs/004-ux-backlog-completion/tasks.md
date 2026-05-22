@@ -52,11 +52,11 @@ payment with its amount, date, and current state (pending/confirmed/disputed).
 `/account/payments`; every payment appears with amount, date, and state, and
 confirmed payments are visible.
 
-- [ ] T003 [US1] Implement `getPaymentHistory` in `lib/db/queries/payments.ts` — a read query returning the signed-in member's own `payments` (scoped by `memberId` + `clubId`), most-recent-first, each with amount/currency/status/origin/createdAt and the resolved-at timestamp + dispute reason from `payment_state_transitions`, per data-model.md "Returned shape". Read-only; no writes.
-- [ ] T004 [P] [US1] Create `components/payments/payment-history-list.tsx` — renders the timeline: one row per payment with the amount (formatted via `Intl` for the club locale), the date, a localized state badge (pending / confirmed / disputed), and the dispute reason on a disputed row; renders a friendly localized empty state when the list is empty. Catalog strings only.
-- [ ] T005 [US1] Create `app/[locale]/(app)/account/payments/page.tsx` — a Server Component that calls `getPaymentHistory` for the signed-in member and renders `PaymentHistoryList`. Add the `payments.*` catalog keys (cs + en); confirm `pnpm i18n:check` passes.
-- [ ] T006 [US1] Add a "Payment history" link on the `/account` hub (`app/[locale]/(app)/account/page.tsx`) pointing to `/account/payments`, ≥44 px.
-- [ ] T007 [P] [US1] Create `tests/e2e/ux2-payment-history.spec.ts` asserting US1 scenarios 1–5: mixed-state payments show with amount/date/state; a disputed payment shows the disputed state; the empty state; cs + en rendering; a member sees only their own payments.
+- [X] T003 [US1] Implement `getPaymentHistory` in `lib/db/queries/payments.ts` — a read query returning the signed-in member's own `payments` (scoped by `memberId` + `clubId`), most-recent-first, each with amount/currency/status/origin/createdAt and the resolved-at timestamp + dispute reason from `payment_state_transitions`, per data-model.md "Returned shape". Read-only; no writes.
+- [X] T004 [P] [US1] Create `components/payments/payment-history-list.tsx` — renders the timeline: one row per payment with the amount (formatted via `Intl` for the club locale), the date, a localized state badge (pending / confirmed / disputed), and the dispute reason on a disputed row; renders a friendly localized empty state when the list is empty. Catalog strings only.
+- [X] T005 [US1] Create `app/[locale]/(app)/account/payments/page.tsx` — a Server Component that calls `getPaymentHistory` for the signed-in member and renders `PaymentHistoryList`. Add the `payments.*` catalog keys (cs + en); confirm `pnpm i18n:check` passes.
+- [X] T006 [US1] Add a "Payment history" link on the `/account` hub (`app/[locale]/(app)/account/page.tsx`) pointing to `/account/payments`, ≥44 px.
+- [X] T007 [P] [US1] Create `tests/e2e/ux2-payment-history.spec.ts` asserting US1 scenarios 1–5: mixed-state payments show with amount/date/state; a disputed payment shows the disputed state; the empty state; cs + en rendering; a member sees only their own payments.
 
 **Checkpoint**: The member payment-history screen is complete and testable.
 

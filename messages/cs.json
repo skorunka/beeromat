@@ -101,8 +101,10 @@
     "statusPending": "Čeká na pokladníka",
     "statusConfirmed": "Potvrzeno",
     "statusDisputed": "Nesedí",
+    "statusVoided": "Vráceno",
     "confirmedOn": "Potvrzeno {date}",
     "disputedOn": "Nahlášeno {date}",
+    "voidedOn": "Vráceno {date}",
     "loggedOn": "{date}",
     "treasurerRecorded": "Zapsal pokladník"
   },

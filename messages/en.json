@@ -101,8 +101,10 @@
     "statusPending": "Waiting on the treasurer",
     "statusConfirmed": "Confirmed",
     "statusDisputed": "Flagged",
+    "statusVoided": "Reversed",
     "confirmedOn": "Confirmed {date}",
     "disputedOn": "Flagged {date}",
+    "voidedOn": "Reversed {date}",
     "loggedOn": "{date}",
     "treasurerRecorded": "Recorded by the treasurer"
   },

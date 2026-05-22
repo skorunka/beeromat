@@ -1,13 +1,28 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 import { updateBankingProfileAction } from '@/app/[locale]/(app)/admin/settings/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormRootError,
+} from '@/components/ui/form';
+import {
+  bankingProfileSchema,
+  type BankingProfileValues,
+} from '@/lib/validation/banking';
 
 interface BankingFormProps {
   initial: {
@@ -18,83 +33,106 @@ interface BankingFormProps {
   };
 }
 
+/** Empty string → null (clears the field); otherwise the trimmed value. */
+function norm(v: string): string | null {
+  return v.trim() === '' ? null : v.trim();
+}
+
 export function BankingForm({ initial }: BankingFormProps) {
   const t = useTranslations('admin');
   const tCommon = useTranslations('common');
-  const [iban, setIban] = useState(initial.iban ?? '');
-  const [accountHolderName, setAccountHolderName] = useState(
-    initial.accountHolderName ?? '',
-  );
-  const [revolutHandle, setRevolutHandle] = useState(initial.revolutHandle ?? '');
-  const [defaultQrMessage, setDefaultQrMessage] = useState(
-    initial.defaultQrMessage ?? '',
-  );
   const [isPending, startTransition] = useTransition();
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    // Empty string → null (clears the field); otherwise the trimmed value.
-    const norm = (v: string) => (v.trim() === '' ? null : v.trim());
+  const form = useForm<BankingProfileValues>({
+    resolver: zodResolver(bankingProfileSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      iban: initial.iban ?? '',
+      accountHolderName: initial.accountHolderName ?? '',
+      revolutHandle: initial.revolutHandle ?? '',
+      defaultQrMessage: initial.defaultQrMessage ?? '',
+    },
+  });
+
+  function onSubmit(values: BankingProfileValues) {
     startTransition(async () => {
       const result = await updateBankingProfileAction({
-        iban: norm(iban),
-        accountHolderName: norm(accountHolderName),
-        revolutHandle: norm(revolutHandle),
-        defaultQrMessage: norm(defaultQrMessage),
+        iban: norm(values.iban),
+        accountHolderName: norm(values.accountHolderName),
+        revolutHandle: norm(values.revolutHandle),
+        defaultQrMessage: norm(values.defaultQrMessage),
       });
       if (result.ok) {
         toast.success(t('bankingSaved'));
       } else if (result.code === 'INVALID_IBAN') {
-        toast.error(t('invalidIban'));
+        form.setError('iban', { message: 'admin.invalidIban' });
       } else {
-        toast.error(t('bankingFailed'));
+        form.setError('root', { message: 'admin.bankingFailed' });
       }
     });
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="bank-iban">{t('ibanLabel')}</Label>
-        <Input
-          id="bank-iban"
-          placeholder={t('ibanPlaceholder')}
-          autoComplete="off"
-          value={iban}
-          onChange={(e) => setIban(e.target.value)}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
+        <FormField
+          control={form.control}
+          name="iban"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('ibanLabel')}</FormLabel>
+              <FormControl>
+                <Input placeholder={t('ibanPlaceholder')} autoComplete="off" {...field} />
+              </FormControl>
+              <FormDescription>{t('ibanHint')}</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        <p className="text-muted-foreground text-xs">{t('ibanHint')}</p>
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="bank-holder">{t('accountHolderLabel')}</Label>
-        <Input
-          id="bank-holder"
-          value={accountHolderName}
-          onChange={(e) => setAccountHolderName(e.target.value)}
+        <FormField
+          control={form.control}
+          name="accountHolderName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('accountHolderLabel')}</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="bank-revolut">{t('revolutLabel')}</Label>
-        <Input
-          id="bank-revolut"
-          placeholder={t('revolutPlaceholder')}
-          value={revolutHandle}
-          onChange={(e) => setRevolutHandle(e.target.value)}
+        <FormField
+          control={form.control}
+          name="revolutHandle"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('revolutLabel')}</FormLabel>
+              <FormControl>
+                <Input placeholder={t('revolutPlaceholder')} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="bank-qr-message">{t('qrMessageLabel')}</Label>
-        <Input
-          id="bank-qr-message"
-          placeholder={t('qrMessagePlaceholder')}
-          maxLength={60}
-          value={defaultQrMessage}
-          onChange={(e) => setDefaultQrMessage(e.target.value)}
+        <FormField
+          control={form.control}
+          name="defaultQrMessage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('qrMessageLabel')}</FormLabel>
+              <FormControl>
+                <Input placeholder={t('qrMessagePlaceholder')} maxLength={60} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <Button type="submit" disabled={isPending}>
-        {isPending ? tCommon('saving') : t('saveBanking')}
-      </Button>
-    </form>
+        <FormRootError />
+        <Button type="submit" disabled={isPending}>
+          {isPending ? tCommon('saving') : t('saveBanking')}
+        </Button>
+      </form>
+    </Form>
   );
 }

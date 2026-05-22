@@ -3,6 +3,8 @@
 import type { Route } from 'next';
 import { Link } from '@/lib/i18n/navigation';
 import { useState, useTransition } from 'react';
+import { useForm, type Resolver } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
@@ -24,7 +26,21 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormRootError,
+} from '@/components/ui/form';
+import { toMinor } from '@/lib/validation/money';
+import {
+  beerTypeCreateSchema,
+  beerTypeEditSchema,
+} from '@/lib/validation/beer-types';
+import { restockSchema, adjustSchema } from '@/lib/validation/stock';
 
 export interface BeerTypeManagerView {
   id: string;
@@ -45,12 +61,321 @@ type DialogState =
   | { kind: 'adjust'; beer: BeerTypeManagerView }
   | null;
 
-/** Major-unit decimal string → integer minor units. */
-function toMinor(major: string): bigint | null {
-  if (!/^\d+([.,]\d{1,2})?$/.test(major.trim())) return null;
-  const [whole = '0', frac = ''] = major.trim().replace(',', '.').split('.');
-  return BigInt(whole) * 100n + BigInt(frac.padEnd(2, '0'));
+const digitsOnly = (v: string) => v.replace(/\D/g, '');
+const signedDigits = (v: string) => v.replace(/[^\d-]/g, '');
+
+// --- Create / edit form -----------------------------------------------------
+
+interface BeerFormValues {
+  name: string;
+  price: string;
+  initialStock: string;
+  lowStockThreshold: string;
 }
+
+function BeerForm({
+  mode,
+  beer,
+  currencyCode,
+  onDone,
+}: {
+  mode: 'create' | 'edit';
+  beer?: BeerTypeManagerView;
+  currencyCode: string;
+  onDone: () => void;
+}) {
+  const t = useTranslations('admin');
+  const tCommon = useTranslations('common');
+  const [isPending, startTransition] = useTransition();
+
+  const form = useForm<BeerFormValues>({
+    resolver: zodResolver(
+      mode === 'create' ? beerTypeCreateSchema : beerTypeEditSchema,
+    ) as unknown as Resolver<BeerFormValues>,
+    mode: 'onTouched',
+    defaultValues: {
+      name: beer?.name ?? '',
+      price: beer ? (Number(beer.unitPriceMinor) / 100).toFixed(2) : '',
+      initialStock: '0',
+      lowStockThreshold: beer ? String(beer.lowStockThreshold) : '5',
+    },
+  });
+
+  function onSubmit(values: BeerFormValues) {
+    const priceMinor = toMinor(values.price);
+    if (priceMinor === null) return; // schema guarantees this
+    startTransition(async () => {
+      const result =
+        mode === 'create'
+          ? await createBeerTypeAction({
+              name: values.name.trim(),
+              unitPriceMinor: priceMinor.toString(),
+              initialStock: Number(values.initialStock) || 0,
+              lowStockThreshold: Number(values.lowStockThreshold) || 0,
+            })
+          : await updateBeerTypeAction({
+              id: beer!.id,
+              patch: {
+                name: values.name.trim(),
+                unitPriceMinor: priceMinor.toString(),
+                lowStockThreshold: Number(values.lowStockThreshold) || 0,
+              },
+            });
+      if (result.ok) {
+        toast.success(t(mode === 'create' ? 'beerTypeAdded' : 'beerTypeUpdated'));
+        onDone();
+      } else if (result.code === 'DUPLICATE_NAME') {
+        form.setError('name', { message: 'admin.duplicateName' });
+      } else {
+        form.setError('root', { message: 'admin.beerTypeFieldsError' });
+      }
+    });
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="flex flex-col gap-3">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('nameLabel')}</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="price"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('priceLabel', { currency: currencyCode })}</FormLabel>
+              <FormControl>
+                <Input inputMode="decimal" placeholder="52.00" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {mode === 'create' ? (
+          <FormField
+            control={form.control}
+            name="initialStock"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('initialStockLabel')}</FormLabel>
+                <FormControl>
+                  <Input
+                    inputMode="numeric"
+                    name={field.name}
+                    ref={field.ref}
+                    value={field.value}
+                    onBlur={field.onBlur}
+                    onChange={(e) => field.onChange(digitsOnly(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : null}
+        <FormField
+          control={form.control}
+          name="lowStockThreshold"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('thresholdLabel')}</FormLabel>
+              <FormControl>
+                <Input
+                  inputMode="numeric"
+                  name={field.name}
+                  ref={field.ref}
+                  value={field.value}
+                  onBlur={field.onBlur}
+                  onChange={(e) => field.onChange(digitsOnly(e.target.value))}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormRootError />
+        <Button type="submit" disabled={isPending}>
+          {isPending ? tCommon('saving') : tCommon('save')}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
+// --- Restock form -----------------------------------------------------------
+
+interface RestockValues {
+  quantity: string;
+  reason: string;
+}
+
+function RestockForm({ beer, onDone }: { beer: BeerTypeManagerView; onDone: () => void }) {
+  const t = useTranslations('admin');
+  const tCommon = useTranslations('common');
+  const [isPending, startTransition] = useTransition();
+
+  const form = useForm<RestockValues>({
+    resolver: zodResolver(restockSchema),
+    mode: 'onTouched',
+    defaultValues: { quantity: '', reason: '' },
+  });
+
+  function onSubmit(values: RestockValues) {
+    startTransition(async () => {
+      const result = await recordRestockAction({
+        beerTypeId: beer.id,
+        quantity: Number(values.quantity),
+        reason: values.reason.trim() || undefined,
+      });
+      if (result.ok) {
+        toast.success(t('restocked', { stock: result.newStock }));
+        onDone();
+      } else if (result.code === 'ARCHIVED') {
+        form.setError('root', { message: 'admin.restockArchived' });
+      } else {
+        form.setError('root', { message: 'admin.restockFailed' });
+      }
+    });
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="flex flex-col gap-3">
+        <FormField
+          control={form.control}
+          name="quantity"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('quantityLabel')}</FormLabel>
+              <FormControl>
+                <Input
+                  inputMode="numeric"
+                  name={field.name}
+                  ref={field.ref}
+                  value={field.value}
+                  onBlur={field.onBlur}
+                  onChange={(e) => field.onChange(digitsOnly(e.target.value))}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="reason"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('restockNoteLabel')}</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormRootError />
+        <Button type="submit" disabled={isPending}>
+          {isPending ? tCommon('saving') : t('recordRestock')}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
+// --- Adjust form ------------------------------------------------------------
+
+interface AdjustValues {
+  delta: string;
+  reason: string;
+}
+
+function AdjustForm({ beer, onDone }: { beer: BeerTypeManagerView; onDone: () => void }) {
+  const t = useTranslations('admin');
+  const tCommon = useTranslations('common');
+  const [isPending, startTransition] = useTransition();
+
+  const form = useForm<AdjustValues>({
+    resolver: zodResolver(adjustSchema),
+    mode: 'onTouched',
+    defaultValues: { delta: '', reason: '' },
+  });
+
+  function onSubmit(values: AdjustValues) {
+    startTransition(async () => {
+      const result = await recordStockAdjustmentAction({
+        beerTypeId: beer.id,
+        delta: Number(values.delta),
+        reason: values.reason.trim(),
+      });
+      if (result.ok) {
+        toast.success(t('adjusted', { stock: result.newStock }));
+        onDone();
+      } else if (result.code === 'WOULD_GO_NEGATIVE') {
+        form.setError('root', { message: 'admin.wouldGoNegative' });
+      } else {
+        form.setError('root', { message: 'admin.adjustmentFailed' });
+      }
+    });
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="flex flex-col gap-3">
+        <FormField
+          control={form.control}
+          name="delta"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('deltaLabel')}</FormLabel>
+              <FormControl>
+                <Input
+                  inputMode="numeric"
+                  placeholder="-3"
+                  name={field.name}
+                  ref={field.ref}
+                  value={field.value}
+                  onBlur={field.onBlur}
+                  onChange={(e) => field.onChange(signedDigits(e.target.value))}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="reason"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('adjustReasonLabel')}</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormRootError />
+        <Button type="submit" disabled={isPending}>
+          {isPending ? tCommon('saving') : t('recordAdjustment')}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+
+// --- Manager (list + dialog shell) ------------------------------------------
 
 export function BeerTypeManager({
   beerTypes,
@@ -60,46 +385,11 @@ export function BeerTypeManager({
   currencyCode: string;
 }) {
   const t = useTranslations('admin');
-  const tCommon = useTranslations('common');
   const [dialog, setDialog] = useState<DialogState>(null);
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [stock, setStock] = useState('');
-  const [threshold, setThreshold] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [delta, setDelta] = useState('');
-  const [reason, setReason] = useState('');
   const [isPending, startTransition] = useTransition();
 
   function close() {
     setDialog(null);
-  }
-
-  function openCreate() {
-    setName('');
-    setPrice('');
-    setStock('0');
-    setThreshold('5');
-    setDialog({ kind: 'create' });
-  }
-
-  function openEdit(beer: BeerTypeManagerView) {
-    setName(beer.name);
-    setPrice((Number(beer.unitPriceMinor) / 100).toFixed(2));
-    setThreshold(String(beer.lowStockThreshold));
-    setDialog({ kind: 'edit', beer });
-  }
-
-  function openRestock(beer: BeerTypeManagerView) {
-    setQuantity('');
-    setReason('');
-    setDialog({ kind: 'restock', beer });
-  }
-
-  function openAdjust(beer: BeerTypeManagerView) {
-    setDelta('');
-    setReason('');
-    setDialog({ kind: 'adjust', beer });
   }
 
   function handleArchiveToggle(beer: BeerTypeManagerView) {
@@ -112,109 +402,9 @@ export function BeerTypeManager({
     });
   }
 
-  function submitCreate() {
-    const priceMinor = toMinor(price);
-    if (!name.trim() || priceMinor === null || priceMinor <= 0n) {
-      toast.error(t('beerTypeFieldsError'));
-      return;
-    }
-    startTransition(async () => {
-      const result = await createBeerTypeAction({
-        name: name.trim(),
-        unitPriceMinor: priceMinor.toString(),
-        initialStock: Number(stock) || 0,
-        lowStockThreshold: Number(threshold) || 0,
-      });
-      if (result.ok) {
-        toast.success(t('beerTypeAdded'));
-        close();
-      } else if (result.code === 'DUPLICATE_NAME') {
-        toast.error(t('duplicateName'));
-      } else {
-        toast.error(t('beerTypeFieldsError'));
-      }
-    });
-  }
-
-  function submitEdit(beer: BeerTypeManagerView) {
-    const priceMinor = toMinor(price);
-    if (!name.trim() || priceMinor === null || priceMinor <= 0n) {
-      toast.error(t('beerTypeFieldsError'));
-      return;
-    }
-    startTransition(async () => {
-      const result = await updateBeerTypeAction({
-        id: beer.id,
-        patch: {
-          name: name.trim(),
-          unitPriceMinor: priceMinor.toString(),
-          lowStockThreshold: Number(threshold) || 0,
-        },
-      });
-      if (result.ok) {
-        toast.success(t('beerTypeUpdated'));
-        close();
-      } else if (result.code === 'DUPLICATE_NAME') {
-        toast.error(t('duplicateName'));
-      } else {
-        toast.error(t('beerTypeFieldsError'));
-      }
-    });
-  }
-
-  function submitRestock(beer: BeerTypeManagerView) {
-    const qty = Number(quantity);
-    if (!Number.isInteger(qty) || qty <= 0) {
-      toast.error(t('invalidQuantity'));
-      return;
-    }
-    startTransition(async () => {
-      const result = await recordRestockAction({
-        beerTypeId: beer.id,
-        quantity: qty,
-        reason: reason.trim() || undefined,
-      });
-      if (result.ok) {
-        toast.success(t('restocked', { stock: result.newStock }));
-        close();
-      } else if (result.code === 'ARCHIVED') {
-        toast.error(t('restockArchived'));
-      } else {
-        toast.error(t('restockFailed'));
-      }
-    });
-  }
-
-  function submitAdjust(beer: BeerTypeManagerView) {
-    const d = Number(delta);
-    if (!Number.isInteger(d) || d === 0) {
-      toast.error(t('invalidDelta'));
-      return;
-    }
-    if (!reason.trim()) {
-      toast.error(t('adjustReasonRequired'));
-      return;
-    }
-    startTransition(async () => {
-      const result = await recordStockAdjustmentAction({
-        beerTypeId: beer.id,
-        delta: d,
-        reason: reason.trim(),
-      });
-      if (result.ok) {
-        toast.success(t('adjusted', { stock: result.newStock }));
-        close();
-      } else if (result.code === 'WOULD_GO_NEGATIVE') {
-        toast.error(t('wouldGoNegative'));
-      } else {
-        toast.error(t('adjustmentFailed'));
-      }
-    });
-  }
-
   return (
     <div className="flex flex-col gap-3">
-      <Button type="button" onClick={openCreate}>
+      <Button type="button" onClick={() => setDialog({ kind: 'create' })}>
         {t('addBeerType')}
       </Button>
 
@@ -251,14 +441,14 @@ export function BeerTypeManager({
               <div className="mt-2 flex flex-wrap gap-2">
                 {!beer.isArchived ? (
                   <>
-                    <Button size="lg" type="button" onClick={() => openRestock(beer)}>
+                    <Button size="lg" type="button" onClick={() => setDialog({ kind: 'restock', beer })}>
                       {t('restock')}
                     </Button>
                     <Button
                       size="lg"
                       variant="outline"
                       type="button"
-                      onClick={() => openAdjust(beer)}
+                      onClick={() => setDialog({ kind: 'adjust', beer })}
                     >
                       {t('adjust')}
                     </Button>
@@ -266,7 +456,7 @@ export function BeerTypeManager({
                       size="lg"
                       variant="outline"
                       type="button"
-                      onClick={() => openEdit(beer)}
+                      onClick={() => setDialog({ kind: 'edit', beer })}
                     >
                       {t('edit')}
                     </Button>
@@ -294,113 +484,41 @@ export function BeerTypeManager({
 
       <Dialog open={dialog !== null} onOpenChange={(open) => !open && close()}>
         <DialogContent>
-          {dialog?.kind === 'create' || dialog?.kind === 'edit' ? (
+          {dialog?.kind === 'create' ? (
             <>
               <DialogHeader>
-                <DialogTitle>
-                  {dialog.kind === 'create' ? t('addBeerType') : t('editBeerType')}
-                </DialogTitle>
+                <DialogTitle>{t('addBeerType')}</DialogTitle>
               </DialogHeader>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="bt-name">{t('nameLabel')}</Label>
-                <Input id="bt-name" value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="bt-price">{t('priceLabel', { currency: currencyCode })}</Label>
-                <Input
-                  id="bt-price"
-                  inputMode="decimal"
-                  placeholder="52.00"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                />
-              </div>
-              {dialog.kind === 'create' ? (
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="bt-stock">{t('initialStockLabel')}</Label>
-                  <Input
-                    id="bt-stock"
-                    inputMode="numeric"
-                    value={stock}
-                    onChange={(e) => setStock(e.target.value.replace(/\D/g, ''))}
-                  />
-                </div>
-              ) : null}
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="bt-threshold">{t('thresholdLabel')}</Label>
-                <Input
-                  id="bt-threshold"
-                  inputMode="numeric"
-                  value={threshold}
-                  onChange={(e) => setThreshold(e.target.value.replace(/\D/g, ''))}
-                />
-              </div>
-              <Button
-                type="button"
-                disabled={isPending}
-                onClick={() =>
-                  dialog.kind === 'create' ? submitCreate() : submitEdit(dialog.beer)
-                }
-              >
-                {isPending ? tCommon('saving') : tCommon('save')}
-              </Button>
+              <BeerForm mode="create" currencyCode={currencyCode} onDone={close} />
             </>
           ) : null}
-
+          {dialog?.kind === 'edit' ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>{t('editBeerType')}</DialogTitle>
+              </DialogHeader>
+              <BeerForm
+                mode="edit"
+                beer={dialog.beer}
+                currencyCode={currencyCode}
+                onDone={close}
+              />
+            </>
+          ) : null}
           {dialog?.kind === 'restock' ? (
             <>
               <DialogHeader>
                 <DialogTitle>{t('restockTitle', { name: dialog.beer.name })}</DialogTitle>
               </DialogHeader>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="bt-qty">{t('quantityLabel')}</Label>
-                <Input
-                  id="bt-qty"
-                  inputMode="numeric"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value.replace(/\D/g, ''))}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="bt-restock-reason">{t('restockNoteLabel')}</Label>
-                <Input
-                  id="bt-restock-reason"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                />
-              </div>
-              <Button type="button" disabled={isPending} onClick={() => submitRestock(dialog.beer)}>
-                {isPending ? tCommon('saving') : t('recordRestock')}
-              </Button>
+              <RestockForm beer={dialog.beer} onDone={close} />
             </>
           ) : null}
-
           {dialog?.kind === 'adjust' ? (
             <>
               <DialogHeader>
                 <DialogTitle>{t('adjustTitle', { name: dialog.beer.name })}</DialogTitle>
               </DialogHeader>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="bt-delta">{t('deltaLabel')}</Label>
-                <Input
-                  id="bt-delta"
-                  inputMode="numeric"
-                  placeholder="-3"
-                  value={delta}
-                  onChange={(e) => setDelta(e.target.value.replace(/[^\d-]/g, ''))}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="bt-adjust-reason">{t('adjustReasonLabel')}</Label>
-                <Input
-                  id="bt-adjust-reason"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                />
-              </div>
-              <Button type="button" disabled={isPending} onClick={() => submitAdjust(dialog.beer)}>
-                {isPending ? tCommon('saving') : t('recordAdjustment')}
-              </Button>
+              <AdjustForm beer={dialog.beer} onDone={close} />
             </>
           ) : null}
         </DialogContent>

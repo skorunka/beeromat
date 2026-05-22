@@ -58,8 +58,8 @@ test.describe('@us2 settle via QR Platba', () => {
     await signInAndUnlock(page, { email: ADMIN_EMAIL, pin: ADMIN_PIN });
 
     await page.goto('/admin/settings/banking');
-    await page.locator('#bank-iban').fill(VALID_IBAN);
-    await page.locator('#bank-holder').fill('Tennis Club Treasurer');
+    await page.locator('#iban').fill(VALID_IBAN);
+    await page.locator('#accountHolderName').fill('Tennis Club Treasurer');
     await page.getByRole('button', { name: /save bank details/i }).click();
     await expect(page.getByText(/saved/i)).toBeVisible();
 
@@ -81,7 +81,7 @@ test.describe('@us2 settle via QR Platba', () => {
 
     await page.goto('/admin/settings/banking');
     // Structurally plausible but fails the mod-97 checksum.
-    await page.locator('#bank-iban').fill('CZ6508000000192000145390');
+    await page.locator('#iban').fill('CZ6508000000192000145390');
     await page.getByRole('button', { name: /save bank details/i }).click();
     await expect(page.getByText(/look right/i)).toBeVisible();
   });

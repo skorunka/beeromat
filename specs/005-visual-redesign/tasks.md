@@ -135,8 +135,8 @@ layout conventions; nothing on an admin screen shows the pre-redesign look.
 ## Phase 7: Polish & Cross-Cutting Concerns
 
 - [X] T020 Remove the scratch design-proposal page `app/[locale]/design/page.tsx` (and its now-empty `design/` directory).
-- [ ] T021 Run the full Playwright suite (`pnpm exec playwright test`); fix any pre-existing v1–v1.3 spec broken by a restyle's markup/selector or visible-text change — update the spec assertion to the new markup, never the app behaviour (SC-005). Behaviour is unchanged by v1.4.
-- [ ] T022 Run all seven verification gates — `typecheck`, `lint`, `test`, `i18n:check`, `forms:check`, `build`, `playwright test` — confirm all pass; walk `quickstart.md` in both light and dark on a 360-px viewport.
+- [X] T021 Run the full Playwright suite (`pnpm exec playwright test`); fix any pre-existing v1–v1.3 spec broken by a restyle's markup/selector or visible-text change — update the spec assertion to the new markup, never the app behaviour (SC-005). Behaviour is unchanged by v1.4.
+- [X] T022 Run all seven verification gates — `typecheck`, `lint`, `test`, `i18n:check`, `forms:check`, `build`, `playwright test` — confirm all pass; walk `quickstart.md` in both light and dark on a 360-px viewport.
 
 ---
 

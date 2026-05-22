@@ -35,7 +35,7 @@ Single Next.js App Router app at the repository root: `app/`, `components/`,
 
 **Purpose**: Bring the chosen form library into the project.
 
-- [ ] T001 Add runtime dependencies `react-hook-form@7.76.0` and `@hookform/resolvers@5.4.0` via `pnpm add`; confirm `zod` stays at 4.4.x; run `pnpm install` and `pnpm typecheck` and confirm both succeed.
+- [X] T001 Add runtime dependencies `react-hook-form@7.76.0` and `@hookform/resolvers@5.4.0` via `pnpm add`; confirm `zod` stays at 4.4.x; run `pnpm install` and `pnpm typecheck` and confirm both succeed.
 
 **Checkpoint**: The form library resolves and the project still type-checks.
 
@@ -49,10 +49,10 @@ UI primitive.
 
 **⚠️ CRITICAL**: No user-story form migration can begin until this phase is complete.
 
-- [ ] T002 [P] Create `lib/validation/messages.ts` exporting the generic `forms.*` error-key constants (`required`, `email`, `tooShort`, `tooLong`, `notANumber`, `notAWholeNumber`, `mustBePositive`) per data-model.md.
-- [ ] T003 Add the `forms` namespace to `messages/cs.json` and `messages/en.json` with values for every key in `lib/validation/messages.ts`, in the v1.1 mate-to-mate tone and gender-neutral Czech; confirm `pnpm i18n:check` passes (catalog parity).
-- [ ] T004 [P] Create `lib/validation/money.ts` exporting `toMinor(major: string): bigint | null` (major-unit decimal string → integer minor units), lifted verbatim from the duplicated logic in `components/treasurer/manual-payment-form.tsx`.
-- [ ] T005 Create `components/ui/form.tsx` — the shadcn-style react-hook-form primitives `Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`, `FormRootError` per contracts/forms.md §1: `FormControl` wires `aria-invalid`/`aria-describedby`, `FormMessage` renders `t(key)` and carries `role="alert"`, `FormRootError` renders form-level errors distinctly, controls keep ≥44 px targets. Confirm `pnpm typecheck` and `pnpm lint` pass.
+- [X] T002 [P] Create `lib/validation/messages.ts` exporting the generic `forms.*` error-key constants (`required`, `email`, `tooShort`, `tooLong`, `notANumber`, `notAWholeNumber`, `mustBePositive`) per data-model.md.
+- [X] T003 Add the `forms` namespace to `messages/cs.json` and `messages/en.json` with values for every key in `lib/validation/messages.ts`, in the v1.1 mate-to-mate tone and gender-neutral Czech; confirm `pnpm i18n:check` passes (catalog parity).
+- [X] T004 [P] Create `lib/validation/money.ts` exporting `toMinor(major: string): bigint | null` (major-unit decimal string → integer minor units), lifted verbatim from the duplicated logic in `components/treasurer/manual-payment-form.tsx`.
+- [X] T005 Create `components/ui/form.tsx` — the shadcn-style react-hook-form primitives `Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`, `FormRootError` per contracts/forms.md §1: `FormControl` wires `aria-invalid`/`aria-describedby`, `FormMessage` renders `t(key)` and carries `role="alert"`, `FormRootError` renders form-level errors distinctly, controls keep ≥44 px targets. Confirm `pnpm typecheck` and `pnpm lint` pass.
 
 **Checkpoint**: Foundation ready — form migrations can begin.
 

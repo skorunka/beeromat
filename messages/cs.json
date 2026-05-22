@@ -80,6 +80,7 @@
   "home": {
     "greeting": "Ahoj {name}",
     "outstandingBalance": "Tvoje útrata",
+    "allSquare": "Vyrovnáno — na pípě nic nemáš 🍺",
     "logABeer": "Zapsat pivo",
     "myTab": "Moje útrata",
     "settleUp": "Vyrovnat útratu",

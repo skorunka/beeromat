@@ -21,7 +21,7 @@ export default async function AccountPage({
   const t = await getTranslations('account');
 
   return (
-    <main className="mx-auto max-w-md p-4">
+    <main className="mx-auto max-w-md p-5">
       <h1 className="text-2xl font-bold">{t('title')}</h1>
       <p className="text-muted-foreground mt-1 text-sm">{ctx.member.displayName}</p>
 

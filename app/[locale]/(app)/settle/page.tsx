@@ -31,8 +31,8 @@ export default async function SettlePage({
   if (!result.ok) {
     const balance = await getMyBalance(ctx.member.id, currencyCode);
     return (
-      <main className="mx-auto max-w-md p-4">
-        <h1 className="mb-4 text-xl font-semibold">{t('title')}</h1>
+      <main className="mx-auto max-w-md p-5">
+        <h1 className="mb-4 text-2xl font-bold">{t('title')}</h1>
         <Card className="p-6 text-center">
           {result.reason === 'NO_BALANCE' ? (
             <p className="text-lg font-medium">{t('allSettled')}</p>
@@ -71,9 +71,9 @@ export default async function SettlePage({
   const amountDisplay = formatMoney(amountMinor, currencyCode, defaultLocale);
 
   return (
-    <main className="mx-auto max-w-md p-4">
+    <main className="mx-auto max-w-md p-5">
       <header className="mb-4">
-        <h1 className="text-xl font-semibold">{t('title')}</h1>
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
         <p className="text-muted-foreground text-sm">
           {t('payToClear', { amount: amountDisplay })}
         </p>

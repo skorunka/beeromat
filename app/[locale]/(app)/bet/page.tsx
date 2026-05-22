@@ -34,8 +34,8 @@ export default async function BetPage({
     // No open session: a member cannot open one directly — the first
     // logged beer opens it — so guide them to the log screen (US6).
     return (
-      <main className="mx-auto max-w-md p-4">
-        <h1 className="mb-4 text-xl font-semibold">{t('title')}</h1>
+      <main className="mx-auto max-w-md p-5">
+        <h1 className="mb-4 text-2xl font-bold">{t('title')}</h1>
         <Card className="p-6 text-center">
           <p className="text-lg font-medium">{t('noSessionTitle')}</p>
           <p className="text-muted-foreground mt-2 text-sm">{t('noSessionBody')}</p>
@@ -94,9 +94,9 @@ export default async function BetPage({
   });
 
   return (
-    <main className="mx-auto max-w-md p-4">
+    <main className="mx-auto max-w-md p-5">
       <header className="mb-4">
-        <h1 className="text-xl font-semibold">{t('title')}</h1>
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
         <p className="text-muted-foreground text-sm">{t('subtitle')}</p>
       </header>
 

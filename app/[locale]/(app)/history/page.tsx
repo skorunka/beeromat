@@ -23,8 +23,8 @@ export default async function HistoryPage({
   const dateFmt = new Intl.DateTimeFormat(defaultLocale, { dateStyle: 'medium' });
 
   return (
-    <main className="mx-auto max-w-2xl p-4">
-      <h1 className="mb-4 text-xl font-semibold">{t('title')}</h1>
+    <main className="mx-auto max-w-2xl p-5">
+      <h1 className="mb-4 text-2xl font-bold">{t('title')}</h1>
 
       <ul className="flex flex-col gap-2">
         {sessions.map((s) => (

@@ -17,8 +17,8 @@ export default async function LogPage({
   const beers = await getBeerTypeCatalog(ctx.club.id);
 
   return (
-    <main className="mx-auto max-w-2xl p-4">
-      <h1 className="mb-4 text-xl font-semibold">{t('title')}</h1>
+    <main className="mx-auto max-w-2xl p-5">
+      <h1 className="mb-4 text-2xl font-bold">{t('title')}</h1>
       <BeerGrid
         beers={beers}
         currencyCode={ctx.club.currencyCode}

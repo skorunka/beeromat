@@ -1,15 +1,17 @@
 import { Link } from '@/lib/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
+import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { LanguageSwitcher } from '@/components/nav/language-switcher';
 import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
 import { formatMoney } from '@/lib/format';
+import { cn } from '@/lib/utils';
 
 // Home of the authenticated app — the dashboard. Daily destinations
-// live in the persistent bottom nav (US7); home shows the balance and
-// the one balance-dependent action, Settle up.
+// live in the persistent bottom nav (US7); home gives the outstanding
+// balance the whole stage and offers the one balance-dependent action.
 export default async function AppHomePage({
   params,
 }: {
@@ -21,10 +23,11 @@ export default async function AppHomePage({
   const ctx = await requireUnlocked();
   const t = await getTranslations('home');
   const balanceMinor = await memberBalance(ctx.member.id);
+  const owes = balanceMinor > 0n;
 
   return (
-    <main className="mx-auto max-w-md p-4">
-      <header className="mb-6 flex items-start justify-between gap-3">
+    <main className="mx-auto max-w-md p-5">
+      <header className="mb-7 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Link
             href="/account"
@@ -32,26 +35,36 @@ export default async function AppHomePage({
           >
             {t('greeting', { name: ctx.member.displayName })}
           </Link>
-          <h1 className="text-2xl font-bold">{ctx.club.name}</h1>
+          <h1 className="text-2xl font-bold leading-tight">{ctx.club.name}</h1>
         </div>
         <LanguageSwitcher />
       </header>
 
-      <Card className="mb-6 p-6">
-        <div className="text-muted-foreground text-sm">{t('outstandingBalance')}</div>
-        <div className="mt-1 text-4xl font-bold">
-          {formatMoney(balanceMinor, ctx.club.currencyCode, ctx.club.defaultLocale)}
-        </div>
-      </Card>
-
-      {balanceMinor > 0n ? (
-        <Link
-          href="/settle"
-          className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-14 items-center justify-center rounded-lg text-lg font-semibold"
+      {/* The outstanding balance — the focal point of the home screen.
+          A non-zero tab is drawn in the brand amber to pull the eye. */}
+      <Card className="items-center gap-3 py-10 text-center">
+        <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+          {t('outstandingBalance')}
+        </span>
+        <span
+          className={cn(
+            'text-5xl font-extrabold tabular-nums',
+            owes ? 'text-primary' : 'text-foreground',
+          )}
         >
-          {t('settleUp')}
-        </Link>
-      ) : null}
+          {formatMoney(balanceMinor, ctx.club.currencyCode, ctx.club.defaultLocale)}
+        </span>
+        {owes ? (
+          <Link
+            href="/settle"
+            className={cn(buttonVariants({ size: 'lg' }), 'mt-3 h-14 w-full text-base')}
+          >
+            {t('settleUp')}
+          </Link>
+        ) : (
+          <span className="text-muted-foreground mt-1 text-sm">{t('allSquare')}</span>
+        )}
+      </Card>
     </main>
   );
 }

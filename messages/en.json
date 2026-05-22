@@ -80,6 +80,7 @@
   "home": {
     "greeting": "Hey {name}",
     "outstandingBalance": "Your tab",
+    "allSquare": "All square — your tab's empty 🍺",
     "logABeer": "Log a beer",
     "myTab": "My tab",
     "settleUp": "Settle up",

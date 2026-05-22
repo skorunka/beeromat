@@ -34,12 +34,12 @@ export default async function SessionDetailPage({
   const dateFmt = new Intl.DateTimeFormat(defaultLocale, { dateStyle: 'medium' });
 
   return (
-    <main className="mx-auto max-w-2xl p-4">
+    <main className="mx-auto max-w-2xl p-5">
       <Link href={'/history' as Route} className="text-primary text-sm underline">
         ← {t('title')}
       </Link>
       <header className="mt-2 mb-4">
-        <h1 className="text-xl font-semibold">{detail.session.title ?? t('drinkSession')}</h1>
+        <h1 className="text-2xl font-bold">{detail.session.title ?? t('drinkSession')}</h1>
         <p className="text-muted-foreground text-sm">
           {dateFmt.format(detail.session.startedAt)}
           {detail.session.endedAt ? '' : ` · ${t('stillOpen')}`}

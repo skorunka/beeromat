@@ -92,10 +92,10 @@ revisited so each has a clear primary focus and a comfortable phone layout.
 **Independent Test**: Each member screen has one clear focal point, lays out
 well at 360×640, and keeps every action and content item from v1–v1.3.
 
-- [ ] T010 [US3] Rework the layout of the home screen (`app/[locale]/(app)/page.tsx`) and the log screen (`app/[locale]/(app)/log/`) — home: the outstanding balance as the focal point; log: the beer tiles dominant.
-- [ ] T011 [US3] Rework the layout of the tab, settle, and bet screens (`app/[locale]/(app)/tab/`, `settle/`, `bet/`) — clear focal point and comfortable rhythm on each.
-- [ ] T012 [US3] Rework the layout of the account, payment-history, and session-history screens (`app/[locale]/(app)/account/`, `account/payments/`, `history/`).
-- [ ] T013 [P] [US3] Extend `tests/e2e/ux3-redesign.spec.ts` with the US3 assertions: each member screen has no horizontal scroll at 360×640 and the bottom nav does not occlude content; the home balance is present and prominent.
+- [X] T010 [US3] Rework the layout of the home screen (`app/[locale]/(app)/page.tsx`) and the log screen (`app/[locale]/(app)/log/`) — home: the outstanding balance as the focal point; log: the beer tiles dominant.
+- [X] T011 [US3] Rework the layout of the tab, settle, and bet screens (`app/[locale]/(app)/tab/`, `settle/`, `bet/`) — clear focal point and comfortable rhythm on each.
+- [X] T012 [US3] Rework the layout of the account, payment-history, and session-history screens (`app/[locale]/(app)/account/`, `account/payments/`, `history/`).
+- [X] T013 [P] [US3] Extend `tests/e2e/ux3-redesign.spec.ts` with the US3 assertions: each member screen has no horizontal scroll at 360×640 and the bottom nav does not occlude content; the home balance is present and prominent.
 
 **Checkpoint**: Member screens are reworked into the Clubhouse look.
 
@@ -134,7 +134,7 @@ layout conventions; nothing on an admin screen shows the pre-redesign look.
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T020 Remove the scratch design-proposal page `app/[locale]/design/page.tsx` (and its now-empty `design/` directory).
+- [X] T020 Remove the scratch design-proposal page `app/[locale]/design/page.tsx` (and its now-empty `design/` directory).
 - [ ] T021 Run the full Playwright suite (`pnpm exec playwright test`); fix any pre-existing v1–v1.3 spec broken by a restyle's markup/selector or visible-text change — update the spec assertion to the new markup, never the app behaviour (SC-005). Behaviour is unchanged by v1.4.
 - [ ] T022 Run all seven verification gates — `typecheck`, `lint`, `test`, `i18n:check`, `forms:check`, `build`, `playwright test` — confirm all pass; walk `quickstart.md` in both light and dark on a 360-px viewport.
 

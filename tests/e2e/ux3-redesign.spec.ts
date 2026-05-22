@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures/test';
+import { signInAndUnlock } from './fixtures/auth';
 
 // v1.4 — visual-redesign verification. A redesign cannot be
 // "looks-good"-tested, but *theme applied*, *contrast*, *touch-target
@@ -115,5 +116,68 @@ test.describe('@ux3-redesign US2 — the component system', () => {
     // focus-visible:ring-3 paints a box-shadow — no longer "none".
     const shadow = await input.evaluate((el) => getComputedStyle(el).boxShadow);
     expect(shadow).not.toBe('none');
+  });
+});
+
+const US3_EMAIL = 'ux3-layout@example.test';
+const US3_PIN = '5252';
+
+test.describe('@ux3-redesign US3 — member screen layouts', () => {
+  // The redesign's small-screen reference: an old phone in portrait.
+  test.use({ viewport: { width: 360, height: 640 } });
+
+  test('scenario: member screens fit a 360px viewport — no horizontal scroll', async ({
+    page,
+    seed,
+  }) => {
+    const club = await seed.club();
+    const { user } = await seed.member({ clubId: club.id, role: 'member', email: US3_EMAIL });
+    await seed.beerType({
+      clubId: club.id,
+      createdByUserId: user.id,
+      name: 'Pilsner Urquell',
+      unitPriceMinor: 5000n,
+      currentStock: 50,
+    });
+    await signInAndUnlock(page, { email: US3_EMAIL, pin: US3_PIN });
+
+    for (const path of ['/', '/log', '/tab', '/bet', '/history', '/account']) {
+      await page.goto(path);
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow, `${path} must not scroll horizontally`).toBeLessThanOrEqual(1);
+    }
+  });
+
+  test('scenario: the home balance is the prominent focal point', async ({ page, seed }) => {
+    const club = await seed.club();
+    await seed.member({ clubId: club.id, role: 'member', email: US3_EMAIL });
+    await signInAndUnlock(page, { email: US3_EMAIL, pin: US3_PIN });
+
+    await page.goto('/');
+    // The formatted balance amount renders large — text-5xl is ≥40px.
+    const amount = page.getByText(/0[.,]00/).first();
+    await expect(amount).toBeVisible();
+    const fontSize = await amount.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    expect(fontSize).toBeGreaterThanOrEqual(40);
+  });
+
+  test('scenario: the bottom nav does not occlude page content', async ({ page, seed }) => {
+    const club = await seed.club();
+    await seed.member({ clubId: club.id, role: 'member', email: US3_EMAIL });
+    await signInAndUnlock(page, { email: US3_EMAIL, pin: US3_PIN });
+
+    await page.goto('/');
+    const { wrapperPadBottom, navHeight } = await page.evaluate(() => {
+      const nav = document.querySelector('nav')!;
+      const wrapper = nav.previousElementSibling as HTMLElement;
+      return {
+        navHeight: nav.getBoundingClientRect().height,
+        wrapperPadBottom: parseFloat(getComputedStyle(wrapper).paddingBottom),
+      };
+    });
+    // The content wrapper reserves at least the nav's height below the fold.
+    expect(wrapperPadBottom).toBeGreaterThanOrEqual(navHeight - 8);
   });
 });

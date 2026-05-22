@@ -13,6 +13,7 @@ import { hashPin, isValidPinFormat, verifyPin } from '@/lib/auth/pin';
 import { auth } from '@/lib/auth/better-auth';
 import { verifyTurnstileToken } from '@/lib/turnstile/verify';
 import { checkMagicLinkLimits } from '@/lib/rate-limit';
+import { acceptInvitationSchema } from '@/lib/validation/invitation';
 
 const MAX_PIN_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 100 * 365 * 24 * 60 * 60 * 1000; // 100 years ~ effectively permanent
@@ -40,7 +41,10 @@ export async function acceptInvitationAction(input: {
   token: string;
   displayName: string;
 }): Promise<AuthActionResult<{ email: string }>> {
-  if (!input.displayName || input.displayName.trim().length === 0) {
+  // Validate the display name against the same schema the client form uses
+  // (lib/validation/invitation.ts) — the single source of validation truth.
+  const parsed = acceptInvitationSchema.safeParse({ displayName: input.displayName });
+  if (!parsed.success) {
     return { ok: false, code: 'DISPLAY_NAME_REQUIRED' };
   }
   if (!input.token) return { ok: false, code: 'INVALID_INVITATION' };

@@ -52,8 +52,8 @@ test.describe('@us4 treasurer records a manual payment', () => {
     await page.getByText('Karel Dlužník').click();
     await expect(page.getByText(/200[.,]00/)).toBeVisible();
 
-    await page.locator('#manual-amount').fill('120.00');
-    await page.locator('#manual-note').fill('cash received 2026-05-21');
+    await page.locator('#amount').fill('120.00');
+    await page.locator('#note').fill('cash received 2026-05-21');
     await page.getByRole('button', { name: /mark it paid/i }).click();
 
     // Balance falls 200.00 − 120.00 = 80.00.
@@ -68,7 +68,7 @@ test.describe('@us4 treasurer records a manual payment', () => {
     await signInAndUnlock(page, { email: TREASURER_EMAIL, pin: TREASURER_PIN });
 
     await page.goto(`/admin/balances/${member.id}`);
-    await page.locator('#manual-amount').fill('60');
+    await page.locator('#amount').fill('60');
     await page.getByRole('button', { name: /mark it paid/i }).click();
 
     await expect

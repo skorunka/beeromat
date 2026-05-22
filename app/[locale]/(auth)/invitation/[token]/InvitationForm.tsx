@@ -1,12 +1,26 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  FormRootError,
+} from '@/components/ui/form';
 import { acceptInvitationAction } from '@/lib/auth/actions';
+import {
+  acceptInvitationSchema,
+  type AcceptInvitationValues,
+} from '@/lib/validation/invitation';
 
 interface InvitationFormProps {
   token: string;
@@ -14,24 +28,28 @@ interface InvitationFormProps {
 
 export function InvitationForm({ token }: InvitationFormProps) {
   const t = useTranslations('invitation');
-  const [displayName, setDisplayName] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [accepted, setAccepted] = useState<{ email: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
+  const form = useForm<AcceptInvitationValues>({
+    resolver: zodResolver(acceptInvitationSchema),
+    defaultValues: { displayName: '' },
+  });
+
+  function onSubmit(values: AcceptInvitationValues) {
     startTransition(async () => {
-      const result = await acceptInvitationAction({ token, displayName });
+      const result = await acceptInvitationAction({
+        token,
+        displayName: values.displayName,
+      });
       if (result.ok) {
         setAccepted({ email: result.data?.email ?? '' });
-      } else if (result.code === 'INVALID_INVITATION') {
-        setError(t('errorInvalid'));
       } else if (result.code === 'DISPLAY_NAME_REQUIRED') {
-        setError(t('errorNameRequired'));
+        form.setError('displayName', { message: 'invitation.errorNameRequired' });
+      } else if (result.code === 'INVALID_INVITATION') {
+        form.setError('root', { message: 'invitation.errorInvalid' });
       } else {
-        setError(t('errorGeneric'));
+        form.setError('root', { message: 'invitation.errorGeneric' });
       }
     });
   }
@@ -53,32 +71,44 @@ export function InvitationForm({ token }: InvitationFormProps) {
       <h1 className="text-2xl font-bold">{t('welcomeTitle')}</h1>
       <p className="text-muted-foreground text-center text-sm">{t('welcomeBody')}</p>
 
-      <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="displayName">{t('displayNameLabel')}</Label>
-          <Input
-            id="displayName"
-            type="text"
-            autoComplete="name"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            required
-            autoFocus
-            maxLength={100}
-          />
-        </div>
-
-        {error ? <p className="text-destructive text-sm">{error}</p> : null}
-
-        <Button
-          type="submit"
-          size="lg"
-          disabled={!displayName || isPending}
-          className="h-14 text-lg"
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          noValidate
+          className="flex w-full flex-col gap-4"
         >
-          {isPending ? t('working') : t('submit')}
-        </Button>
-      </form>
+          <FormField
+            control={form.control}
+            name="displayName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('displayNameLabel')}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="text"
+                    autoComplete="name"
+                    maxLength={80}
+                    autoFocus
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormRootError />
+
+          <Button
+            type="submit"
+            size="lg"
+            disabled={isPending}
+            className="h-14 text-lg"
+          >
+            {isPending ? t('working') : t('submit')}
+          </Button>
+        </form>
+      </Form>
     </main>
   );
 }

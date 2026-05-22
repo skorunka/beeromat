@@ -304,5 +304,14 @@
     "forbidden": "That one's not for you.",
     "notFound": "Couldn't find that.",
     "rateLimited": "Whoa — slow down a sec."
+  },
+  "forms": {
+    "required": "Pop something in here.",
+    "email": "That email doesn't look right.",
+    "tooShort": "A touch short.",
+    "tooLong": "That's a bit long.",
+    "notANumber": "A number goes here.",
+    "notAWholeNumber": "Whole numbers only.",
+    "mustBePositive": "Needs to be more than zero."
   }
 }

@@ -304,5 +304,14 @@
     "forbidden": "Tohle není pro tebe.",
     "notFound": "Tohle se nenašlo.",
     "rateLimited": "Hele — zpomal trochu."
+  },
+  "forms": {
+    "required": "Tohle ještě doplň.",
+    "email": "Tenhle e-mail nevypadá správně.",
+    "tooShort": "Trochu krátké.",
+    "tooLong": "Tohle je moc dlouhé.",
+    "notANumber": "Sem patří číslo.",
+    "notAWholeNumber": "Jen celé číslo.",
+    "mustBePositive": "Musí to být víc než nula."
   }
 }

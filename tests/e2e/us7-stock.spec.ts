@@ -20,10 +20,10 @@ test.describe('@us7 stock management', () => {
 
     await page.goto('/admin/beer-types');
     await page.getByRole('button', { name: /add a beer/i }).click();
-    await page.locator('#bt-name').fill('Kozel Černý');
-    await page.locator('#bt-price').fill('48.00');
-    await page.locator('#bt-stock').fill('30');
-    await page.locator('#bt-threshold').fill('5');
+    await page.locator('#name').fill('Kozel Černý');
+    await page.locator('#price').fill('48.00');
+    await page.locator('#initialStock').fill('30');
+    await page.locator('#lowStockThreshold').fill('5');
     await page.getByRole('button', { name: /^save$/i }).click();
 
     await expect
@@ -57,7 +57,7 @@ test.describe('@us7 stock management', () => {
 
     await page.goto('/admin/beer-types');
     await page.getByRole('button', { name: /^restock$/i }).click();
-    await page.locator('#bt-qty').fill('24');
+    await page.locator('#quantity').fill('24');
     await page.getByRole('button', { name: /add to stock/i }).click();
 
     await expect
@@ -91,8 +91,8 @@ test.describe('@us7 stock management', () => {
 
     await page.goto('/admin/beer-types');
     await page.getByRole('button', { name: /^adjust$/i }).click();
-    await page.locator('#bt-delta').fill('-5');
-    await page.locator('#bt-adjust-reason').fill('stocktake correction');
+    await page.locator('#delta').fill('-5');
+    await page.locator('#reason').fill('stocktake correction');
     await page.getByRole('button', { name: /save the change/i }).click();
 
     await expect(page.getByText(/below zero/i)).toBeVisible();

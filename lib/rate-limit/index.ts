@@ -72,6 +72,16 @@ export async function checkMagicLinkLimits(
   email: string,
   ip: string | undefined,
 ): Promise<{ allowed: boolean }> {
+  // Honour AUTH_RATE_LIMIT_ENABLED (lib/env.ts). An environment with no
+  // real Upstash — notably the E2E rig, whose `.env.test` points the
+  // Upstash URL at a deliberately-unreachable host — sets this 'false'.
+  // Skipping here avoids a per-request fetch failure and the noisy
+  // "[rate-limit] limiter unavailable" log line. Production leaves it
+  // 'true', so the limiter runs exactly as before.
+  if (env.AUTH_RATE_LIMIT_ENABLED === 'false') {
+    return { allowed: true };
+  }
+
   try {
     const perEmail = await magicLinkPerEmailLimiter().limit(`email:${email}`);
     if (!perEmail.success) return { allowed: false };

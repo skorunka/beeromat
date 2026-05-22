@@ -67,7 +67,7 @@
 
 /* Expose the tokens to Tailwind utilities. `inline` keeps the utilities
    referencing the live custom properties, so the dark :root override
-   above flows through every bg-*/text-*/border-* class. */
+   above flows through every bg, text and border colour class. */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

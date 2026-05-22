@@ -74,11 +74,11 @@ hover/pressed/disabled/focus states.
 everywhere; focus and pressed states are visible; every control is ≥44 px;
 nothing carries a leftover default style.
 
-- [ ] T005 [US2] Restyle the form controls — `components/ui/button.tsx`, `input.tsx`, `label.tsx`, and the `form.tsx` primitives — to the Clubhouse system: token colours, the radius scale, visible focus ring, distinct hover/pressed/disabled states, ≥44 px targets. The `form.tsx` primitives keep the v1.6.0 standard (no native validation).
-- [ ] T006 [US2] Restyle the surface/container primitives — `components/ui/card.tsx`, `dialog.tsx`, `sheet.tsx`, `separator.tsx`, `dropdown-menu.tsx` — consistent radius, the soft warm elevation, token borders and backgrounds.
-- [ ] T007 [US2] Restyle the feedback primitives — `components/ui/badge.tsx` and `components/ui/sonner.tsx` (toasts) — and the shared empty-state styling, into the Clubhouse system.
-- [ ] T008 [US2] Restyle `components/nav/bottom-nav.tsx` — the persistent nav in the Clubhouse look, the active item using the brand accent, ≥44 px tap rows.
-- [ ] T009 [P] [US2] Extend `tests/e2e/ux3-redesign.spec.ts` with the US2 assertions: sampled controls are ≥44 px at 360×640; primary buttons across screens share one computed style; a focused control has a visible focus ring.
+- [X] T005 [US2] Restyle the form controls — `components/ui/button.tsx`, `input.tsx`, `label.tsx`, and the `form.tsx` primitives — to the Clubhouse system: token colours, the radius scale, visible focus ring, distinct hover/pressed/disabled states, ≥44 px targets. The `form.tsx` primitives keep the v1.6.0 standard (no native validation).
+- [X] T006 [US2] Restyle the surface/container primitives — `components/ui/card.tsx`, `dialog.tsx`, `sheet.tsx`, `separator.tsx`, `dropdown-menu.tsx` — consistent radius, the soft warm elevation, token borders and backgrounds.
+- [X] T007 [US2] Restyle the feedback primitives — `components/ui/badge.tsx` and `components/ui/sonner.tsx` (toasts) — and the shared empty-state styling, into the Clubhouse system.
+- [X] T008 [US2] Restyle `components/nav/bottom-nav.tsx` — the persistent nav in the Clubhouse look, the active item using the brand accent, ≥44 px tap rows.
+- [X] T009 [P] [US2] Extend `tests/e2e/ux3-redesign.spec.ts` with the US2 assertions: sampled controls are ≥44 px at 360×640; primary buttons across screens share one computed style; a focused control has a visible focus ring.
 
 **Checkpoint**: Every component is on the Clubhouse design system.
 

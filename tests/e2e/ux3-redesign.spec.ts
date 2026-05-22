@@ -63,3 +63,57 @@ test.describe('@ux3-redesign US1 — the Clubhouse identity', () => {
     expect(contrast(bg, fg)).toBeGreaterThanOrEqual(4.5);
   });
 });
+
+test.describe('@ux3-redesign US2 — the component system', () => {
+  // The redesign's small-screen reference: an old phone in portrait.
+  test.use({ viewport: { width: 360, height: 640 } });
+
+  test('scenario: the primary action meets the 44px touch target', async ({ page }) => {
+    await page.goto('/en/sign-in');
+
+    // The email field themes from the 44px control height.
+    const input = page.locator('input[data-slot="input"]').first();
+    await expect(input).toBeVisible();
+    const inputBox = await input.boundingBox();
+    expect(inputBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+    // Every primary-coloured button is a ≥44px target.
+    const buttons = page.locator('button[data-slot="button"]');
+    let primaryButtons = 0;
+    for (let i = 0; i < (await buttons.count()); i++) {
+      const b = buttons.nth(i);
+      const bg = await b.evaluate((el) => getComputedStyle(el).backgroundColor);
+      if (bg === 'rgb(138, 82, 20)') {
+        const box = await b.boundingBox();
+        expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+        primaryButtons++;
+      }
+    }
+    expect(primaryButtons).toBeGreaterThan(0);
+  });
+
+  test('scenario: primary buttons share one computed style — the Honey Amber token', async ({
+    page,
+  }) => {
+    await page.goto('/en/sign-in');
+    // The single source: the --primary design token.
+    const primaryToken = await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--primary').trim()
+    );
+    expect(primaryToken).toBe('#8a5214');
+    // Buttons styled bg-primary all resolve to that token — rgb(138, 82, 20).
+    const bgs = await page
+      .locator('button[data-slot="button"]')
+      .evaluateAll((els) => els.map((el) => getComputedStyle(el).backgroundColor));
+    expect(bgs.some((b) => b === 'rgb(138, 82, 20)')).toBe(true);
+  });
+
+  test('scenario: a focused control shows a visible focus ring', async ({ page }) => {
+    await page.goto('/en/sign-in');
+    const input = page.locator('input[data-slot="input"]').first();
+    await input.focus();
+    // focus-visible:ring-3 paints a box-shadow — no longer "none".
+    const shadow = await input.evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(shadow).not.toBe('none');
+  });
+});

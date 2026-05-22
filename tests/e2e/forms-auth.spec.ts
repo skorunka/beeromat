@@ -43,8 +43,10 @@ test.describe('@forms-auth auth & onboarding form validation', () => {
     await page.locator('#pin').fill('123');
     await page.getByRole('button', { name: 'Uložit PIN' }).click();
 
-    // In-app Czech message beside the field; no native bubble.
-    await expect(page.getByText('PIN musí mít přesně 4 číslice')).toBeVisible();
+    // In-app Czech message beside the field; no native bubble. (Both the
+    // pin and the empty confirm-pin field are invalid, so the message
+    // renders twice — assert the one on the pin field.)
+    await expect(page.locator('#pin-message')).toHaveText('PIN musí mít přesně 4 číslice');
     await expectFormSuppressesNativeValidation(page);
   });
 

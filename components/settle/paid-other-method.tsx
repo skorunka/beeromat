@@ -47,7 +47,6 @@ export function PaidOtherMethod({ defaultAmountMinor, currencyCode }: PaidOtherM
 
   const form = useForm<PaidOtherMethodValues>({
     resolver: zodResolver(paidOtherMethodSchema),
-    mode: 'onTouched',
     defaultValues: {
       amount: (Number(BigInt(defaultAmountMinor)) / 100).toFixed(2),
       note: '',

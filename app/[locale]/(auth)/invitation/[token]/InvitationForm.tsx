@@ -33,7 +33,6 @@ export function InvitationForm({ token }: InvitationFormProps) {
 
   const form = useForm<AcceptInvitationValues>({
     resolver: zodResolver(acceptInvitationSchema),
-    mode: 'onTouched',
     defaultValues: { displayName: '' },
   });
 

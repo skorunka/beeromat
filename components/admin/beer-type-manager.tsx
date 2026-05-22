@@ -92,7 +92,6 @@ function BeerForm({
     resolver: zodResolver(
       mode === 'create' ? beerTypeCreateSchema : beerTypeEditSchema,
     ) as unknown as Resolver<BeerFormValues>,
-    mode: 'onTouched',
     defaultValues: {
       name: beer?.name ?? '',
       price: beer ? (Number(beer.unitPriceMinor) / 100).toFixed(2) : '',
@@ -226,7 +225,6 @@ function RestockForm({ beer, onDone }: { beer: BeerTypeManagerView; onDone: () =
 
   const form = useForm<RestockValues>({
     resolver: zodResolver(restockSchema),
-    mode: 'onTouched',
     defaultValues: { quantity: '', reason: '' },
   });
 
@@ -307,7 +305,6 @@ function AdjustForm({ beer, onDone }: { beer: BeerTypeManagerView; onDone: () =>
 
   const form = useForm<AdjustValues>({
     resolver: zodResolver(adjustSchema),
-    mode: 'onTouched',
     defaultValues: { delta: '', reason: '' },
   });
 

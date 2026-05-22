@@ -54,7 +54,6 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
     resolver: zodResolver(
       mode === 'setup' ? pinSetupSchema : pinUnlockSchema,
     ) as unknown as Resolver<PinFormValues>,
-    mode: 'onTouched',
     defaultValues: { pin: '', confirmPin: '' },
   });
 

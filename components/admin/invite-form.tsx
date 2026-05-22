@@ -32,7 +32,6 @@ export function InviteForm() {
 
   const form = useForm<InviteMemberValues>({
     resolver: zodResolver(inviteMemberSchema),
-    mode: 'onTouched',
     defaultValues: { email: '', role: 'member' },
   });
 

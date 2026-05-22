@@ -18,7 +18,7 @@ test.describe('@us5 invite + onboard', () => {
     await signInAndUnlock(page, { email: ADMIN_EMAIL, pin: ADMIN_PIN });
 
     await page.goto('/admin/members');
-    await page.locator('#invite-email').fill('fresh-invitee@example.test');
+    await page.locator('#email').fill('fresh-invitee@example.test');
     await page.getByRole('button', { name: /send invite/i }).click();
 
     // The invitation row is created regardless of email delivery

@@ -31,7 +31,6 @@ export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
 
   const form = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
-    mode: 'onTouched',
     defaultValues: { email: '' },
   });
 

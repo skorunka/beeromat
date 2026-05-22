@@ -44,7 +44,6 @@ export function ManualPaymentForm({ memberId, currencyCode }: ManualPaymentFormP
 
   const form = useForm<ManualPaymentValues>({
     resolver: zodResolver(manualPaymentSchema),
-    mode: 'onTouched',
     defaultValues: { amount: '', note: '' },
   });
 

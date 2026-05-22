@@ -45,7 +45,6 @@ export function BankingForm({ initial }: BankingFormProps) {
 
   const form = useForm<BankingProfileValues>({
     resolver: zodResolver(bankingProfileSchema),
-    mode: 'onTouched',
     defaultValues: {
       iban: initial.iban ?? '',
       accountHolderName: initial.accountHolderName ?? '',

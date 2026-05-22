@@ -14,12 +14,18 @@ export const restockSchema = z.object({
 });
 export type RestockValues = z.infer<typeof restockSchema>;
 
-/** Stock adjust — a non-zero signed integer delta plus a mandatory reason. */
+/**
+ * Stock adjust — a positive quantity plus an Add-stock / Remove-stock
+ * choice and a mandatory reason (v1.3 UX review F10: the occasional
+ * stock manager never types or reasons about a negative number; the
+ * form computes the signed delta for the unchanged Server Action).
+ */
 export const adjustSchema = z.object({
-  delta: z
+  quantity: z
     .string()
     .trim()
-    .refine((v) => /^-?\d+$/.test(v) && Number(v) !== 0, { error: 'admin.invalidDelta' }),
+    .refine((v) => /^\d+$/.test(v) && Number(v) > 0, { error: 'admin.invalidQuantity' }),
+  mode: z.enum(['add', 'remove']),
   reason: z
     .string()
     .trim()

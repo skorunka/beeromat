@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -40,6 +41,7 @@ export function ManualPaymentForm({ memberId, currencyCode }: ManualPaymentFormP
   const t = useTranslations('admin');
   const tSettle = useTranslations('settle');
   const tCommon = useTranslations('common');
+  const tForms = useTranslations('forms');
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<ManualPaymentValues>({
@@ -89,6 +91,7 @@ export function ManualPaymentForm({ memberId, currencyCode }: ManualPaymentFormP
                   {...field}
                 />
               </FormControl>
+              <FormDescription>{tForms('amountHint')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}

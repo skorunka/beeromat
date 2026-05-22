@@ -95,6 +95,10 @@ export async function logBeerAction(input: {
 
     revalidatePath('/log');
     revalidatePath('/tab');
+    // The home screen shows the outstanding balance — refresh it too so
+    // a just-logged (or just-undone) beer is reflected without a manual
+    // revisit (v1.3 UX review F2).
+    revalidatePath('/');
 
     return {
       ok: true,
@@ -164,6 +168,10 @@ export async function voidConsumptionAction(input: {
 
     revalidatePath('/log');
     revalidatePath('/tab');
+    // The home screen shows the outstanding balance — refresh it too so
+    // a just-logged (or just-undone) beer is reflected without a manual
+    // revisit (v1.3 UX review F2).
+    revalidatePath('/');
 
     return {
       ok: true,

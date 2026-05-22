@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, desc, eq, gte, isNull, lte, sum } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, isNull, lte, sum } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { memberBalance, paymentsTotal } from '@/lib/balance/calculate';
@@ -187,6 +187,87 @@ export async function getDisputedClaimsForMember(memberId: string): Promise<Disp
     .where(and(eq(payments.memberId, memberId), eq(payments.status, 'disputed')))
     .orderBy(desc(paymentStateTransitions.createdAt));
   return rows;
+}
+
+export type PaymentHistoryStatus = 'claimed' | 'confirmed' | 'disputed' | 'voided';
+
+export interface PaymentHistoryRow {
+  paymentId: string;
+  amountMinor: bigint;
+  currencyCode: string;
+  status: PaymentHistoryStatus;
+  origin: 'member_initiated' | 'treasurer_initiated';
+  /** When the member made (or the treasurer recorded) the payment. */
+  createdAt: Date;
+  /** When it reached its current state — for confirmed / disputed only. */
+  resolvedAt: Date | null;
+  /** The treasurer's reason — for a disputed payment only. */
+  disputeReason: string | null;
+}
+
+/**
+ * A member's own payment timeline, newest first
+ * (contracts/payments.md → getPaymentHistory; the member-self variant).
+ * Read-only: every payment the member has made, with its current state
+ * and — for a confirmed/disputed payment — when it was resolved. Built
+ * for the member payment-history screen (v1.3 UX review F20).
+ */
+export async function getPaymentHistory(
+  memberId: string,
+  clubId: string,
+): Promise<PaymentHistoryRow[]> {
+  const paymentRows = await db
+    .select({
+      paymentId: payments.id,
+      amountMinor: payments.amountMinor,
+      currencyCode: payments.currencyCode,
+      status: payments.status,
+      origin: payments.origin,
+      createdAt: payments.createdAt,
+    })
+    .from(payments)
+    .where(and(eq(payments.memberId, memberId), eq(payments.clubId, clubId)))
+    .orderBy(desc(payments.createdAt));
+
+  if (paymentRows.length === 0) return [];
+
+  // The transition into each payment's *current* status gives the
+  // resolved-at timestamp and (for disputes) the reason. Newest first so
+  // a `.find` below picks the most recent matching transition.
+  const transitions = await db
+    .select({
+      paymentId: paymentStateTransitions.paymentId,
+      toStatus: paymentStateTransitions.toStatus,
+      reason: paymentStateTransitions.reason,
+      createdAt: paymentStateTransitions.createdAt,
+    })
+    .from(paymentStateTransitions)
+    .where(
+      inArray(
+        paymentStateTransitions.paymentId,
+        paymentRows.map((p) => p.paymentId),
+      ),
+    )
+    .orderBy(desc(paymentStateTransitions.createdAt));
+
+  return paymentRows.map((p) => {
+    // For any non-claimed status, the transition into that status gives
+    // the resolved-at timestamp (and, for a dispute, the reason).
+    const resolution =
+      p.status === 'claimed'
+        ? undefined
+        : transitions.find((tr) => tr.paymentId === p.paymentId && tr.toStatus === p.status);
+    return {
+      paymentId: p.paymentId,
+      amountMinor: p.amountMinor,
+      currencyCode: p.currencyCode,
+      status: p.status,
+      origin: p.origin,
+      createdAt: p.createdAt,
+      resolvedAt: resolution?.createdAt ?? null,
+      disputeReason: p.status === 'disputed' ? (resolution?.reason ?? null) : null,
+    };
+  });
 }
 
 export interface ConfirmedPaymentRow {

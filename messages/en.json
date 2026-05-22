@@ -91,6 +91,23 @@
     "stockSection": "Stock",
     "beerTypesStock": "Beers & stock"
   },
+  "account": {
+    "title": "Your account",
+    "paymentHistory": "Payment history"
+  },
+  "payments": {
+    "title": "Payment history",
+    "empty": "No payments yet — once you settle up, they'll show here.",
+    "statusPending": "Waiting on the treasurer",
+    "statusConfirmed": "Confirmed",
+    "statusDisputed": "Flagged",
+    "statusVoided": "Reversed",
+    "confirmedOn": "Confirmed {date}",
+    "disputedOn": "Flagged {date}",
+    "voidedOn": "Reversed {date}",
+    "loggedOn": "{date}",
+    "treasurerRecorded": "Recorded by the treasurer"
+  },
   "log": {
     "title": "Log a beer",
     "lowBadge": "Low",
@@ -175,6 +192,7 @@
     "noOtherDrinks": "Nobody else has logged a drink this round.",
     "transferToMe": "I'll take it",
     "betsThisSession": "Bets this round",
+    "tally": "From bets this round: {count, plural, one {# drink} other {# drinks}} · {amount}",
     "youTook": "You took {name}'s {beer}",
     "tookYours": "{name} took your {beer}",
     "undone": "undone",
@@ -273,6 +291,10 @@
     "restockFailed": "That didn't work — give it another go.",
     "adjustTitle": "Adjust {name}",
     "deltaLabel": "Change (minus to take away)",
+    "adjustModeLabel": "Adding or taking away?",
+    "addStock": "Add stock",
+    "removeStock": "Take away",
+    "adjustQuantityLabel": "How many?",
     "adjustReasonLabel": "Why?",
     "recordAdjustment": "Save the change",
     "adjusted": "Done — {stock} in the fridge.",
@@ -297,6 +319,7 @@
   "dispute": {
     "banner": "Heads-up: your {amount} payment got flagged",
     "bannerWithReason": "Heads-up: your {amount} payment got flagged — {reason}",
+    "action": "Sort it out",
     "dismiss": "Got it"
   },
   "errors": {
@@ -312,6 +335,7 @@
     "tooLong": "That's a bit long.",
     "notANumber": "A number goes here.",
     "notAWholeNumber": "Whole numbers only.",
-    "mustBePositive": "Needs to be more than zero."
+    "mustBePositive": "Needs to be more than zero.",
+    "amountHint": "A comma or a dot works — like 120,50"
   }
 }

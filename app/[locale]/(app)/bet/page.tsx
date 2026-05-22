@@ -62,6 +62,24 @@ export default async function BetPage({
     amountDisplay: formatMoney(c.unitPriceMinor, currencyCode, defaultLocale),
   }));
 
+  // A running tally of the drinks this member has taken onto their tab
+  // from bets this session (v1.3 UX review F12) — distinct from the
+  // home-screen balance figure.
+  const myTaken = transferRows.filter(
+    (tr) => tr.toMemberId === ctx.member.id && !tr.voided,
+  );
+  const betTally =
+    myTaken.length > 0
+      ? {
+          count: myTaken.length,
+          totalDisplay: formatMoney(
+            myTaken.reduce((sum, tr) => sum + tr.unitPriceMinorSnapshot, 0n),
+            currencyCode,
+            defaultLocale,
+          ),
+        }
+      : null;
+
   const transfers: BetTransferView[] = transferRows.map((tr) => {
     const tookByMe = tr.toMemberId === ctx.member.id;
     return {
@@ -82,7 +100,7 @@ export default async function BetPage({
         <p className="text-muted-foreground text-sm">{t('subtitle')}</p>
       </header>
 
-      <TransferList transferables={transferables} transfers={transfers} />
+      <TransferList transferables={transferables} transfers={transfers} tally={betTally} />
     </main>
   );
 }

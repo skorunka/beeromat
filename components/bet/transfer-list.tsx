@@ -25,12 +25,21 @@ export interface BetTransferView {
   canVoid: boolean;
 }
 
+export interface BetTally {
+  count: number;
+  totalDisplay: string;
+}
+
 export function TransferList({
   transferables,
   transfers,
+  tally,
 }: {
   transferables: TransferableView[];
   transfers: BetTransferView[];
+  /** The member's running tally of drinks taken from bets this session;
+   *  null when they have taken none (no clutter). */
+  tally: BetTally | null;
 }) {
   const t = useTranslations('bet');
   const [isPending, startTransition] = useTransition();
@@ -69,6 +78,12 @@ export function TransferList({
 
   return (
     <div className="flex flex-col gap-6">
+      {tally ? (
+        <Card className="bg-accent p-3 text-sm font-medium">
+          {t('tally', { count: tally.count, amount: tally.totalDisplay })}
+        </Card>
+      ) : null}
+
       <section>
         <h2 className="mb-2 text-sm font-medium">{t('drinksYouCanTake')}</h2>
         {transferables.length === 0 ? (

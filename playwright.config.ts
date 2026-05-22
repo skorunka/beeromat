@@ -50,10 +50,14 @@ export default defineConfig({
     // machine (Docker + a running dev server competing for CPU) can
     // take several minutes before `next start` is reachable.
     timeout: 420_000,
-    // Never reuse a stale server — a server left over from a different
-    // run could be pointed at the wrong DB / env, and the `env` below
-    // is ignored when an existing server is reused. Always boot fresh.
-    reuseExistingServer: false,
+    // Reuse a server already listening on the port when running locally.
+    // Playwright's own webServer management — building, spawning, and
+    // killing the `pnpm build && pnpm start` child-process tree — is
+    // unreliable on Windows: it has orphaned `next start` processes and
+    // aborted mid-build (exit 127). A `next start` started by hand is
+    // stable, so locally we start one manually (with this same
+    // `.env.test`) and let Playwright reuse it. CI always boots fresh.
+    reuseExistingServer: !process.env.CI,
     stdout: 'pipe',
     stderr: 'pipe',
     // Single source of truth for .env.test parsing (shared with the

@@ -26,9 +26,12 @@ export default async function AppHomePage({
     <main className="mx-auto max-w-md p-4">
       <header className="mb-6 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-muted-foreground text-sm">
+          <Link
+            href="/account"
+            className="text-muted-foreground inline-flex min-h-11 items-center text-sm underline"
+          >
             {t('greeting', { name: ctx.member.displayName })}
-          </p>
+          </Link>
           <h1 className="text-2xl font-bold">{ctx.club.name}</h1>
         </div>
         <LanguageSwitcher />

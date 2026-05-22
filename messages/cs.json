@@ -91,6 +91,23 @@
     "stockSection": "Sklad",
     "beerTypesStock": "Piva a sklad"
   },
+  "account": {
+    "title": "Tvůj účet",
+    "paymentHistory": "Historie plateb"
+  },
+  "payments": {
+    "title": "Historie plateb",
+    "empty": "Zatím žádné platby — až něco vyrovnáš, objeví se to tady.",
+    "statusPending": "Čeká na pokladníka",
+    "statusConfirmed": "Potvrzeno",
+    "statusDisputed": "Nesedí",
+    "statusVoided": "Vráceno",
+    "confirmedOn": "Potvrzeno {date}",
+    "disputedOn": "Nahlášeno {date}",
+    "voidedOn": "Vráceno {date}",
+    "loggedOn": "{date}",
+    "treasurerRecorded": "Zapsal pokladník"
+  },
   "log": {
     "title": "Zapsat pivo",
     "lowBadge": "Dochází",
@@ -175,6 +192,7 @@
     "noOtherDrinks": "Nikdo další si tohle kolo nezapsal pití.",
     "transferToMe": "Beru si ho",
     "betsThisSession": "Sázky tohohle kola",
+    "tally": "Ze sázek tohle kolo: {count, plural, one {# pivo} few {# piva} other {# piv}} · {amount}",
     "youTook": "Bereš {beer} od {name}",
     "tookYours": "{name} bere tvoje {beer}",
     "undone": "zrušeno",
@@ -273,6 +291,10 @@
     "restockFailed": "Nepovedlo se to — zkus to prosím znovu.",
     "adjustTitle": "Upravit {name}",
     "deltaLabel": "Změna (mínus = odebrat)",
+    "adjustModeLabel": "Přidáváš, nebo odebíráš?",
+    "addStock": "Přidat",
+    "removeStock": "Odebrat",
+    "adjustQuantityLabel": "Kolik kusů?",
     "adjustReasonLabel": "Proč?",
     "recordAdjustment": "Uložit změnu",
     "adjusted": "Hotovo — v lednici {stock}.",
@@ -297,6 +319,7 @@
   "dispute": {
     "banner": "Echo: u tvojí platby {amount} něco nesedí",
     "bannerWithReason": "Echo: u tvojí platby {amount} něco nesedí — {reason}",
+    "action": "Pojď to vyřešit",
     "dismiss": "Jasně"
   },
   "errors": {
@@ -312,6 +335,7 @@
     "tooLong": "Tohle je moc dlouhé.",
     "notANumber": "Sem patří číslo.",
     "notAWholeNumber": "Jen celé číslo.",
-    "mustBePositive": "Musí to být víc než nula."
+    "mustBePositive": "Musí to být víc než nula.",
+    "amountHint": "Čárka i tečka fungují — třeba 120,50"
   }
 }

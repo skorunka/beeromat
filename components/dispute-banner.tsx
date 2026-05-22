@@ -3,6 +3,8 @@
 import { useSyncExternalStore } from 'react';
 import { useTranslations } from 'next-intl';
 
+import { Link } from '@/lib/i18n/navigation';
+
 export interface DisputedClaimView {
   paymentId: string;
   amountDisplay: string;
@@ -68,21 +70,30 @@ export function DisputeBanner({ claims }: { claims: DisputedClaimView[] }) {
       {visible.map((claim) => (
         <div
           key={claim.paymentId}
-          className="border-destructive/40 bg-destructive/10 text-destructive flex items-start justify-between gap-3 rounded-lg border p-3 text-sm"
+          className="border-destructive/40 bg-destructive/10 text-destructive flex flex-col gap-1 rounded-lg border p-3 text-sm"
         >
           <p>
             {claim.reason
               ? t('bannerWithReason', { amount: claim.amountDisplay, reason: claim.reason })
               : t('banner', { amount: claim.amountDisplay })}
           </p>
-          <button
-            type="button"
-            onClick={() => dismissDispute(claim.paymentId)}
-            className="shrink-0 underline"
-            aria-label={t('dismiss')}
-          >
-            {t('dismiss')}
-          </button>
+          {/* An actionable next step, not just an explanation (v1.3 F19). */}
+          <div className="flex items-center gap-4">
+            <Link
+              href="/settle"
+              className="inline-flex min-h-11 items-center font-medium underline"
+            >
+              {t('action')}
+            </Link>
+            <button
+              type="button"
+              onClick={() => dismissDispute(claim.paymentId)}
+              className="text-muted-foreground inline-flex min-h-11 items-center underline"
+              aria-label={t('dismiss')}
+            >
+              {t('dismiss')}
+            </button>
+          </div>
         </div>
       ))}
     </div>

@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-21
 
-**Status**: Draft
+**Status**: Shipped — v1.1 delivered and merged to `main` (all 38 tasks complete).
 
 **Input**: User description: "beeromat v1.1 — UX hardening from the post-implementation review (`specs/001-beer-consumption-ledger/ux-review.md` §5). The eight P0/P1 findings, UX-only, no new domain entities."
 

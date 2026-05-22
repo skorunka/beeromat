@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-22
 
-**Status**: Draft
+**Status**: Shipped
 
 **Input**: User description: "beeromat v1.4 — visual redesign & design system. Give the app a real identity: the 'Clubhouse' theme — warm honey-amber, foam cream, roast brown."
 

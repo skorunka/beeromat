@@ -102,9 +102,10 @@ test.describe('@forms-admin admin form validation', () => {
     // The card's buttons are restock, adjust, edit — adjust is the first
     // "Upravit" (the adjust + edit labels collide in the Czech catalog).
     await page.getByRole('button', { name: 'Upravit' }).first().click();
-    await expect(page.locator('#delta')).toBeVisible();
+    // v1.3: the adjust form is a positive quantity + Add/Remove choice.
+    await expect(page.locator('#quantity')).toBeVisible();
 
-    await page.locator('#delta').fill('5');
+    await page.locator('#quantity').fill('5');
     await page.getByRole('button', { name: 'Uložit změnu' }).click();
 
     await expect(page.getByText('Připoj krátké proč.')).toBeVisible();

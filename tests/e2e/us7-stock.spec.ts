@@ -91,7 +91,9 @@ test.describe('@us7 stock management', () => {
 
     await page.goto('/admin/beer-types');
     await page.getByRole('button', { name: /^adjust$/i }).click();
-    await page.locator('#delta').fill('-5');
+    // v1.3: adjust is a positive quantity + an Add/Remove choice.
+    await page.getByRole('button', { name: /take away/i }).click();
+    await page.locator('#quantity').fill('5');
     await page.locator('#reason').fill('stocktake correction');
     await page.getByRole('button', { name: /save the change/i }).click();
 

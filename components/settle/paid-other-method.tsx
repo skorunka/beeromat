@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -42,6 +43,7 @@ export function PaidOtherMethod({ defaultAmountMinor, currencyCode }: PaidOtherM
   const router = useRouter();
   const t = useTranslations('settle');
   const tCommon = useTranslations('common');
+  const tForms = useTranslations('forms');
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -102,6 +104,7 @@ export function PaidOtherMethod({ defaultAmountMinor, currencyCode }: PaidOtherM
                 <FormControl>
                   <Input inputMode="decimal" {...field} />
                 </FormControl>
+                <FormDescription>{tForms('amountHint')}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}

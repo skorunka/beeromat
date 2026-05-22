@@ -192,6 +192,7 @@
     "noOtherDrinks": "Nikdo další si tohle kolo nezapsal pití.",
     "transferToMe": "Beru si ho",
     "betsThisSession": "Sázky tohohle kola",
+    "tally": "Ze sázek tohle kolo: {count, plural, one {# pivo} few {# piva} other {# piv}} · {amount}",
     "youTook": "Bereš {beer} od {name}",
     "tookYours": "{name} bere tvoje {beer}",
     "undone": "zrušeno",
@@ -334,6 +335,7 @@
     "tooLong": "Tohle je moc dlouhé.",
     "notANumber": "Sem patří číslo.",
     "notAWholeNumber": "Jen celé číslo.",
-    "mustBePositive": "Musí to být víc než nula."
+    "mustBePositive": "Musí to být víc než nula.",
+    "amountHint": "Čárka i tečka fungují — třeba 120,50"
   }
 }

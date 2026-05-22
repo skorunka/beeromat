@@ -131,9 +131,9 @@ running transfer tally.
 **Independent Test**: A money-amount input shows helper text; a member with
 bet transfers this session sees a running tally.
 
-- [ ] T019 [US6] Add helper text stating the accepted amount format to each money-amount input — `components/settle/paid-other-method.tsx`, `components/treasurer/manual-payment-form.tsx`, and the price / restock-quantity fields in `components/admin/beer-type-manager.tsx` — using the existing `FormDescription` primitive from `components/ui/form.tsx`. Add the helper-text catalog key (cs + en).
-- [ ] T020 [US6] In `components/bet/transfer-list.tsx` (or the bet page), show the member a running tally of their own bet transfers for the open session, distinct from the home-balance figure; no tally line when there are none. Tighten the bet / variable-symbol copy per review findings F7/F13. Catalog strings (cs + en).
-- [ ] T021 [P] [US6] Create `tests/e2e/ux2-polish.spec.ts` asserting US6 scenarios 1–2: a money-amount input shows format helper text; a member with session bet transfers sees a running tally.
+- [X] T019 [US6] Add helper text stating the accepted amount format to each money-amount input — `components/settle/paid-other-method.tsx`, `components/treasurer/manual-payment-form.tsx`, and the price / restock-quantity fields in `components/admin/beer-type-manager.tsx` — using the existing `FormDescription` primitive from `components/ui/form.tsx`. Add the helper-text catalog key (cs + en).
+- [X] T020 [US6] In `components/bet/transfer-list.tsx` (or the bet page), show the member a running tally of their own bet transfers for the open session, distinct from the home-balance figure; no tally line when there are none. Tighten the bet / variable-symbol copy per review findings F7/F13. Catalog strings (cs + en).
+- [X] T021 [P] [US6] Create `tests/e2e/ux2-polish.spec.ts` asserting US6 scenarios 1–2: a money-amount input shows format helper text; a member with session bet transfers sees a running tally.
 
 **Checkpoint**: All six stories complete.
 

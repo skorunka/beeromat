@@ -29,6 +29,7 @@ import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -85,6 +86,7 @@ function BeerForm({
 }) {
   const t = useTranslations('admin');
   const tCommon = useTranslations('common');
+  const tForms = useTranslations('forms');
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<BeerFormValues>({
@@ -155,6 +157,7 @@ function BeerForm({
               <FormControl>
                 <Input inputMode="decimal" placeholder="52.00" {...field} />
               </FormControl>
+              <FormDescription>{tForms('amountHint')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}

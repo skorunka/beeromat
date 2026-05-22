@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-19
 
-**Status**: Draft (clarifications resolved 2026-05-19)
+**Status**: Shipped — v1 delivered; all 8 user stories (US1–US8) implemented and gate-verified (see the post-implementation `ux-review.md`). v1.1/v1.2/v1.3 build on top of it.
 
 **Input**: User description: "beeromat v1 MVP — a mobile-first PWA for a small tennis club (about 20 members) to track per-session beer consumption, inter-member bet transfers (loser pays for winner's beer), stock levels per beer type with low-stock alerts, and balances owed to the club treasurer. Invitation-only auth via email magic link plus device-scoped 4-digit PIN (no passwords). Roles: member, stock_manager, treasurer, club_admin. Schema is multi-tenant (every row carries club_id) but v1 ships single-club UX only — one club seeded at deploy, no club switcher, no public onboarding. Currency is per-club configuration (CZK default). The treasurer marks payments as received; the app never processes money. After-match drink sessions group consumption so balances can be reviewed per session and across sessions."
 

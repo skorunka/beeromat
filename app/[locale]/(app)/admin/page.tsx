@@ -39,8 +39,8 @@ export default async function AdminHubPage({
   ];
 
   return (
-    <main className="mx-auto max-w-md p-4">
-      <h1 className="mb-4 text-xl font-semibold">{t('hubTitle')}</h1>
+    <main className="mx-auto max-w-md p-5">
+      <h1 className="mb-4 text-2xl font-bold">{t('hubTitle')}</h1>
       <ul className="flex flex-col gap-2">
         {links.map((l) => (
           <li key={l.href}>

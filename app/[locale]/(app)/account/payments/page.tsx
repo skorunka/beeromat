@@ -20,7 +20,7 @@ export default async function PaymentHistoryPage({
   const rows = await getPaymentHistory(ctx.member.id, ctx.club.id);
 
   return (
-    <main className="mx-auto max-w-md p-4">
+    <main className="mx-auto max-w-md p-5">
       <h1 className="mb-4 text-2xl font-bold">{t('title')}</h1>
       <PaymentHistoryList
         rows={rows}

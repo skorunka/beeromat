@@ -26,9 +26,9 @@ export default async function TabPage({
   });
 
   return (
-    <main className="mx-auto max-w-2xl p-4">
+    <main className="mx-auto max-w-2xl p-5">
       <header className="mb-4">
-        <h1 className="text-xl font-semibold">{t('title')}</h1>
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
         {tab.session ? (
           <p className="text-muted-foreground text-sm">{tab.session.title}</p>
         ) : (

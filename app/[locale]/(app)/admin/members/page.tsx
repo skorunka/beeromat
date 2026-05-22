@@ -29,7 +29,7 @@ export default async function AdminMembersPage({
   const dateFmt = new Intl.DateTimeFormat(ctx.club.defaultLocale, { dateStyle: 'medium' });
 
   return (
-    <main className="mx-auto max-w-3xl p-4">
+    <main className="mx-auto max-w-3xl p-5">
       <h1 className="mb-6 text-2xl font-bold">{t('membersTitle')}</h1>
 
       <Card className="mb-6 p-4">

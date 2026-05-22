@@ -1,26 +1,105 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ─────────────────────────────────────────────────────────────────────
+   beeromat — the "Clubhouse" theme (v1.4 visual redesign).
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+   Warm honey-amber, foam cream, roast brown — the cosy after-the-match
+   tavern look. One token source: every component themes from the
+   variables below. Dark mode follows the OS colour-scheme preference
+   through a pure-CSS media query — no JavaScript, no flash on load.
+
+   The brand amber (#b5701a) is an *accent* (focus ring, --brand);
+   text-bearing fills (--primary, --muted-foreground, --destructive)
+   are tuned to clear WCAG AA in both themes.
+   ───────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* Clubhouse — light */
+  --background: #f6eedd;            /* Foam Cream  — page background        */
+  --foreground: #2c2114;            /* Stout Ink   — body text              */
+  --card: #fffbf3;                  /* Pour White  — raised surfaces        */
+  --card-foreground: #2c2114;
+  --popover: #fffbf3;
+  --popover-foreground: #2c2114;
+  --primary: #8a5214;               /* deep honey  — primary fill (AA)      */
+  --primary-foreground: #fffbf3;
+  --secondary: #ead9b8;             /* warm sand                            */
+  --secondary-foreground: #2c2114;
+  --muted: #efe6d2;
+  --muted-foreground: #6e5e48;      /* secondary text — darkened for AA     */
+  --accent: #efe2c8;                /* pale amber  — hover / subtle fill    */
+  --accent-foreground: #2c2114;
+  --destructive: #b23b2e;           /* warm brick                           */
+  --destructive-foreground: #fffbf3;
+  --border: #e4d7be;
+  --input: #e4d7be;
+  --ring: #b5701a;                  /* Honey Amber — focus ring             */
+  --brand: #b5701a;                 /* Honey Amber — hero / heading accent  */
+
+  --radius: 0.875rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Clubhouse — dark (deep roast-brown ground, warm light text) */
+    --background: #221a11;
+    --foreground: #f1e7d2;
+    --card: #2e2417;
+    --card-foreground: #f1e7d2;
+    --popover: #2e2417;
+    --popover-foreground: #f1e7d2;
+    --primary: #d98e2e;             /* bright honey — primary fill          */
+    --primary-foreground: #221a11;
+    --secondary: #3a2e1c;
+    --secondary-foreground: #f1e7d2;
+    --muted: #2e2417;
+    --muted-foreground: #b3a484;
+    --accent: #3a2e1c;
+    --accent-foreground: #f1e7d2;
+    --destructive: #e0685a;
+    --destructive-foreground: #221a11;
+    --border: #3e3120;
+    --input: #3e3120;
+    --ring: #d98e2e;
+    --brand: #d98e2e;
   }
 }
 
+/* Expose the tokens to Tailwind utilities. `inline` keeps the utilities
+   referencing the live custom properties, so the dark :root override
+   above flows through every bg, text and border colour class. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand: var(--brand);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* The Clubhouse display typeface. `--font-bricolage` is set on <html>
+   by next/font; the whole app inherits the family from <body>. */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
 }

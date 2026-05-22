@@ -13,7 +13,8 @@
     "delete": "Delete",
     "back": "Back",
     "backHome": "Home",
-    "close": "Close"
+    "close": "Close",
+    "brand": "beeromat"
   },
   "nav": {
     "language": "Language",
@@ -29,6 +30,8 @@
   "auth": {
     "signIn": {
       "title": "Sign in",
+      "welcomeHeadline": "After the match. Over a beer.",
+      "welcomeTagline": "Beer, banter, and the people you play with. Sign in and we'll keep the tab.",
       "emailLabel": "Email",
       "emailPlaceholder": "you@example.com",
       "submit": "Send me a link",
@@ -80,6 +83,7 @@
   "home": {
     "greeting": "Hey {name}",
     "outstandingBalance": "Your tab",
+    "allSquare": "All square — your tab's empty 🍺",
     "logABeer": "Log a beer",
     "myTab": "My tab",
     "settleUp": "Settle up",

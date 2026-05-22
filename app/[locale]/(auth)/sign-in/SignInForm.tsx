@@ -25,6 +25,7 @@ interface SignInFormProps {
 
 export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
   const t = useTranslations('auth.signIn');
+  const tc = useTranslations('common');
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -46,6 +47,9 @@ export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
   if (sent) {
     return (
       <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 p-8 text-center">
+        <span className="text-primary text-xs font-bold tracking-[0.2em] uppercase">
+          {tc('brand')}
+        </span>
         <h1 className="text-2xl font-bold">{t('linkSent')}</h1>
         <p className="text-muted-foreground">{t('checkInbox')}</p>
         <p className="text-muted-foreground text-sm">{t('linkExpiresIn')}</p>
@@ -54,8 +58,18 @@ export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 p-8">
-      <h1 className="text-2xl font-bold">{t('title')}</h1>
+    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-8 p-7">
+      {/* The branded welcome hero — club identity and a warm invitation,
+          leading straight into the magic-link form below. */}
+      <header className="flex flex-col gap-3">
+        <span className="text-primary text-xs font-bold tracking-[0.2em] uppercase">
+          {tc('brand')}
+        </span>
+        <h1 className="text-4xl font-extrabold leading-[1.1]">{t('welcomeHeadline')}</h1>
+        <p className="text-muted-foreground text-base leading-relaxed">
+          {t('welcomeTagline')}
+        </p>
+      </header>
 
       <Form {...form}>
         <form

@@ -37,7 +37,7 @@ export function BottomNav({ items }: { items: NavItem[] }) {
   return (
     <nav
       aria-label={t('home')}
-      className="bg-background fixed inset-x-0 bottom-0 z-40 flex border-t"
+      className="bg-card fixed inset-x-0 bottom-0 z-40 flex border-t border-border pb-[env(safe-area-inset-bottom)]"
     >
       {items.map((item) => {
         const Icon = ICONS[item.key];
@@ -49,10 +49,17 @@ export function BottomNav({ items }: { items: NavItem[] }) {
             key={item.key}
             href={item.href}
             aria-current={active ? 'page' : undefined}
-            className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs ${
-              active ? 'text-primary font-medium' : 'text-muted-foreground'
+            className={`relative flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs transition-colors ${
+              active ? 'text-primary font-semibold' : 'text-muted-foreground'
             }`}
           >
+            {/* Active tab carries a short honey-amber bar at the top edge. */}
+            {active && (
+              <span
+                aria-hidden
+                className="bg-primary absolute inset-x-5 top-0 h-0.5 rounded-full"
+              />
+            )}
             <Icon className="size-5" aria-hidden />
             {t(item.key)}
           </Link>

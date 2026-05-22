@@ -32,8 +32,8 @@ export default async function BeerTypesAdminPage({
   }));
 
   return (
-    <main className="mx-auto max-w-2xl p-4">
-      <h1 className="mb-4 text-xl font-semibold">{t('beerTypesTitle')}</h1>
+    <main className="mx-auto max-w-2xl p-5">
+      <h1 className="mb-4 text-2xl font-bold">{t('beerTypesTitle')}</h1>
       <BeerTypeManager beerTypes={view} currencyCode={currencyCode} />
     </main>
   );

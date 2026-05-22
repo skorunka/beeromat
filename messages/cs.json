@@ -13,7 +13,8 @@
     "delete": "Smazat",
     "back": "Zpět",
     "backHome": "Domů",
-    "close": "Zavřít"
+    "close": "Zavřít",
+    "brand": "beeromat"
   },
   "nav": {
     "language": "Jazyk",
@@ -29,6 +30,8 @@
   "auth": {
     "signIn": {
       "title": "Přihlášení",
+      "welcomeHeadline": "Po zápase. U piva.",
+      "welcomeTagline": "Pivo, řeči a parta, se kterou hraješ. Přihlas se a útratu pohlídáme.",
       "emailLabel": "E-mail",
       "emailPlaceholder": "ty@example.com",
       "submit": "Pošli mi odkaz",
@@ -80,6 +83,7 @@
   "home": {
     "greeting": "Ahoj {name}",
     "outstandingBalance": "Tvoje útrata",
+    "allSquare": "Vyrovnáno — na pípě nic nemáš 🍺",
     "logABeer": "Zapsat pivo",
     "myTab": "Moje útrata",
     "settleUp": "Vyrovnat útratu",

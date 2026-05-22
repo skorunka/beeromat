@@ -109,9 +109,9 @@ unchanged magic-link sign-in; the other auth screens match the new look.
 **Independent Test**: A signed-out visitor lands on a branded welcome hero and
 can proceed into the existing sign-in flow.
 
-- [ ] T014 [US4] Rework the sign-in entry (`app/[locale]/(auth)/sign-in/`) into a branded **welcome hero** in the Clubhouse look — identity + a warm one-line invitation — leading into the existing email/magic-link form with no change to auth behaviour. Add the welcome-screen copy to `messages/cs.json` and `messages/en.json` in the mate-to-mate tone; confirm `pnpm i18n:check` passes.
-- [ ] T015 [US4] Restyle the remaining auth screens — the PIN gate (`components/pin/pin-gate.tsx`) and the invitation-accept screen (`app/[locale]/(auth)/invitation/[token]/`) — into the Clubhouse system, consistent with the welcome screen.
-- [ ] T016 [P] [US4] Extend `tests/e2e/ux3-redesign.spec.ts` with the US4 assertions: a signed-out visit shows the branded welcome hero, and a single control leads into the sign-in form.
+- [X] T014 [US4] Rework the sign-in entry (`app/[locale]/(auth)/sign-in/`) into a branded **welcome hero** in the Clubhouse look — identity + a warm one-line invitation — leading into the existing email/magic-link form with no change to auth behaviour. Add the welcome-screen copy to `messages/cs.json` and `messages/en.json` in the mate-to-mate tone; confirm `pnpm i18n:check` passes.
+- [X] T015 [US4] Restyle the remaining auth screens — the PIN gate (`components/pin/pin-gate.tsx`) and the invitation-accept screen (`app/[locale]/(auth)/invitation/[token]/`) — into the Clubhouse system, consistent with the welcome screen.
+- [X] T016 [P] [US4] Extend `tests/e2e/ux3-redesign.spec.ts` with the US4 assertions: a signed-out visit shows the branded welcome hero, and a single control leads into the sign-in form.
 
 **Checkpoint**: The signed-out entry introduces the identity; all auth screens match.
 

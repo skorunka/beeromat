@@ -28,6 +28,7 @@ interface InvitationFormProps {
 
 export function InvitationForm({ token }: InvitationFormProps) {
   const t = useTranslations('invitation');
+  const tc = useTranslations('common');
   const [accepted, setAccepted] = useState<{ email: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -68,7 +69,12 @@ export function InvitationForm({ token }: InvitationFormProps) {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 p-8">
-      <h1 className="text-2xl font-bold">{t('welcomeTitle')}</h1>
+      <div className="flex flex-col items-center gap-1 text-center">
+        <span className="text-primary text-xs font-bold tracking-[0.2em] uppercase">
+          {tc('brand')}
+        </span>
+        <h1 className="text-2xl font-bold">{t('welcomeTitle')}</h1>
+      </div>
       <p className="text-muted-foreground text-center text-sm">{t('welcomeBody')}</p>
 
       <Form {...form}>

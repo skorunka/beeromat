@@ -181,3 +181,25 @@ test.describe('@ux3-redesign US3 — member screen layouts', () => {
     expect(wrapperPadBottom).toBeGreaterThanOrEqual(navHeight - 8);
   });
 });
+
+test.describe('@ux3-redesign US4 — the welcome hero', () => {
+  test.use({ viewport: { width: 360, height: 640 } });
+
+  test('scenario: a signed-out visit shows the branded welcome hero', async ({ page }) => {
+    await page.goto('/en/sign-in');
+    // The brand identity and the warm invitation headline.
+    await expect(page.getByText('beeromat').first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: /after the match/i })).toBeVisible();
+    // The hero leads straight into the magic-link form — one email control.
+    await expect(page.getByLabel(/email/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /link/i })).toBeVisible();
+  });
+
+  test('scenario: the welcome hero fits a 360px viewport', async ({ page }) => {
+    await page.goto('/en/sign-in');
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(1);
+  });
+});

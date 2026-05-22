@@ -9,6 +9,14 @@ export const routing = defineRouting({
   // e.g. `/` → `/en` for an English-configured phone. English stays
   // available explicitly at `/en/…`.
   localeDetection: false,
+  // Do NOT let next-intl write the NEXT_LOCALE cookie. By default it
+  // sets the cookie to the locale of every page served — so a single
+  // visit to an `/en/…` URL would stick the cookie to `en` and then
+  // `proxy.ts` would redirect `/` → `/en` forever, even though the
+  // member never *chose* English. The cookie must reflect only a
+  // deliberate choice: the language switcher's `setLocaleCookie`
+  // action is the sole writer; `proxy.ts` is the sole reader.
+  localeCookie: false,
 });
 
 export type Locale = (typeof routing.locales)[number];

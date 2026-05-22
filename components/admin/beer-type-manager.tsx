@@ -62,7 +62,6 @@ type DialogState =
   | null;
 
 const digitsOnly = (v: string) => v.replace(/\D/g, '');
-const signedDigits = (v: string) => v.replace(/[^\d-]/g, '');
 
 // --- Create / edit form -----------------------------------------------------
 
@@ -294,7 +293,8 @@ function RestockForm({ beer, onDone }: { beer: BeerTypeManagerView; onDone: () =
 // --- Adjust form ------------------------------------------------------------
 
 interface AdjustValues {
-  delta: string;
+  quantity: string;
+  mode: 'add' | 'remove';
   reason: string;
 }
 
@@ -305,14 +305,18 @@ function AdjustForm({ beer, onDone }: { beer: BeerTypeManagerView; onDone: () =>
 
   const form = useForm<AdjustValues>({
     resolver: zodResolver(adjustSchema),
-    defaultValues: { delta: '', reason: '' },
+    defaultValues: { quantity: '', mode: 'add', reason: '' },
   });
 
   function onSubmit(values: AdjustValues) {
+    // The Server Action keeps its signed-delta contract; the form
+    // computes the sign so the stock manager never types a negative.
+    const quantity = Number(values.quantity);
+    const delta = values.mode === 'remove' ? -quantity : quantity;
     startTransition(async () => {
       const result = await recordStockAdjustmentAction({
         beerTypeId: beer.id,
-        delta: Number(values.delta),
+        delta,
         reason: values.reason.trim(),
       });
       if (result.ok) {
@@ -331,19 +335,49 @@ function AdjustForm({ beer, onDone }: { beer: BeerTypeManagerView; onDone: () =>
       <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="flex flex-col gap-3">
         <FormField
           control={form.control}
-          name="delta"
+          name="mode"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('deltaLabel')}</FormLabel>
+              <FormLabel>{t('adjustModeLabel')}</FormLabel>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="lg"
+                  className="flex-1"
+                  variant={field.value === 'add' ? 'default' : 'outline'}
+                  aria-pressed={field.value === 'add'}
+                  onClick={() => field.onChange('add')}
+                >
+                  {t('addStock')}
+                </Button>
+                <Button
+                  type="button"
+                  size="lg"
+                  className="flex-1"
+                  variant={field.value === 'remove' ? 'default' : 'outline'}
+                  aria-pressed={field.value === 'remove'}
+                  onClick={() => field.onChange('remove')}
+                >
+                  {t('removeStock')}
+                </Button>
+              </div>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="quantity"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('adjustQuantityLabel')}</FormLabel>
               <FormControl>
                 <Input
                   inputMode="numeric"
-                  placeholder="-3"
                   name={field.name}
                   ref={field.ref}
                   value={field.value}
                   onBlur={field.onBlur}
-                  onChange={(e) => field.onChange(signedDigits(e.target.value))}
+                  onChange={(e) => field.onChange(digitsOnly(e.target.value))}
                 />
               </FormControl>
               <FormMessage />
@@ -435,39 +469,62 @@ export function BeerTypeManager({
                   {t('historyLink')}
                 </Link>
               </div>
-              <div className="mt-2 flex flex-wrap gap-2">
+              {/* Restock is the dominant action — full-width and primary;
+                  Adjust / Edit / Archive sit below as secondary controls
+                  (v1.3 UX review F9). */}
+              <div className="mt-2 flex flex-col gap-2">
                 {!beer.isArchived ? (
                   <>
-                    <Button size="lg" type="button" onClick={() => setDialog({ kind: 'restock', beer })}>
+                    <Button
+                      size="lg"
+                      type="button"
+                      className="w-full"
+                      onClick={() => setDialog({ kind: 'restock', beer })}
+                    >
                       {t('restock')}
                     </Button>
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      type="button"
-                      onClick={() => setDialog({ kind: 'adjust', beer })}
-                    >
-                      {t('adjust')}
-                    </Button>
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      type="button"
-                      onClick={() => setDialog({ kind: 'edit', beer })}
-                    >
-                      {t('edit')}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        type="button"
+                        className="flex-1"
+                        onClick={() => setDialog({ kind: 'adjust', beer })}
+                      >
+                        {t('adjust')}
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        type="button"
+                        className="flex-1"
+                        onClick={() => setDialog({ kind: 'edit', beer })}
+                      >
+                        {t('edit')}
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="ghost"
+                        type="button"
+                        className="flex-1"
+                        disabled={isPending}
+                        onClick={() => handleArchiveToggle(beer)}
+                      >
+                        {t('archive')}
+                      </Button>
+                    </div>
                   </>
-                ) : null}
-                <Button
-                  size="lg"
-                  variant="ghost"
-                  type="button"
-                  disabled={isPending}
-                  onClick={() => handleArchiveToggle(beer)}
-                >
-                  {beer.isArchived ? t('unarchive') : t('archive')}
-                </Button>
+                ) : (
+                  <Button
+                    size="lg"
+                    variant="ghost"
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => handleArchiveToggle(beer)}
+                  >
+                    {t('unarchive')}
+                  </Button>
+                )}
               </div>
             </Card>
           </li>

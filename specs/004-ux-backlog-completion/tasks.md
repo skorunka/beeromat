@@ -36,8 +36,8 @@ Single Next.js App Router app at the repository root: `app/`, `components/`,
 link (US1) and the sign-out control (US4); it must exist before either story
 fills it. v1.3 adds no dependencies and no other shared infrastructure.
 
-- [ ] T001 Create `app/[locale]/(app)/account/page.tsx` — the member account hub: a Server Component showing the signed-in member's display name, with a clearly-labelled region for the payment-history link (US1) and the sign-out control (US4) to be added by those stories. Add the `account.*` catalog keys (title, etc.) to `messages/cs.json` and `messages/en.json` in the mate-to-mate tone; confirm `pnpm i18n:check` passes.
-- [ ] T002 In `app/[locale]/(app)/page.tsx`, make the home-screen greeting (`Ahoj {name}`) a tappable link to `/account` (a ≥44 px target), so the hub is reachable.
+- [X] T001 Create `app/[locale]/(app)/account/page.tsx` — the member account hub: a Server Component showing the signed-in member's display name, with a clearly-labelled region for the payment-history link (US1) and the sign-out control (US4) to be added by those stories. Add the `account.*` catalog keys (title, etc.) to `messages/cs.json` and `messages/en.json` in the mate-to-mate tone; confirm `pnpm i18n:check` passes.
+- [X] T002 In `app/[locale]/(app)/page.tsx`, make the home-screen greeting (`Ahoj {name}`) a tappable link to `/account` (a ≥44 px target), so the hub is reachable.
 
 **Checkpoint**: The account hub exists and is reachable from home.
 

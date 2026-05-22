@@ -91,6 +91,21 @@
     "stockSection": "Stock",
     "beerTypesStock": "Beers & stock"
   },
+  "account": {
+    "title": "Your account",
+    "paymentHistory": "Payment history"
+  },
+  "payments": {
+    "title": "Payment history",
+    "empty": "No payments yet — once you settle up, they'll show here.",
+    "statusPending": "Waiting on the treasurer",
+    "statusConfirmed": "Confirmed",
+    "statusDisputed": "Flagged",
+    "confirmedOn": "Confirmed {date}",
+    "disputedOn": "Flagged {date}",
+    "loggedOn": "{date}",
+    "treasurerRecorded": "Recorded by the treasurer"
+  },
   "log": {
     "title": "Log a beer",
     "lowBadge": "Low",

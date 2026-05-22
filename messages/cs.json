@@ -91,6 +91,21 @@
     "stockSection": "Sklad",
     "beerTypesStock": "Piva a sklad"
   },
+  "account": {
+    "title": "Tvůj účet",
+    "paymentHistory": "Historie plateb"
+  },
+  "payments": {
+    "title": "Historie plateb",
+    "empty": "Zatím žádné platby — až něco vyrovnáš, objeví se to tady.",
+    "statusPending": "Čeká na pokladníka",
+    "statusConfirmed": "Potvrzeno",
+    "statusDisputed": "Nesedí",
+    "confirmedOn": "Potvrzeno {date}",
+    "disputedOn": "Nahlášeno {date}",
+    "loggedOn": "{date}",
+    "treasurerRecorded": "Zapsal pokladník"
+  },
   "log": {
     "title": "Zapsat pivo",
     "lowBadge": "Dochází",

@@ -26,7 +26,18 @@ const SCAN_DIRS = ['app', 'components'];
 // The global not-found renders with no locale context (the [locale]
 // layout throws notFound() before its providers), so it legitimately
 // carries hardcoded copy in the deployment-default language.
-const EXCLUDED = new Set(['app/not-found.tsx']);
+//
+// pin-input.tsx is a pure-display primitive — every user-facing
+// string comes in via props (aria-label, etc.). Its TypeScript
+// interface contains generic-bracketed types like
+// `FocusEvent<HTMLInputElement>` that the JSX_TEXT_RE regex
+// false-flags as hardcoded JSX text (the regex can't distinguish
+// `>` from a JSX tag vs `>` from a generic type parameter). The
+// file has been audited; no real hardcoded user-facing copy.
+const EXCLUDED = new Set([
+  'app/not-found.tsx',
+  'components/ui/pin-input.tsx',
+]);
 
 // ── shared ───────────────────────────────────────────────────────────
 function flatten(obj: unknown, prefix = ''): string[] {

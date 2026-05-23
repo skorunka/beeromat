@@ -233,6 +233,8 @@
     "beerTypesDesc": "Look after the fridge",
     "pendingDesc": "Confirm or flag members' payments",
     "balancesDesc": "Who's run up what",
+    "config": "Club config",
+    "configDesc": "Name, currency, default language",
     "membersTitle": "Members",
     "inviteHeading": "Invite someone",
     "emailLabel": "Email",
@@ -319,7 +321,24 @@
     "manualAmountPlaceholder": "120.00",
     "manualNotePlaceholder": "cash in hand",
     "manualRecorded": "Logged.",
-    "manualMemberNotFound": "Can't find that member."
+    "manualMemberNotFound": "Can't find that member.",
+    "clubConfig": {
+      "title": "Club config",
+      "subtitle": "Settings every member's screens read from.",
+      "nameLabel": "Club name",
+      "namePlaceholder": "TK Slávia Praha",
+      "currencyLabel": "Currency",
+      "currencyHint": "ISO 4217 code — CZK, EUR, USD, etc.",
+      "defaultLocaleLabel": "Default language",
+      "submit": "Save config",
+      "saved": "Club config saved.",
+      "saveFailed": "Couldn't save — check the fields and try again.",
+      "invalidCurrency": "Currency must be three uppercase letters (ISO 4217).",
+      "currencyChangeTitle": "Heads-up — currency change",
+      "currencyChangeBody": "Switching from {oldCurrency} to {newCurrency} only changes how FUTURE amounts display. Existing entries stay denominated in {oldCurrency}.",
+      "currencyChangeConfirm": "Yep, change it",
+      "currencyChangeCancel": "Cancel"
+    }
   },
   "dispute": {
     "banner": "Heads-up: your {amount} payment got flagged",

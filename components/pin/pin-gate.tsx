@@ -4,7 +4,6 @@ import { useState, useTransition } from 'react';
 import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { toast } from 'sonner';
 
 import { BrandMark } from '@/components/ui/brand-mark';
 import { Button } from '@/components/ui/button';
@@ -77,9 +76,10 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
           : await unlockDeviceAction({ pin: values.pin });
 
       if (result.ok) {
-        toast.success(t(mode === 'setup' ? 'setup.title' : 'unlock.title'));
+        // No success toast — the page reloads immediately so the toast
+        // would only flash before vanishing. The reload itself is the
+        // user's success signal (their next screen is the unlocked app).
         onUnlocked?.();
-        // Reload so the server-side gate sees the new device session.
         window.location.reload();
       } else if (result.code === 'WRONG_PIN') {
         setServerError(t('unlock.wrongPin', { remaining: result.attemptsRemaining ?? 0 }));

@@ -72,7 +72,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "eslint-config-prettier": "^10.1.8",
-    "jsdom": "^25.0.1",
+    "jsdom": "^29.1.1",
     "pg": "^8.21.0",
     "prettier": "^3.8.3",
     "server-only": "^0.0.1",

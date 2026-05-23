@@ -50,7 +50,7 @@
   },
   "pin": {
     "setup": {
-      "title": "Nastav si PIN pro tenhle telefon",
+      "title": "Nastav si PIN pro přihlášení",
       "subtitle": "Krátký 4místný PIN, ať jsi příště hned uvnitř.",
       "pinLabel": "PIN (4 číslice)",
       "confirmLabel": "PIN ještě jednou",

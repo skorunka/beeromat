@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { TurnstileWidget } from '@/components/turnstile-widget';
-import { requestMagicLinkAction } from '@/lib/auth/actions';
+import { requestMagicLinkAction, type MagicLinkStatus } from '@/lib/auth/actions';
 import { signInSchema, type SignInValues } from '@/lib/validation/auth';
 
 interface SignInFormProps {
@@ -27,7 +27,7 @@ interface SignInFormProps {
 export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
   const t = useTranslations('auth.signIn');
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
+  const [result, setResult] = useState<{ status: MagicLinkStatus } | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<SignInValues>({
@@ -39,17 +39,51 @@ export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
     // The submit button is gated on a Turnstile token; this is a guard.
     if (!turnstileToken) return;
     startTransition(async () => {
-      await requestMagicLinkAction({ email: values.email, turnstileToken });
-      setSent(true);
+      const r = await requestMagicLinkAction({ email: values.email, turnstileToken });
+      if (r.ok) setResult({ status: r.data?.status ?? 'rate-limited' });
     });
   }
 
-  if (sent) {
+  function handleRetry() {
+    setResult(null);
+    setTurnstileToken(null);
+    form.reset({ email: '' });
+  }
+
+  // Per spec 006 contracts/auth.md: 'sent' and 'rate-limited' render the
+  // identical "Link sent" screen — the client must not be able to tell
+  // them apart. Only 'not-on-allowlist' gets its own screen.
+  if (result && result.status !== 'not-on-allowlist') {
     return (
       <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 p-8 text-center">
         <BrandMark />
         <h1 className="text-2xl font-bold">{t('linkSent')}</h1>
         <p className="text-muted-foreground text-sm">{t('linkExpiresIn')}</p>
+        <button
+          type="button"
+          onClick={handleRetry}
+          className="text-muted-foreground mt-2 text-sm underline"
+        >
+          {t('useDifferentEmail')}
+        </button>
+      </main>
+    );
+  }
+
+  if (result?.status === 'not-on-allowlist') {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 p-8 text-center">
+        <BrandMark />
+        <h1 className="text-2xl font-bold">{t('notOnListHeadline')}</h1>
+        <p className="text-muted-foreground">{t('notOnListBody')}</p>
+        <p className="text-foreground text-sm font-medium">{t('notOnListAdminCta')}</p>
+        <button
+          type="button"
+          onClick={handleRetry}
+          className="text-muted-foreground mt-2 text-sm underline"
+        >
+          {t('useDifferentEmail')}
+        </button>
       </main>
     );
   }

@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-23
 
-**Status**: Implemented — E2E gate pending (see `tasks.md` T008)
+**Status**: Shipped
 
 **Input**: User description: "Display message when the user is not found in the allowed list, explain why and what needs to be done, in a funny way. Also add a back link so the user can retry the sign-in request."
 

@@ -37,9 +37,7 @@
       "submit": "Pošli mi odkaz",
       "linkExpiresIn": "Odkaz platí 5 minut.",
       "linkSent": "Odkaz odeslán — mrkni do e‑mailu.",
-      "notOnListHeadline": "Na seznamu tě nemáme.",
-      "notOnListBody": "Beeromat je jen pro pozvané členy klubu.",
-      "notOnListAdminCta": "Napiš adminovi — pošle ti pozvánku.",
+      "notOnListHeadline": "Tuhle adresu u nás na seznamu nemáme.",
       "useDifferentEmail": "Zkusit jinou adresu",
       "turnstileMissing": "Chybí klíč Turnstile"
     },

@@ -13,14 +13,12 @@ export default defineConfig({
     globals: true,
     include: ['tests/{unit,integration}/**/*.{spec,test}.{ts,tsx}'],
     exclude: ['tests/e2e/**', 'node_modules', '.next'],
+    // PGlite uses native bindings; keep each test file in its own fork
+    // to avoid module-cache contamination across DBs. vitest 4 defaults
+    // pool: 'forks' to singleFork: false, so the explicit block we used
+    // to need under vitest 3 (and which moved out of the public
+    // InlineConfig type in vitest 4) is no longer required.
     pool: 'forks',
-    poolOptions: {
-      forks: {
-        // PGlite uses native bindings; keep each test file in its own
-        // fork to avoid module-cache contamination across DBs.
-        singleFork: false,
-      },
-    },
   },
   resolve: {
     alias: {

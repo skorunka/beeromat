@@ -22,6 +22,8 @@ Standard Better Auth Next.js handler. Handles magic-link request, verification c
 
 ## `SA` `requestMagicLink({ email, turnstileToken }) → { ok }`
 
+> **Superseded by `specs/006-allowlist-feedback/contracts/auth.md`** (v1.5, 2026-05-23). The response shape changes from `{ ok: true }` to `{ ok: true, status: 'sent' | 'not-on-allowlist' | 'rate-limited' }`; the threat-model reasoning is documented there. The rest of this contract file (Better Auth route, `acceptInvitation`, PIN actions, sign-out) is NOT superseded and remains authoritative.
+
 The Server Action wrapping Better Auth's magic-link send so we can layer Turnstile + rate limiting.
 
 **Input**:

@@ -123,46 +123,45 @@ export async function acceptInvitationAction(input: {
   return { ok: true, data: { email: inv.email } };
 }
 
+export type MagicLinkStatus = 'sent' | 'not-on-allowlist' | 'rate-limited';
+
 /**
  * Magic-link request entrypoint called by the sign-in form.
- * Per contracts/auth.md: always returns { ok: true } to the client to
- * prevent email-enumeration. All failures (rate-limit, Turnstile, no
- * matching invitation/member) are logged server-side and silently
- * absorbed.
+ * Per spec 006 contracts/auth.md (supersedes spec 001): returns a
+ * 3-way status discriminator so the UI can distinguish on-list sends
+ * from off-list submissions. Rate-limited / Turnstile-failed /
+ * malformed-email all collapse into the `rate-limited` bucket — those
+ * signals carry enumeration-adversary value and stay silent.
  */
 export async function requestMagicLinkAction(input: {
   email: string;
   turnstileToken: string;
-}): Promise<AuthActionResult> {
+}): Promise<AuthActionResult<{ status: MagicLinkStatus }>> {
   const email = input.email.trim().toLowerCase();
 
   if (!email || !email.includes('@')) {
     console.warn('[magic-link] invalid email submitted');
-    return { ok: true };
+    return { ok: true, data: { status: 'rate-limited' } };
   }
 
-  // 1. Turnstile.
   const reqHeaders = await headers();
   const remoteIp =
     reqHeaders.get('x-forwarded-for')?.split(',')[0]?.trim() ??
     reqHeaders.get('x-real-ip') ??
     undefined;
+
   const turnstileOk = await verifyTurnstileToken(input.turnstileToken, remoteIp);
   if (!turnstileOk) {
     console.warn('[magic-link] Turnstile verification failed');
-    return { ok: true };
+    return { ok: true, data: { status: 'rate-limited' } };
   }
 
-  // 2. Rate-limit per email + IP. Fails open if Upstash is unreachable
-  //    (Turnstile above is the primary gate; see checkMagicLinkLimits).
   const { allowed } = await checkMagicLinkLimits(email, remoteIp);
   if (!allowed) {
     console.warn('[magic-link] rate-limited', { email, remoteIp });
-    return { ok: true };
+    return { ok: true, data: { status: 'rate-limited' } };
   }
 
-  // 3. Only send if the email is either an active member OR an open
-  //    invitation. Unknown emails get no email but the same response.
   const member = await db.query.members.findFirst({
     where: eq(members.email, email),
   });
@@ -175,16 +174,15 @@ export async function requestMagicLinkAction(input: {
 
   if (!knownUser && !openInvitation) {
     console.info('[magic-link] no matching member/invitation', { email });
-    return { ok: true };
+    return { ok: true, data: { status: 'not-on-allowlist' } };
   }
 
-  // 4. Dispatch.
   try {
     await auth.api.signInMagicLink({ body: { email }, headers: reqHeaders });
   } catch (err) {
     console.error('[magic-link] dispatch failed', err);
   }
-  return { ok: true };
+  return { ok: true, data: { status: 'sent' } };
 }
 
 /**

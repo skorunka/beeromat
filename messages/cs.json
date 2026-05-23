@@ -31,13 +31,12 @@
     "signIn": {
       "title": "Přihlášení",
       "welcomeHeadline": "Po zápase. U piva.",
-      "welcomeTagline": "Pivo, řeči a parta, se kterou hraješ. Přihlas se a útratu pohlídáme.",
+      "welcomeTagline": "Pivo, řeči a parta, se kterou hraješ.",
       "emailLabel": "E-mail",
       "emailPlaceholder": "ty@example.com",
       "submit": "Pošli mi odkaz",
-      "checkInbox": "Pokud jsi na seznamu, přihlašovací odkaz už letí.",
       "linkExpiresIn": "Odkaz platí 5 minut.",
-      "linkSent": "Odkaz odeslán — mrkni do e-mailu.",
+      "linkSent": "Odkaz odeslán — mrkni do e‑mailu.",
       "turnstileMissing": "Chybí klíč Turnstile"
     },
     "magicLink": {
@@ -62,9 +61,9 @@
       "submit": "Odemknout",
       "wrongPin": "Špatně. Zbývá pokusů: {remaining}.",
       "lockedTitle": "Zamčeno",
-      "lockedBody": "Pět špatných pokusů. Přihlas se znovu odkazem z e-mailu.",
+      "lockedBody": "Pět špatných pokusů. Přihlas se znovu odkazem z e‑mailu.",
       "forgotPin": "Nevíš PIN? Pošli mi odkaz",
-      "forgotPinSent": "Odkaz odeslán — v e-mailu si nastavíš nový PIN."
+      "forgotPinSent": "Odkaz odeslán — v e‑mailu si nastavíš nový PIN."
     }
   },
   "invitation": {
@@ -241,7 +240,7 @@
     "sending": "Odesílám…",
     "invitationSent": "Pozvánka odeslána na {email}",
     "alreadyMember": "Ten už v klubu je.",
-    "alreadyInvited": "Pro tenhle e-mail už pozvánka běží.",
+    "alreadyInvited": "Pro tenhle e‑mail už pozvánka běží.",
     "inviteFailed": "Pozvánku se nepovedlo poslat — zkus to znovu.",
     "activeMembers": "Parta ({count})",
     "recentInvitations": "Nedávné pozvánky",
@@ -334,7 +333,7 @@
   },
   "forms": {
     "required": "Tohle ještě doplň.",
-    "email": "Tenhle e-mail nevypadá správně.",
+    "email": "Tenhle e‑mail nevypadá správně.",
     "tooShort": "Trochu krátké.",
     "tooLong": "Tohle je moc dlouhé.",
     "notANumber": "Sem patří číslo.",

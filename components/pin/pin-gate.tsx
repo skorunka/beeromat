@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
+import { BrandMark } from '@/components/ui/brand-mark';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -40,7 +41,6 @@ function digits(value: string): string {
 
 export function PinGate({ mode, onUnlocked }: PinGateProps) {
   const t = useTranslations('pin');
-  const tc = useTranslations('common');
   // Server-side outcomes (wrong PIN with attempts-remaining, lock-out) are
   // not field-validation errors — they carry a runtime count and arrive
   // after a round trip, so they render as a distinct form-level message,
@@ -95,9 +95,7 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 p-8">
       <div className="flex flex-col items-center gap-1 text-center">
-        <span className="text-primary text-xs font-bold tracking-[0.2em] uppercase">
-          {tc('brand')}
-        </span>
+        <BrandMark />
         <h1 className="text-2xl font-bold">
           {t(mode === 'setup' ? 'setup.title' : 'unlock.title')}
         </h1>

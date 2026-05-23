@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -7,6 +8,11 @@ import { Toaster } from '@/components/ui/sonner';
 import { routing } from '@/lib/i18n/routing';
 
 import '../globals.css';
+
+export const metadata: Metadata = {
+  title: '🍺 beeromat',
+  description: 'After-match beer tab tracker for tennis clubs',
+};
 
 // The Clubhouse display typeface (v1.4). `latin-ext` carries the Czech
 // diacritics; `swap` + a system fallback means a slow font never blocks

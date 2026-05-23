@@ -86,7 +86,7 @@
       "subject": "Your beeromat sign-in link",
       "previewText": "Link valid for 5 minutes.",
       "heading": "Sign in to beeromat",
-      "bodyParagraph": "Tap the button to sign in. The link is valid for 5 minutes and can only be used once.",
+      "bodyParagraph": "Tap the button to sign in. The link is valid for 5 minutes.",
       "buttonLabel": "Sign in",
       "fallbackLinkLabel": "Or paste this link into your browser:",
       "signoffParagraph": "If you didn't request this, you can safely ignore this email."

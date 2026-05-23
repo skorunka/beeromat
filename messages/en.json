@@ -37,7 +37,7 @@
       "submit": "Send me a link",
       "linkExpiresIn": "The link's good for 5 minutes.",
       "linkSent": "Sign-in link sent.",
-      "notOnListHeadline": "That email isn't on the list.",
+      "notOnListHeadline": "Not a member, tough luck.",
       "useDifferentEmail": "Use a different email",
       "turnstileMissing": "Turnstile site key missing"
     },

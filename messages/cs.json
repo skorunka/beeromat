@@ -37,7 +37,7 @@
       "submit": "Pošli mi odkaz",
       "linkExpiresIn": "Odkaz platí 5 minut.",
       "linkSent": "Odkaz pro přihlášení odeslán.",
-      "notOnListHeadline": "Tuhle adresu u nás na seznamu nemáme.",
+      "notOnListHeadline": "Nejsi členem, máš smůlu.",
       "useDifferentEmail": "Zkusit jinou adresu",
       "turnstileMissing": "Chybí klíč Turnstile"
     },

@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-23
 
-**Status**: Draft
+**Status**: Shipped
 
 **Input**: User description: "Add an Admin Configuration section in the admin UI to manage club-scoped settings that currently live in environment variables (club name, currency, default locale, possibly banking profile fields). Move what makes sense from env into the in-app admin per constitution Principle II. Add a bootstrap rule: if the users table is empty, the first user that completes magic-link sign-in becomes the club admin automatically. Out of scope: multi-club admin UI, SEED env var elimination (they stay for bootstrap), member role escalation/de-escalation."
 

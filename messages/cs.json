@@ -36,7 +36,7 @@
       "emailPlaceholder": "ty@example.com",
       "submit": "Pošli mi odkaz",
       "linkExpiresIn": "Odkaz platí 5 minut.",
-      "linkSent": "Odkaz odeslán — mrkni do e‑mailu.",
+      "linkSent": "Odkaz je v e‑mailu.",
       "notOnListHeadline": "Tuhle adresu u nás na seznamu nemáme.",
       "useDifferentEmail": "Zkusit jinou adresu",
       "turnstileMissing": "Chybí klíč Turnstile"

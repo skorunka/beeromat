@@ -1,27 +1,57 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.5.0 → 1.6.0
-Bump rationale: MINOR. The "User Input & Forms" standard added in
-v1.5.0 is now fully implemented — the v1.2 feature
-(`specs/003-forms-input-hardening/`, merged 2026-05-22) migrated all
-11 existing forms onto react-hook-form with a shared Zod schema and
-in-app, locale-aware error rendering. This amendment adds the seventh
-verification gate, `forms:check`, which fails the build on a native
-date/time input or a native `required`/`pattern` attribute — making
-the standard enforced rather than only reviewed — and updates the
-standard's Status line with the pinned library versions.
+Version change: 1.6.0 → 1.7.0
+Bump rationale: MINOR. New principle added (Core Principle VII —
+Fresh Code Hygiene). The v1.6 polish session surfaced that installed
+TypeScript had drifted from 5.9 to the constitution's pinned 6.0.x
+without anyone noticing for two minor cycles, plus 16 other
+dependencies had fallen behind `latest` on npm (some by majors).
+This amendment codifies "deps current as a default" as a non-
+negotiable principle on the same tier as the other six: the
+installed lockfile MUST match the Tech Stack & Constraints table,
+minor/patch bumps land continuously, and major bumps require a
+constitution amendment with full verification.
 
-Changes:
-  - Verification Gates: added gate 7, `pnpm forms:check`;
-    "six gates" → "seven gates".
-  - "User Input & Forms" Status line: marked implemented; the chosen
-    libraries pinned (react-hook-form 7.76.0, @hookform/resolvers
-    5.4.0, over the existing zod 4.x).
+Modified principles:
+  (none renamed or redefined)
+
+Added sections:
+  - "VII. Fresh Code Hygiene" in Core Principles, with:
+      * Minor/patch bumps land continuously (no ceremony beyond
+        the existing seven verification gates).
+      * Major bumps require a constitution amendment + all gates
+        green, and revise the Tech Stack table in the same commit.
+      * Installed lockfile MUST match the Tech Stack table at every
+        merge to `main`. Divergence is a release blocker.
+      * New outdated minor/patch versions SHOULD be resolved within
+        one feature cycle (next merge to `main`, or carried as an
+        explicit task in the next spec's `tasks.md`).
+
+Removed sections:
+  (none)
+
+Templates requiring updates:
+  - ✅ .specify/templates/plan-template.md — Constitution Check
+       reminder block: bump "v1.4.0" reference to "v1.7.0" and add a
+       Principle VII line noting the lockfile-sync requirement.
+  - ⚠  .specify/templates/spec-template.md — no change needed (the
+       principle adds no new mandatory spec sections).
+  - ⚠  .specify/templates/tasks-template.md — no change needed (the
+       principle's "outdated within one feature cycle" guidance is a
+       carrying behaviour, not a new task category).
+
+Follow-up TODOs:
+  (none)
 
 No principle removed or fundamentally redefined → MINOR, not MAJOR.
 
 ----- Prior amendment history (for reference) -----
+1.5.0 → 1.6.0 (2026-05-22, MINOR): Added the seventh verification
+  gate, `pnpm forms:check`, making the "User Input & Forms" standard
+  enforced rather than only reviewed; the standard's Status line was
+  marked implemented with pinned `react-hook-form` 7.76.0 and
+  `@hookform/resolvers` 5.4.0 over `zod` 4.x.
 1.4.0 → 1.5.0 (2026-05-21, MINOR): Added the "User Input & Forms"
   standard — no native validation UI or native date/time pickers;
   form validation through a form library with a shared Zod schema and
@@ -184,6 +214,44 @@ adoption, not a default.
 **Rationale:** Operational cost should be zero until adoption proves
 otherwise. The named free tiers comfortably support dozens of clubs at
 the expected usage profile.
+
+### VII. Fresh Code Hygiene
+
+Dependencies stay current as a default, not as a periodic chore. The
+project's installed lockfile MUST match the **Tech Stack & Constraints**
+version table below — when they drift, the table is the source of
+truth and the lockfile is updated to it.
+
+- **Minor and patch bumps** MAY land continuously with no ceremony
+  beyond the seven verification gates. A `chore(deps): bump X Y.Z →
+  Y.Z+1` commit + passing gates is the whole flow.
+- **Major bumps** of any item in the Tech Stack table MUST go through
+  a constitution amendment (same procedure used to add this principle)
+  AND pass all seven verification gates. The amendment justifies the
+  bump in terms of stability / security / feature gains and revises
+  the table in the same commit.
+- **New outdated minor/patch versions** appearing in `pnpm outdated`
+  SHOULD be addressed within one feature cycle — resolved before the
+  next merge to `main`, or carried as an explicit task in the next
+  spec's `tasks.md` with a deadline.
+- Every release commit on `main` MUST leave the installed lockfile in
+  sync with the Tech Stack table. A divergence at merge time is a
+  release blocker, treated the same as a failing verification gate.
+
+**Rationale:** Drift between installed deps and the pinned versions
+is the same kind of debt that surfaces as confusing bugs months
+later — a Next.js 16 minor that fixed a hot-reload race, a Drizzle
+patch that fixed a connection-pool leak, a Base UI 1.5.0 that fixed
+a pointer-capture race in DropdownMenu. The cost of bumping
+continuously is the test-suite minute it takes to verify; the cost
+of NOT bumping accumulates silently and lands as a multi-day "why
+is staging broken" investigation. Trunk-based + good gates make
+continuous bumping cheap; the discipline is just deciding to do it.
+
+Added v1.7.0 from the v1.6 polish session — installed TypeScript had
+drifted from 5.9 to the constitution's pinned 6.0.x without anyone
+noticing for two minor cycles, the kind of silent divergence this
+principle prevents.
 
 ## Tech Stack & Constraints
 
@@ -456,4 +524,4 @@ a review acknowledging the version-bump rationale.
 Constitution Check gate; principle violations must be justified or fixed,
 not waived informally.
 
-**Version**: 1.6.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-22
+**Version**: 1.7.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-23

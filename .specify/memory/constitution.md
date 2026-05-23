@@ -220,7 +220,7 @@ constitution amendment so the stack stays coherent.
 via `docker compose up` from the repo root. The default backing in
 dev + test is a local container; cloud services are used only in
 production deployments. Host port mappings MUST be non-default
-(e.g., `5433:5432` for Postgres, `14444:4444` for the Neon HTTP
+(e.g., `15432:5432` for Postgres, `14444:4444` for the Neon HTTP
 proxy) — multiple beeromat-style projects can run on the same dev
 machine and using image-default ports causes silent collisions that
 present as confusing "works for me / doesn't work for them" bug

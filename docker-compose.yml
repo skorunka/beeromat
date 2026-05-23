@@ -30,7 +30,7 @@ services:
     ports:
       # Non-default host port; the app talks via the proxies, this
       # mapping is purely for dev-tool access (psql / Drizzle Studio).
-      - '5433:5432'
+      - '15432:5432'
     volumes:
       - beeromat_pg:/var/lib/postgresql/data
       # Init scripts run once on first start — creates beeromat_test.

@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 
 import { BrandMark } from '@/components/ui/brand-mark';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
@@ -17,6 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { PinInput } from '@/components/ui/pin-input';
 import { setPinAction, signOutDeviceAction, unlockDeviceAction } from '@/lib/auth/actions';
 import { pinSetupSchema, pinUnlockSchema } from '@/lib/validation/auth';
 
@@ -33,11 +33,6 @@ interface PinFormValues {
 }
 
 const PIN_LENGTH = 4;
-
-/** Keep only digits, capped at the PIN length. */
-function digits(value: string): string {
-  return value.replace(/\D/g, '').slice(0, PIN_LENGTH);
-}
 
 export function PinGate({ mode, onUnlocked }: PinGateProps) {
   const t = useTranslations('pin');
@@ -117,18 +112,16 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
               <FormItem>
                 <FormLabel>{t('setup.pinLabel')}</FormLabel>
                 <FormControl>
-                  <Input
-                    type="tel"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    maxLength={PIN_LENGTH}
-                    className="text-center text-2xl tracking-widest"
+                  <PinInput
+                    length={PIN_LENGTH}
                     autoFocus
+                    autoComplete="one-time-code"
                     name={field.name}
                     ref={field.ref}
                     value={field.value}
                     onBlur={field.onBlur}
-                    onChange={(e) => field.onChange(digits(e.target.value))}
+                    onChange={field.onChange}
+                    ariaLabel={t('setup.pinLabel')}
                   />
                 </FormControl>
                 <FormMessage />
@@ -144,16 +137,15 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
                 <FormItem>
                   <FormLabel>{t('setup.confirmLabel')}</FormLabel>
                   <FormControl>
-                    <Input
-                      type="tel"
-                      inputMode="numeric"
-                      maxLength={PIN_LENGTH}
-                      className="text-center text-2xl tracking-widest"
+                    <PinInput
+                      length={PIN_LENGTH}
+                      autoComplete="off"
                       name={field.name}
                       ref={field.ref}
                       value={field.value}
                       onBlur={field.onBlur}
-                      onChange={(e) => field.onChange(digits(e.target.value))}
+                      onChange={field.onChange}
+                      ariaLabel={t('setup.confirmLabel')}
                     />
                   </FormControl>
                   <FormMessage />

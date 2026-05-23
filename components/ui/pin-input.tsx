@@ -14,6 +14,16 @@ interface PinInputProps {
   autoComplete?: string;
   ariaLabel?: string;
   className?: string;
+  // Extra attributes spread onto the underlying <input> — used by
+  // shadcn's FormControl which cloneElement-injects `id`,
+  // `aria-describedby`, and `aria-invalid` onto its direct child.
+  // PinInput is the direct child (not the underlying input), so we
+  // accept those props here and forward them so label + error
+  // wiring still works AND so the e2e fixture's `#pin` selector
+  // resolves to the inner input.
+  id?: string;
+  'aria-describedby'?: string;
+  'aria-invalid'?: boolean;
 }
 
 // Segmented PIN entry — visually a row of evenly-spaced dots inside a
@@ -27,7 +37,20 @@ interface PinInputProps {
 // :focus-within) so users see clearly that the field is focused even
 // though the input's caret is transparent.
 export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(function PinInput(
-  { length, value, onChange, onBlur, name, autoFocus, autoComplete, ariaLabel, className },
+  {
+    length,
+    value,
+    onChange,
+    onBlur,
+    name,
+    autoFocus,
+    autoComplete,
+    ariaLabel,
+    className,
+    id,
+    'aria-describedby': ariaDescribedBy,
+    'aria-invalid': ariaInvalid,
+  },
   ref,
 ) {
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
@@ -46,6 +69,7 @@ export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(function Pin
     >
       <input
         ref={ref}
+        id={id}
         type="tel"
         inputMode="numeric"
         autoComplete={autoComplete ?? 'one-time-code'}
@@ -56,6 +80,8 @@ export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(function Pin
         onChange={handleChange}
         onBlur={onBlur}
         aria-label={ariaLabel}
+        aria-describedby={ariaDescribedBy}
+        aria-invalid={ariaInvalid}
         className="absolute inset-0 size-full cursor-text bg-transparent text-center text-transparent caret-transparent outline-none"
       />
 

@@ -233,6 +233,8 @@
     "beerTypesDesc": "Postarej se o lednici",
     "pendingDesc": "Potvrzuj nebo nahlas platby členů",
     "balancesDesc": "Kdo kolik naběhal",
+    "config": "Nastavení klubu",
+    "configDesc": "Jméno, měna, výchozí jazyk",
     "membersTitle": "Členové",
     "inviteHeading": "Pozvat někoho",
     "emailLabel": "E-mail",
@@ -319,7 +321,24 @@
     "manualAmountPlaceholder": "120,00",
     "manualNotePlaceholder": "hotově na ruku",
     "manualRecorded": "Zapsáno.",
-    "manualMemberNotFound": "Tohohle člena nemůžu najít."
+    "manualMemberNotFound": "Tohohle člena nemůžu najít.",
+    "clubConfig": {
+      "title": "Nastavení klubu",
+      "subtitle": "Co se používá na všech obrazovkách členů.",
+      "nameLabel": "Název klubu",
+      "namePlaceholder": "TK Slávia Praha",
+      "currencyLabel": "Měna",
+      "currencyHint": "Kód podle ISO 4217 — CZK, EUR, USD apod.",
+      "defaultLocaleLabel": "Výchozí jazyk",
+      "submit": "Uložit nastavení",
+      "saved": "Nastavení klubu uloženo.",
+      "saveFailed": "Nepovedlo se uložit — zkontroluj pole a zkus to znovu.",
+      "invalidCurrency": "Měna musí být tři velká písmena (ISO 4217).",
+      "currencyChangeTitle": "Pozor — měníš měnu",
+      "currencyChangeBody": "Změna z {oldCurrency} na {newCurrency} ovlivní jen BUDOUCÍ částky. Stávající záznamy zůstanou v {oldCurrency}.",
+      "currencyChangeConfirm": "Jasně, změň",
+      "currencyChangeCancel": "Zrušit"
+    }
   },
   "dispute": {
     "banner": "Echo: u tvojí platby {amount} něco nesedí",

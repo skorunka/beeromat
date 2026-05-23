@@ -19,6 +19,11 @@ export default async function AdminHubPage({
   const tTreasurer = await getTranslations('treasurer');
 
   const links: { href: Route; title: string; desc: string }[] = [
+    {
+      href: '/admin/config' as Route,
+      title: t('config'),
+      desc: t('configDesc'),
+    },
     { href: '/admin/members' as Route, title: t('members'), desc: t('membersDesc') },
     {
       href: '/admin/settings/banking' as Route,

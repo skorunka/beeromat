@@ -2,10 +2,10 @@ import 'server-only';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { magicLink } from 'better-auth/plugins';
-
 import { db } from '@/lib/db/client';
 import { accounts, sessions, users, verifications } from '@/lib/db/schema/auth';
 import { env } from '@/lib/env';
+import { promoteFirstUserIfNeeded } from '@/lib/auth/bootstrap';
 import { sendMagicLink } from '@/lib/email/mailer';
 
 // Better Auth v1.6 server instance with the magic-link plugin.
@@ -65,6 +65,43 @@ export const auth = betterAuth({
     },
   },
   trustedOrigins: [env.BETTER_AUTH_URL],
+  databaseHooks: {
+    session: {
+      create: {
+        // Spec 008 FR-001 / FR-003 — bootstrap promotion at verify
+        // time. The pre-create in requestMagicLinkAction's bootstrap
+        // branch (lib/auth/actions.ts) leaves the user with NO role.
+        // Only a successful magic-link round-trip (which is what
+        // creates this session) earns the club_admin promotion.
+        //
+        // Race safety: this hook fires once per session-create. We
+        // lock the members table with FOR UPDATE so two near-
+        // simultaneous bootstrap completions serialise — exactly one
+        // gets the club_admin row; the second sees memberCount > 0
+        // and no-ops (state C in data-model.md §2).
+        after: async (session) => {
+          try {
+            const result = await promoteFirstUserIfNeeded(session.userId);
+            if (result.promoted) {
+              console.info('[bootstrap] promoted first user to club_admin', {
+                userId: session.userId,
+              });
+            } else if (result.reason && result.reason !== 'already-bootstrapped') {
+              console.warn('[bootstrap] promotion skipped', {
+                userId: session.userId,
+                reason: result.reason,
+              });
+            }
+          } catch (err) {
+            // Send-best-effort discipline — never block session
+            // creation on a bootstrap-promotion failure. The session
+            // is already valid; the user can re-sign-in to retry.
+            console.error('[bootstrap] promotion failed', err);
+          }
+        },
+      },
+    },
+  },
 });
 
 export type Auth = typeof auth;

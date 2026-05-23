@@ -2,7 +2,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { cookies, headers } from 'next/headers';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { invitations, members, deviceSessions } from '@/lib/db/schema/members';
@@ -162,6 +162,43 @@ export async function requestMagicLinkAction(input: {
     return { ok: true, data: { status: 'rate-limited' } };
   }
 
+  // Spec 008 FR-001 — bootstrap pre-create. When the users table is
+  // empty (state A in data-model.md §2), the FIRST email to clear
+  // Turnstile + rate-limit becomes the bootstrap candidate. We
+  // pre-create the user row HERE (in a serialised transaction) so
+  // Better Auth's verify can later create the session — Better Auth's
+  // `disableSignUp: true` is intentional steady-state protection and
+  // blocks user creation at verify time, so the user has to exist
+  // before the link is clicked. The actual club_admin role grant
+  // happens at verify time via the session.create.after hook in
+  // lib/auth/better-auth.ts, NOT here — FR-003 requires a successful
+  // round-trip before role assignment, and this branch only pre-creates
+  // the user without any role.
+  const bootstrapped = await db.transaction(async (tx) => {
+    // Race safety: advisory lock keyed by the same constant as
+    // promoteFirstUserIfNeeded in lib/auth/bootstrap.ts. Two
+    // concurrent bootstrap pre-create attempts serialise — the
+    // second sees the just-inserted user and returns false.
+    // PostgreSQL rejects `count(*) FOR UPDATE` (aggregate + row-lock
+    // incompatible), so we use pg_advisory_xact_lock instead.
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(1008)`);
+    const result = await tx.execute<{ n: string }>(
+      sql`SELECT count(*) AS n FROM "user"`,
+    );
+    const count = Number(result.rows[0]?.n ?? 0);
+    if (count > 0) return false;
+    await tx.insert(users).values({
+      id: randomUUID(),
+      email,
+      name: email.split('@')[0] ?? email,
+      emailVerified: false,
+    });
+    return true;
+  });
+  if (bootstrapped) {
+    console.info('[magic-link] bootstrap pre-create', { email });
+  }
+
   const member = await db.query.members.findFirst({
     where: eq(members.email, email),
   });
@@ -172,7 +209,7 @@ export async function requestMagicLinkAction(input: {
     where: eq(invitations.email, email),
   });
 
-  if (!knownUser && !openInvitation) {
+  if (!bootstrapped && !knownUser && !openInvitation) {
     console.info('[magic-link] no matching member/invitation', { email });
     return { ok: true, data: { status: 'not-on-allowlist' } };
   }

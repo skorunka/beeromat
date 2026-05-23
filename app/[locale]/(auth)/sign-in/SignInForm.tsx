@@ -75,8 +75,6 @@ export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
       <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 p-8 text-center">
         <BrandMark />
         <h1 className="text-2xl font-bold">{t('notOnListHeadline')}</h1>
-        <p className="text-muted-foreground">{t('notOnListBody')}</p>
-        <p className="text-foreground text-sm font-medium">{t('notOnListAdminCta')}</p>
         <button
           type="button"
           onClick={handleRetry}

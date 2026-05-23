@@ -36,10 +36,8 @@
       "emailPlaceholder": "ty@example.com",
       "submit": "Pošli mi odkaz",
       "linkExpiresIn": "Odkaz platí 5 minut.",
-      "linkSent": "Odkaz odeslán — mrkni do e‑mailu.",
+      "linkSent": "Odkaz pro přihlášení odeslán.",
       "notOnListHeadline": "Tuhle adresu u nás na seznamu nemáme.",
-      "notOnListBody": "U baru pustíme dovnitř jen toho, koho admin klubu přidá. Bez pozvánky se dovnitř nedostaneš.",
-      "notOnListAdminCta": "Pověz adminovi klubu — pošle ti pozvánku.",
       "useDifferentEmail": "Zkusit jinou adresu",
       "turnstileMissing": "Chybí klíč Turnstile"
     },

@@ -36,10 +36,8 @@
       "emailPlaceholder": "you@example.com",
       "submit": "Send me a link",
       "linkExpiresIn": "The link's good for 5 minutes.",
-      "linkSent": "Link sent — check your email.",
-      "notOnListHeadline": "That email's not on the bar tab list.",
-      "notOnListBody": "Only people the club admin has added can sign in. Without an invite, the door stays closed.",
-      "notOnListAdminCta": "Talk to your club admin — they'll send you an invite.",
+      "linkSent": "Sign-in link sent.",
+      "notOnListHeadline": "That email isn't on the list.",
       "useDifferentEmail": "Use a different email",
       "turnstileMissing": "Turnstile site key missing"
     },

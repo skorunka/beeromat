@@ -1,7 +1,12 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Claude Code agent folder — may contain auth tokens / credentials
-.claude/
+# Claude Code agent folder — may contain auth tokens / credentials.
+# Ignore its contents by default, then un-ignore .claude/skills/ so the
+# speckit-* slash commands installed by `specify init --here --ai claude`
+# survive `git clean` and fresh clones. (Git only honours negations when
+# the parent is matched with /* rather than /.)
+.claude/*
+!.claude/skills/
 
 # dependencies
 /node_modules

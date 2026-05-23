@@ -89,7 +89,7 @@
       "bodyParagraph": "Klepni na tlačítko a jsi uvnitř. Odkaz platí 5 minut a dá se použít jen jednou.",
       "buttonLabel": "Přihlásit se",
       "fallbackLinkLabel": "Nebo si zkopíruj tenhle odkaz do prohlížeče:",
-      "signoffParagraph": "Pokud jsi o přihlášení nežádal/a, klidně tenhle e‑mail ignoruj — nic se nestane."
+      "signoffParagraph": "Pokud jsi o přihlášení nežádal/a, klidně tenhle e‑mail ignoruj."
     },
     "invitation": {
       "subject": "{inviterName} tě zve do klubu {clubName}",

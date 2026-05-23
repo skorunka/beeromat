@@ -83,6 +83,28 @@
     "errorNameRequired": "Nejdřív napiš svoje jméno.",
     "errorGeneric": "Nepovedlo se to — zkus to prosím znovu."
   },
+  "emails": {
+    "magicLink": {
+      "subject": "Tvůj přihlašovací odkaz do beeromatu",
+      "previewText": "Odkaz platí 5 minut.",
+      "heading": "Přihlášení do beeromatu",
+      "bodyParagraph": "Klepni na tlačítko a jsi uvnitř. Odkaz platí 5 minut a dá se použít jen jednou.",
+      "buttonLabel": "Přihlásit se",
+      "fallbackLinkLabel": "Nebo si zkopíruj tenhle odkaz do prohlížeče:",
+      "signoffParagraph": "Pokud jsi o přihlášení nežádal/a, klidně tenhle e‑mail ignoruj — nic se nestane."
+    },
+    "invitation": {
+      "subject": "{inviterName} tě zve do klubu {clubName}",
+      "previewText": "Přidej se k partě v beeromatu.",
+      "heading": "Vítej v klubu {clubName}",
+      "bodyIntro": "Ahoj! {inviterName} tě zve do klubu na beeromat — appku, ve které si parta hlídá útratu za pivo.",
+      "bodyPitch": "Klepni na tlačítko, založ si profil a jsi uvnitř.",
+      "buttonLabel": "Přijmout pozvánku",
+      "fallbackLinkLabel": "Nebo si zkopíruj tenhle odkaz do prohlížeče:",
+      "expiryNote": "Pozvánka platí 14 dní.",
+      "ignoreNote": "Pokud {inviterName} neznáš, klidně tenhle e‑mail ignoruj."
+    }
+  },
   "home": {
     "greeting": "Ahoj {name}",
     "outstandingBalance": "Tvoje útrata",

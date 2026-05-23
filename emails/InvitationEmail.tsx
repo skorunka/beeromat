@@ -10,43 +10,57 @@ import {
   Text,
 } from '@react-email/components';
 
+// Pure-prop component (spec 007 FR-002). React Email components render
+// outside next-intl's React tree, so they can't call useTranslations.
+// The mailer (lib/email/mailer.ts) pre-resolves the locale-bound
+// strings — including the {inviterName} / {clubName} interpolations —
+// via getTranslations({ locale, namespace: 'emails.invitation' }) and
+// hands the already-interpolated strings in as props. The template is
+// presentation only.
 interface InvitationEmailProps {
-  inviterName: string;
-  clubName: string;
   url: string;
+  previewText: string;
+  heading: string;
+  bodyIntro: string;
+  bodyPitch: string;
+  buttonLabel: string;
+  fallbackLinkLabel: string;
+  expiryNote: string;
+  ignoreNote: string;
 }
 
-export function InvitationEmail({ inviterName, clubName, url }: InvitationEmailProps) {
+export function InvitationEmail({
+  url,
+  previewText,
+  heading: headingText,
+  bodyIntro,
+  bodyPitch,
+  buttonLabel,
+  fallbackLinkLabel,
+  expiryNote,
+  ignoreNote,
+}: InvitationEmailProps) {
   return (
     <Html>
       <Head />
-      <Preview>
-        {inviterName} invited you to {clubName} on beeromat
-      </Preview>
+      <Preview>{previewText}</Preview>
       <Body style={body}>
         <Container style={container}>
-          <Heading style={heading}>You&apos;re invited to {clubName}</Heading>
-          <Text style={paragraph}>
-            <strong>{inviterName}</strong> has invited you to use <em>beeromat</em> — the
-            after-match beer tab tracker for {clubName}.
-          </Text>
-          <Text style={paragraph}>
-            beeromat helps the club track who drank what, settle bets, and pay the treasurer with
-            zero mental math. Tap the button to set up your account.
-          </Text>
+          <Heading style={heading}>{headingText}</Heading>
+          <Text style={paragraph}>{bodyIntro}</Text>
+          <Text style={paragraph}>{bodyPitch}</Text>
           <Section style={buttonSection}>
             <Button href={url} style={button}>
-              Accept invitation
+              {buttonLabel}
             </Button>
           </Section>
           <Text style={small}>
-            Or paste this link into your browser:
+            {fallbackLinkLabel}
             <br />
             <span style={mono}>{url}</span>
           </Text>
           <Text style={small}>
-            This invitation is valid for 14 days. If you don&apos;t recognise {inviterName}, you can
-            safely ignore this email.
+            {expiryNote} {ignoreNote}
           </Text>
         </Container>
       </Body>
@@ -54,10 +68,19 @@ export function InvitationEmail({ inviterName, clubName, url }: InvitationEmailP
   );
 }
 
+// PreviewProps so React Email's `pnpm email` preview server still
+// renders this in isolation with sample copy.
 InvitationEmail.PreviewProps = {
-  inviterName: 'Pavel Novák',
-  clubName: 'TK Slávia Praha',
   url: 'https://beeromat.example.com/invitation/abc123',
+  previewText: 'Join the crew on beeromat.',
+  heading: 'Welcome to TK Slávia Praha',
+  bodyIntro:
+    'Hey! Pavel Novák invited you to TK Slávia Praha on beeromat — the app the club uses to keep tabs on after-match beers.',
+  bodyPitch: 'Tap the button to set up your profile and join in.',
+  buttonLabel: 'Accept invitation',
+  fallbackLinkLabel: 'Or paste this link into your browser:',
+  expiryNote: 'Invitation valid for 14 days.',
+  ignoreNote: "If you don't recognise Pavel Novák, you can safely ignore this email.",
 } satisfies InvitationEmailProps;
 
 export default InvitationEmail;

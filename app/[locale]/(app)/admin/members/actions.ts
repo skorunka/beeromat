@@ -5,11 +5,14 @@ import argon2 from 'argon2';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
+import { getLocale } from 'next-intl/server';
+
 import { db } from '@/lib/db/client';
 import { invitations, members } from '@/lib/db/schema/members';
 import { requireRole } from '@/lib/auth/session';
 import { sendInvitation } from '@/lib/email/mailer';
 import { env } from '@/lib/env';
+import type { Locale } from '@/lib/i18n/routing';
 import type { Role } from '@/lib/permissions';
 
 const ARGON2_OPTIONS = {
@@ -79,7 +82,12 @@ export async function inviteMemberAction(input: {
     .returning();
   if (!created) throw new Error('Failed to create invitation');
 
-  // Dispatch email.
+  // Dispatch email. Spec 007 FR-006: thread the admin's request locale
+  // so the invitation email renders in the admin's language (the v1
+  // assumption is that admin and invitee share a club working language).
+  // .catch(() => undefined) is the seatbelt — the mailer's own fallback
+  // (normalizeLocale → routing.defaultLocale) handles failure.
+  const locale = (await getLocale().catch(() => undefined)) as Locale | undefined;
   try {
     const url = `${env.BETTER_AUTH_URL}/invitation/${rawToken}`;
     await sendInvitation({
@@ -87,6 +95,7 @@ export async function inviteMemberAction(input: {
       inviterName: ctx.member.displayName,
       clubName: ctx.club.name,
       url,
+      locale,
     });
   } catch (err) {
     console.error('[invite] email dispatch failed', err);

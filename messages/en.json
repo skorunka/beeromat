@@ -50,7 +50,7 @@
   },
   "pin": {
     "setup": {
-      "title": "Set a PIN for this phone",
+      "title": "Set a PIN for signing in",
       "subtitle": "A quick 4-digit PIN so you're straight in next time.",
       "pinLabel": "PIN (4 digits)",
       "confirmLabel": "PIN again",

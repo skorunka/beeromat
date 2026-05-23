@@ -92,7 +92,9 @@ export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
           leading straight into the magic-link form below. */}
       <header className="flex flex-col gap-3">
         <BrandMark />
-        <h1 className="text-4xl font-extrabold leading-[1.1]">{t('welcomeHeadline')}</h1>
+        <h1 className="text-3xl font-extrabold leading-[1.1] text-balance sm:text-4xl">
+          {t('welcomeHeadline')}
+        </h1>
         <p className="text-muted-foreground text-base leading-relaxed">
           {t('welcomeTagline')}
         </p>

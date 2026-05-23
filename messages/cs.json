@@ -31,14 +31,14 @@
     "signIn": {
       "title": "Přihlášení",
       "welcomeHeadline": "Po zápase. U piva.",
-      "welcomeTagline": "Pivo, řeči a parta, se kterou hraješ.",
+      "welcomeTagline": "Pivo, řeči a sázky o pivo.",
       "emailLabel": "E-mail",
       "emailPlaceholder": "ty@example.com",
       "submit": "Pošli mi odkaz",
       "linkExpiresIn": "Odkaz platí 5 minut.",
       "linkSent": "Odkaz pro přihlášení odeslán.",
-      "notOnListHeadline": "Tuhle adresu u nás na seznamu nemáme.",
-      "useDifferentEmail": "Zkusit jinou adresu",
+      "notOnListHeadline": "Nejsi členem, máš smůlu.",
+      "useDifferentEmail": "Zpět",
       "turnstileMissing": "Chybí klíč Turnstile"
     },
     "magicLink": {

@@ -14,7 +14,11 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3010](http://localhost:3010) with your browser to see the result.
+
+> beeromat pins the dev server to port **3010** (not the Next.js default **3000**) so it
+> never collides with other Node/React projects on the same machine. The full port map is
+> in `docker-compose.yml` — all host ports are deliberately non-default.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

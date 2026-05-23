@@ -20,7 +20,7 @@ export default function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#f59e0b',
+          background: '#b5701a',
           fontSize: 140,
           borderRadius: 32,
         }}

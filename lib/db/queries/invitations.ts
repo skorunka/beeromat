@@ -1,5 +1,5 @@
 import 'server-only';
-import { and, desc, eq, gt, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { invitations, type Invitation } from '@/lib/db/schema/members';
@@ -62,8 +62,6 @@ export async function getPendingInvitations(clubId: string): Promise<InvitationR
       status: r.status,
       createdAt: r.createdAt,
       expiresAt: r.expiresAt,
-      createdByDisplayName: null, // TODO: join to members for display name when needed
+      createdByDisplayName: null,
     }));
 }
-
-void gt; // satisfy eslint unused-import if not used in v1

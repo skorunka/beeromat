@@ -12,6 +12,10 @@ export const clubs = pgTable('clubs', {
   defaultLowStockThreshold: integer().notNull().default(5),
   consumptionUndoWindowSeconds: integer().notNull().default(300),
   deviceInactivityLockSeconds: integer().notNull().default(28800),
+  // Spec 012 — how many beers the loser owes after losing a match.
+  // Editable via /admin/config. Defaults to 1 (the canonical "loser
+  // buys the winner one beer" rule).
+  matchLoserBeerCount: integer().notNull().default(1),
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true })
     .notNull()

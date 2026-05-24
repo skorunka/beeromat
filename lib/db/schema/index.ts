@@ -10,3 +10,4 @@ export * from './sessions';
 export * from './consumption';
 export * from './payments';
 export * from './bets';
+export * from './matches';

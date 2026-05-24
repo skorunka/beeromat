@@ -22,6 +22,7 @@
     "log": "Zapsat",
     "tab": "Útrata",
     "bet": "Sázka",
+    "match": "Zápas",
     "history": "Historie",
     "treasurer": "Pokladník",
     "stock": "Sklad",
@@ -68,6 +69,29 @@
       "lockedBody": "Pět špatných pokusů. Přihlas se znovu odkazem z e‑mailu.",
       "forgotPin": "Zapomenutý PIN?",
       "forgotPinSent": "Odkaz odeslán — v e‑mailu si nastavíš nový PIN."
+    }
+  },
+  "match": {
+    "title": "Zápas",
+    "subtitle": "Kdo prohrál, kupuje pivo.",
+    "opponentLabel": "Soupeř",
+    "opponentPlaceholder": "Vyber soupeře",
+    "iWon": "🏆 Vyhrál jsem",
+    "iLost": "🍺 Prohrál jsem",
+    "logging": "Zapisuji…",
+    "noOpponents": "Zatím nemáš s kým hrát — pozvi parťáka.",
+    "winToast": "🏆 Tvoje pivo, {opponent} platí.",
+    "lostToast": "🍺 Pivo {opponent}, příště kámo.",
+    "partialTransferNote": "Převedeno {transferred} z {requested} piv — ostatní si {opponent} musí dorazit zapsat.",
+    "noTransferNote": "Zápas zapsán. {opponent} ještě nemá zapsané pivo — převeď ho ručně z /sázka, až bude.",
+    "undo": "Vrátit",
+    "undone": "Vráceno.",
+    "undoWindowExpired": "Na undo už je pozdě — promluv s pokladníkem.",
+    "errors": {
+      "opponentRequired": "Vyber soupeře.",
+      "outcomeRequired": "Vyber, jak to dopadlo.",
+      "selfMatch": "Sám se sebou? Hezkej pokus.",
+      "generic": "Nepovedlo se to — zkus to prosím znovu."
     }
   },
   "onboarding": {

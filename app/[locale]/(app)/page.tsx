@@ -1,5 +1,6 @@
 import { Link } from '@/lib/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { Receipt } from 'lucide-react';
 
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -63,9 +64,10 @@ export default async function AppHomePage({
             href="/settle"
             className={cn(
               buttonVariants({ size: 'lg' }),
-              'mt-3 h-14 w-[calc(100%-2.5rem)] text-base',
+              'mt-3 h-14 w-[calc(100%-2.5rem)] gap-2 text-base',
             )}
           >
+            <Receipt className="h-5 w-5" aria-hidden />
             {t('settleUp')}
           </Link>
         ) : (

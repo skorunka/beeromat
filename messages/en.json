@@ -52,12 +52,14 @@
     "setup": {
       "title": "Set a PIN for signing in",
       "subtitle": "A quick 4-digit PIN so you're straight in next time.",
-      "pinLabel": "PIN (4 digits)",
+      "pinLabel": "PIN",
       "confirmLabel": "PIN again",
       "submit": "Save PIN",
       "mismatch": "Those two PINs don't match",
       "invalidFormat": "The PIN needs to be exactly 4 digits"
     },
+    "showPin": "Show PIN",
+    "hidePin": "Hide PIN",
     "unlock": {
       "title": "Your PIN",
       "submit": "Unlock",

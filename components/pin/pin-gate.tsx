@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
+import { Eye, EyeOff } from 'lucide-react';
 
 import { BrandMark } from '@/components/ui/brand-mark';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
   // after a round trip, so they render as a distinct form-level message,
   // separate from the react-hook-form field errors (FR-012).
   const [serverError, setServerError] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<PinFormValues>({
@@ -110,11 +112,14 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
             name="pin"
             render={({ field }) => (
               <FormItem>
-                {/* No visible FormLabel — the screen title above already
-                    says "Tvůj PIN" / "Nastav si PIN pro přihlášení", so
-                    a "PIN (4 číslice)" label between title and input is
-                    pure repetition. The PinInput's `ariaLabel` prop
-                    keeps the screen-reader label intact. */}
+                {/* In setup mode the second field has a "PIN ještě jednou"
+                    label — without one here the two stacked inputs look
+                    asymmetric. In unlock mode there is no second field,
+                    and the screen title "Tvůj PIN" already names the
+                    input, so the label is omitted there. The PinInput's
+                    `ariaLabel` keeps the screen-reader label intact in
+                    both modes. */}
+                {mode === 'setup' ? <FormLabel>{t('setup.pinLabel')}</FormLabel> : null}
                 <FormControl>
                   <PinInput
                     length={PIN_LENGTH}
@@ -126,6 +131,7 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
                     onBlur={field.onBlur}
                     onChange={field.onChange}
                     ariaLabel={t('setup.pinLabel')}
+                    revealed={revealed}
                   />
                 </FormControl>
                 <FormMessage />
@@ -150,6 +156,7 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
                       onBlur={field.onBlur}
                       onChange={field.onChange}
                       ariaLabel={t('setup.confirmLabel')}
+                      revealed={revealed}
                     />
                   </FormControl>
                   <FormMessage />
@@ -157,6 +164,19 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
               )}
             />
           ) : null}
+
+          <button
+            type="button"
+            onClick={() => setRevealed((v) => !v)}
+            className="text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-1.5 self-center text-xs underline"
+          >
+            {revealed ? (
+              <EyeOff className="h-3.5 w-3.5" aria-hidden />
+            ) : (
+              <Eye className="h-3.5 w-3.5" aria-hidden />
+            )}
+            {revealed ? t('hidePin') : t('showPin')}
+          </button>
 
           {serverError ? (
             <p role="alert" className="text-destructive text-sm">

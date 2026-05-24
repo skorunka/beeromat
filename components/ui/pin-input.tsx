@@ -14,6 +14,11 @@ interface PinInputProps {
   autoComplete?: string;
   ariaLabel?: string;
   className?: string;
+  // When true, filled slots show the entered digit instead of the
+  // masked dot — used by the shared show/hide toggle on the PIN gate
+  // so the user can verify what they typed before submitting (handy
+  // when "PINy se neshodují" fires).
+  revealed?: boolean;
   // Extra attributes spread onto the underlying <input> — used by
   // shadcn's FormControl which cloneElement-injects `id`,
   // `aria-describedby`, and `aria-invalid` onto its direct child.
@@ -47,6 +52,7 @@ export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(function Pin
     autoComplete,
     ariaLabel,
     className,
+    revealed = false,
     id,
     'aria-describedby': ariaDescribedBy,
     'aria-invalid': ariaInvalid,
@@ -88,6 +94,20 @@ export const PinInput = forwardRef<HTMLInputElement, PinInputProps>(function Pin
       <div className="pointer-events-none absolute inset-0 flex items-center justify-around px-6">
         {Array.from({ length }).map((_, i) => {
           const filled = i < value.length;
+          // Revealed + filled → show the digit at the same size as the
+          // dot's footprint (~1.25rem); otherwise show the dot
+          // (filled = solid foreground, empty = muted placeholder).
+          if (revealed && filled) {
+            return (
+              <span
+                key={i}
+                aria-hidden
+                className="text-foreground inline-flex h-5 w-5 items-center justify-center text-lg font-semibold tabular-nums"
+              >
+                {value[i]}
+              </span>
+            );
+          }
           return (
             <span
               key={i}

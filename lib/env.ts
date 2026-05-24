@@ -55,6 +55,14 @@ const envSchema = z.object({
     .regex(/^[a-z]{2}(-[A-Z]{2})?$/)
     .optional(),
 
+  // Spec 009 bootstrap-state cache mode. Defaults to 'sticky' (the
+  // post-bootstrap proxy pays zero DB cost; the cache is one-way).
+  // An isolated test rig that truncates between tests sets this to
+  // 'off' so the next request re-queries against the just-truncated
+  // DB. Configuration, not code: the same code path consumes both
+  // values (constitution: Test/Prod Code Separation).
+  BOOTSTRAP_STATE_CACHE: z.enum(['sticky', 'off']).default('sticky'),
+
   // Runtime
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 });

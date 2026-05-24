@@ -19,11 +19,18 @@ export default async function BalancesPage({
 
   const ctx = await requireRole('treasurer', 'club_admin');
   const t = await getTranslations('treasurer');
+  const tCommon = await getTranslations('common');
   const balances = await getAllMemberBalances(ctx.club.id);
   const { currencyCode, defaultLocale } = ctx.club;
 
   return (
     <main className="mx-auto max-w-2xl p-5">
+      <Link
+        href={'/admin' as Route}
+        className="text-muted-foreground hover:text-foreground mb-4 inline-block text-sm underline"
+      >
+        ← {tCommon('back')}
+      </Link>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">{t('balancesTitle')}</h1>
         <Link href={'/admin/pending' as Route} className="text-primary text-sm underline">

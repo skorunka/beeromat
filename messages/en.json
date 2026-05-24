@@ -70,6 +70,35 @@
       "forgotPinSent": "Link sent — check your email to set a new PIN."
     }
   },
+  "onboarding": {
+    "title": "Welcome to beeromat",
+    "subtitle": "A few details and we're on to the first beer.",
+    "clubNameLabel": "Club name",
+    "clubNamePlaceholder": "Riverside Tennis Club",
+    "currencyLabel": "Currency",
+    "currencyPlaceholder": "CZK",
+    "currencyHint": "ISO 4217 code — CZK, EUR, USD, etc.",
+    "defaultLocaleLabel": "Club default language",
+    "defaultLocaleHint": "Members get emails in this language.",
+    "adminEmailLabel": "Your email",
+    "adminEmailPlaceholder": "you@example.com",
+    "adminEmailHint": "We'll send you a sign-in link and make you the admin.",
+    "submit": "Done, send me the link",
+    "submitting": "Setting up the club…",
+    "bootstrapAlreadyCompleteTitle": "Someone just finished setting up",
+    "bootstrapAlreadyCompleteBody": "The club already exists. Sign in instead.",
+    "bootstrapAlreadyCompleteCta": "Go to sign-in",
+    "errors": {
+      "clubNameRequired": "Enter a club name.",
+      "clubNameTooLong": "Maximum 120 characters.",
+      "currencyRequired": "Currency is required.",
+      "currencyInvalid": "Currency must be a 3-letter ISO 4217 code.",
+      "defaultLocaleInvalid": "Pick one of the supported languages.",
+      "adminEmailRequired": "Enter your email.",
+      "adminEmailInvalid": "That doesn't look like a valid email.",
+      "generic": "That didn't work — give it another go."
+    }
+  },
   "invitation": {
     "welcomeTitle": "Welcome to beeromat",
     "welcomeBody": "Pick a name your mates know you by, and we'll email you a sign-in link.",
@@ -248,6 +277,12 @@
     "betTransfers": "Bet swaps"
   },
   "admin": {
+    "roles": {
+      "member": "Member",
+      "stock_manager": "Stock",
+      "treasurer": "Treasurer",
+      "club_admin": "Admin"
+    },
     "hubTitle": "Admin",
     "members": "Members",
     "membersDesc": "Invite and manage the crew",

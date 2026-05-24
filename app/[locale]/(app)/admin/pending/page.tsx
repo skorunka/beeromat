@@ -23,6 +23,7 @@ export default async function PendingPaymentsPage({
 
   const ctx = await requireRole('treasurer', 'club_admin');
   const t = await getTranslations('treasurer');
+  const tCommon = await getTranslations('common');
   const claims = await getPendingClaimsForTreasurer(ctx.club.id);
   const dateFmt = new Intl.DateTimeFormat(ctx.club.defaultLocale, {
     dateStyle: 'medium',
@@ -48,6 +49,12 @@ export default async function PendingPaymentsPage({
 
   return (
     <main className="mx-auto max-w-2xl p-5">
+      <Link
+        href={'/admin' as Route}
+        className="text-muted-foreground hover:text-foreground mb-4 inline-block text-sm underline"
+      >
+        ← {tCommon('back')}
+      </Link>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">{t('pendingTitle')}</h1>
         <Link href={'/admin/balances' as Route} className="text-primary text-sm underline">

@@ -70,6 +70,35 @@
       "forgotPinSent": "Odkaz odeslán — v e‑mailu si nastavíš nový PIN."
     }
   },
+  "onboarding": {
+    "title": "Vítej v beeromatu",
+    "subtitle": "Pár věcí a jdeme na první pivo.",
+    "clubNameLabel": "Název klubu",
+    "clubNamePlaceholder": "TK Slávia Praha",
+    "currencyLabel": "Měna",
+    "currencyPlaceholder": "CZK",
+    "currencyHint": "Kód podle ISO 4217 — CZK, EUR, USD apod.",
+    "defaultLocaleLabel": "Výchozí jazyk klubu",
+    "defaultLocaleHint": "V téhle řeči dostanou členové e-maily.",
+    "adminEmailLabel": "Tvůj e-mail",
+    "adminEmailPlaceholder": "ty@example.com",
+    "adminEmailHint": "Pošleme ti odkaz a budeš správce klubu.",
+    "submit": "Hotovo, pošli mi odkaz",
+    "submitting": "Zakládám klub…",
+    "bootstrapAlreadyCompleteTitle": "Někdo to právě dokončil",
+    "bootstrapAlreadyCompleteBody": "Klub už existuje. Přihlas se místo toho.",
+    "bootstrapAlreadyCompleteCta": "Na přihlášení",
+    "errors": {
+      "clubNameRequired": "Napiš název klubu.",
+      "clubNameTooLong": "Maximálně 120 znaků.",
+      "currencyRequired": "Doplň měnu.",
+      "currencyInvalid": "Měna musí být tři velká písmena (ISO 4217).",
+      "defaultLocaleInvalid": "Vyber jeden z podporovaných jazyků.",
+      "adminEmailRequired": "Napiš svůj e-mail.",
+      "adminEmailInvalid": "Tenhle e-mail nevypadá správně.",
+      "generic": "Nepovedlo se to — zkus to prosím znovu."
+    }
+  },
   "invitation": {
     "welcomeTitle": "Vítej v beeromatu",
     "welcomeBody": "Vyber si jméno, pod kterým tě parta zná, a pošleme ti přihlašovací odkaz.",
@@ -248,6 +277,12 @@
     "betTransfers": "Výměny sázek"
   },
   "admin": {
+    "roles": {
+      "member": "Člen",
+      "stock_manager": "Sklad",
+      "treasurer": "Pokladník",
+      "club_admin": "Správce"
+    },
     "hubTitle": "Správa",
     "members": "Členové",
     "membersDesc": "Pozvi a spravuj partu",

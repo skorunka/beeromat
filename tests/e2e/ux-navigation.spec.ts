@@ -35,7 +35,10 @@ test.describe('@ux-navigation persistent nav + admin hub', () => {
     await page.goto('/admin');
     // Each admin area is a hub card linking to its route.
     await expect(page.locator('a[href$="/admin/members"]')).toBeVisible();
-    await expect(page.locator('a[href$="/admin/settings/banking"]')).toBeVisible();
+    // v1.9 dedup: banking lives under /admin/config (composed with the
+    // club-fields form) — the standalone /admin/settings/banking entry
+    // is gone.
+    await expect(page.locator('a[href$="/admin/config"]')).toBeVisible();
     await expect(page.locator('a[href$="/admin/beer-types"]')).toBeVisible();
   });
 

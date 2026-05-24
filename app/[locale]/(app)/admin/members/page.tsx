@@ -1,3 +1,5 @@
+import type { Route } from 'next';
+import { Link } from '@/lib/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { eq } from 'drizzle-orm';
 
@@ -19,6 +21,8 @@ export default async function AdminMembersPage({
 
   const ctx = await requireRole('treasurer', 'club_admin');
   const t = await getTranslations('admin');
+  const tRoles = await getTranslations('admin.roles');
+  const tCommon = await getTranslations('common');
 
   const memberRows = await db
     .select()
@@ -30,6 +34,12 @@ export default async function AdminMembersPage({
 
   return (
     <main className="mx-auto max-w-3xl p-5">
+      <Link
+        href={'/admin' as Route}
+        className="text-muted-foreground hover:text-foreground mb-4 inline-block text-sm underline"
+      >
+        ← {tCommon('back')}
+      </Link>
       <h1 className="mb-6 text-2xl font-bold">{t('membersTitle')}</h1>
 
       <Card className="mb-6 p-4">
@@ -50,7 +60,9 @@ export default async function AdminMembersPage({
               <div className="font-medium">{m.displayName}</div>
               <div className="text-muted-foreground text-xs">{m.email}</div>
             </div>
-            <Badge variant={m.role === 'club_admin' ? 'default' : 'secondary'}>{m.role}</Badge>
+            <Badge variant={m.role === 'club_admin' ? 'default' : 'secondary'}>
+              {tRoles(m.role)}
+            </Badge>
           </li>
         ))}
       </ul>
@@ -66,7 +78,7 @@ export default async function AdminMembersPage({
               <div className="font-medium">{inv.email}</div>
               <div className="text-muted-foreground text-xs">
                 {t('invitedOn', {
-                  role: inv.role,
+                  role: tRoles(inv.role),
                   date: dateFmt.format(inv.createdAt),
                 })}
               </div>

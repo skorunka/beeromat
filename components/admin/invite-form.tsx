@@ -28,6 +28,7 @@ import { inviteMemberSchema, MEMBER_ROLES, type InviteMemberValues } from '@/lib
 
 export function InviteForm() {
   const t = useTranslations('admin');
+  const tRoles = useTranslations('admin.roles');
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<InviteMemberValues>({
@@ -84,12 +85,12 @@ export function InviteForm() {
                     id={field.name}
                     className="border-input bg-background hover:bg-accent inline-flex h-11 min-w-32 items-center justify-start rounded-md border px-3 text-sm"
                   >
-                    {field.value}
+                    {tRoles(field.value)}
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     {MEMBER_ROLES.map((r) => (
                       <DropdownMenuItem key={r} onClick={() => field.onChange(r)}>
-                        {r}
+                        {tRoles(r)}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>

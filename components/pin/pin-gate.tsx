@@ -110,7 +110,11 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
             name="pin"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('setup.pinLabel')}</FormLabel>
+                {/* No visible FormLabel — the screen title above already
+                    says "Tvůj PIN" / "Nastav si PIN pro přihlášení", so
+                    a "PIN (4 číslice)" label between title and input is
+                    pure repetition. The PinInput's `ariaLabel` prop
+                    keeps the screen-reader label intact. */}
                 <FormControl>
                   <PinInput
                     length={PIN_LENGTH}

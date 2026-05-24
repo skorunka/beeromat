@@ -191,7 +191,7 @@
     "lowBadge": "Low",
     "outBadge": "0",
     "left": "{count} left",
-    "added": "+ {name}",
+    "added": "🍺 + {name}",
     "outOfStock": "All out of that one",
     "empty": "No beers in the fridge yet — ask whoever runs the stock to add some."
   },

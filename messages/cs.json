@@ -191,7 +191,7 @@
     "lowBadge": "Dochází",
     "outBadge": "0",
     "left": "zbývá {count}",
-    "added": "+ {name}",
+    "added": "🍺 + {name}",
     "outOfStock": "Tohle už došlo",
     "empty": "V lednici zatím nic není — řekni tomu, kdo má na starost sklad, ať něco přidá."
   },

@@ -151,7 +151,27 @@
   },
   "account": {
     "title": "Tvůj účet",
-    "paymentHistory": "Historie plateb"
+    "subtitle": "Spravuj svůj profil.",
+    "paymentHistory": "Historie plateb",
+    "displayNameLabel": "Tvoje jméno",
+    "displayNamePlaceholder": "Jak ti říkají v partě",
+    "displayNameHint": "Pod tímhle jménem tě uvidí ostatní členové.",
+    "save": "Uložit",
+    "saving": "Ukládám…",
+    "saved": "Uloženo.",
+    "saveFailed": "Nepovedlo se to — zkus to prosím znovu.",
+    "emailLabel": "E-mail",
+    "pinLabel": "PIN",
+    "pinValue": "Nastaveno na tomhle zařízení",
+    "signOutAllLabel": "Odhlásit ze všech zařízení",
+    "signOutAllCta": "Odhlásit všude",
+    "laterBadge": "později",
+    "comingSoonBadge": "brzy",
+    "errors": {
+      "displayNameRequired": "Doplň své jméno.",
+      "displayNameTooLong": "Maximálně 80 znaků.",
+      "generic": "Nepovedlo se to — zkus to prosím znovu."
+    }
   },
   "payments": {
     "title": "Historie plateb",

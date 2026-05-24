@@ -151,7 +151,27 @@
   },
   "account": {
     "title": "Your account",
-    "paymentHistory": "Payment history"
+    "subtitle": "Manage your profile.",
+    "paymentHistory": "Payment history",
+    "displayNameLabel": "Your name",
+    "displayNamePlaceholder": "What your mates call you",
+    "displayNameHint": "Other members see you under this name.",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved.",
+    "saveFailed": "That didn't work — give it another go.",
+    "emailLabel": "Email",
+    "pinLabel": "PIN",
+    "pinValue": "Set up on this device",
+    "signOutAllLabel": "Sign out from all devices",
+    "signOutAllCta": "Sign out everywhere",
+    "laterBadge": "later",
+    "comingSoonBadge": "coming soon",
+    "errors": {
+      "displayNameRequired": "Enter your name.",
+      "displayNameTooLong": "Maximum 80 characters.",
+      "generic": "That didn't work — give it another go."
+    }
   },
   "payments": {
     "title": "Payment history",

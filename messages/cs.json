@@ -72,7 +72,7 @@
   },
   "onboarding": {
     "title": "Vítej v beeromatu",
-    "subtitle": "Pár věcí na začátek a jsi v provozu.",
+    "subtitle": "Pár věcí a jdeme na první pivo.",
     "clubNameLabel": "Název klubu",
     "clubNamePlaceholder": "TK Slávia Praha",
     "currencyLabel": "Měna",
@@ -277,6 +277,12 @@
     "betTransfers": "Výměny sázek"
   },
   "admin": {
+    "roles": {
+      "member": "Člen",
+      "stock_manager": "Sklad",
+      "treasurer": "Pokladník",
+      "club_admin": "Správce"
+    },
     "hubTitle": "Správa",
     "members": "Členové",
     "membersDesc": "Pozvi a spravuj partu",

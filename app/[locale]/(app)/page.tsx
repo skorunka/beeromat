@@ -61,7 +61,10 @@ export default async function AppHomePage({
         {owes ? (
           <Link
             href="/settle"
-            className={cn(buttonVariants({ size: 'lg' }), 'mt-3 h-14 w-full text-base')}
+            className={cn(
+              buttonVariants({ size: 'lg' }),
+              'mt-3 h-14 w-[calc(100%-2.5rem)] text-base',
+            )}
           >
             {t('settleUp')}
           </Link>

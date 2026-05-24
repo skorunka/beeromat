@@ -94,12 +94,16 @@ export function SetupWizardForm() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-8 p-7">
-      <header className="flex flex-col gap-3">
+      <header className="flex flex-col gap-5">
         <BrandMark />
-        <h1 className="text-3xl font-extrabold leading-[1.1] text-balance sm:text-4xl">
-          {t('title')}
-        </h1>
-        <p className="text-muted-foreground text-base leading-relaxed">{t('subtitle')}</p>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-4xl font-extrabold tracking-tight leading-[0.95] text-balance sm:text-5xl md:text-6xl">
+            {t('title')}
+          </h1>
+          <p className="text-muted-foreground text-lg leading-relaxed text-balance max-w-prose">
+            {t('subtitle')}
+          </p>
+        </div>
       </header>
 
       <Form {...form}>

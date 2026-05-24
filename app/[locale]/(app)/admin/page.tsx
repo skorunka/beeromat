@@ -25,11 +25,6 @@ export default async function AdminHubPage({
       desc: t('configDesc'),
     },
     { href: '/admin/members' as Route, title: t('members'), desc: t('membersDesc') },
-    {
-      href: '/admin/settings/banking' as Route,
-      title: t('banking'),
-      desc: t('bankingDesc'),
-    },
     { href: '/admin/beer-types' as Route, title: t('beerTypes'), desc: t('beerTypesDesc') },
     {
       href: '/admin/pending' as Route,

@@ -72,7 +72,7 @@
   },
   "onboarding": {
     "title": "Welcome to beeromat",
-    "subtitle": "A few details and you're up and running.",
+    "subtitle": "A few details and we're on to the first beer.",
     "clubNameLabel": "Club name",
     "clubNamePlaceholder": "Riverside Tennis Club",
     "currencyLabel": "Currency",
@@ -277,6 +277,12 @@
     "betTransfers": "Bet swaps"
   },
   "admin": {
+    "roles": {
+      "member": "Member",
+      "stock_manager": "Stock",
+      "treasurer": "Treasurer",
+      "club_admin": "Admin"
+    },
     "hubTitle": "Admin",
     "members": "Members",
     "membersDesc": "Invite and manage the crew",

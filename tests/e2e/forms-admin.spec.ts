@@ -21,15 +21,19 @@ test.describe('@forms-admin admin form validation', () => {
 
     await page.goto('/cs/admin/members');
     // Pick a non-default role first, to prove it survives a failed submit.
+    // Role dropdown items render the translated catalog label
+    // (admin.roles.*), so the Czech label for `treasurer` is "Pokladník".
     await page.locator('#role').click();
-    await page.getByRole('menuitem', { name: 'treasurer' }).click();
+    await page.getByRole('menuitem', { name: 'Pokladník' }).click();
 
     await page.locator('#email').fill('notanemail');
     await page.getByRole('button', { name: 'Poslat pozvánku' }).click();
 
-    await expect(page.getByText('Tenhle e-mail nevypadá správně.')).toBeVisible();
-    // The chosen role is not lost.
-    await expect(page.locator('#role')).toHaveText('treasurer');
+    // The catalog uses a non-breaking hyphen (U+2011) in "e‑mail";
+    // match by regex so a future ASCII/Unicode swap doesn't break us.
+    await expect(page.getByText(/Tenhle e.mail nevypadá správně\./)).toBeVisible();
+    // The chosen role label is preserved across the failed submit.
+    await expect(page.locator('#role')).toHaveText('Pokladník');
   });
 
   test('scenario 2: banking rejects a malformed IBAN, other fields preserved', async ({
@@ -41,7 +45,7 @@ test.describe('@forms-admin admin form validation', () => {
 
     await signInAndUnlock(page, { email: ADMIN_EMAIL, pin: ADMIN_PIN });
 
-    await page.goto('/admin/settings/banking');
+    await page.goto('/admin/config');
     await page.locator('#accountHolderName').fill('Club Holder');
     await page.locator('#iban').fill('NOT-AN-IBAN');
     await page.getByRole('button', { name: /save bank details/i }).click();

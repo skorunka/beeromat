@@ -1,3 +1,5 @@
+import type { Route } from 'next';
+import { Link } from '@/lib/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { BeerTypeManager, type BeerTypeManagerView } from '@/components/admin/beer-type-manager';
@@ -16,6 +18,7 @@ export default async function BeerTypesAdminPage({
 
   const ctx = await requireRole('stock_manager', 'club_admin');
   const t = await getTranslations('admin');
+  const tCommon = await getTranslations('common');
   const beers = await getBeerTypeCatalog(ctx.club.id, { includeArchived: true });
   const { currencyCode, defaultLocale } = ctx.club;
 
@@ -33,6 +36,12 @@ export default async function BeerTypesAdminPage({
 
   return (
     <main className="mx-auto max-w-2xl p-5">
+      <Link
+        href={'/admin' as Route}
+        className="text-muted-foreground hover:text-foreground mb-4 inline-block text-sm underline"
+      >
+        ← {tCommon('back')}
+      </Link>
       <h1 className="mb-4 text-2xl font-bold">{t('beerTypesTitle')}</h1>
       <BeerTypeManager beerTypes={view} currencyCode={currencyCode} />
     </main>

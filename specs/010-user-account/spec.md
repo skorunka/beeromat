@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-24
 
-**Status**: Draft
+**Status**: Shipped (2026-05-24)
 
 **Input**: User description: "Add a user account page at /account where every signed-in member can edit their own display name. v1.10 scope is strictly the display-name edit. The page also surfaces three stub rows (email, PIN, sign-out-from-all-devices) marked as 'coming later' to signal where future specs extend."
 

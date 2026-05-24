@@ -1,13 +1,18 @@
 /**
  * Wipe all data from the dev/local database, preserving schema and
- * applied migrations. Used to iterate on first-run flows (notably the
- * spec 008 self-bootstrap path) without manual psql commands.
+ * applied migrations. Used to iterate on first-run flows without
+ * manual psql commands.
  *
- *   pnpm db:reset             # truncate every table, schema untouched
- *   pnpm db:reset:bootstrap   # truncate + insert one minimal clubs row
- *                             # (precondition for spec 008 bootstrap;
- *                             # users + members stay empty so the next
- *                             # magic-link sign-in auto-promotes)
+ *   pnpm db:reset             # truncate every table — TRUE-FRESH state.
+ *                             # Canonical "test the spec 009 onboarding
+ *                             # wizard from a real fresh install"
+ *                             # reset. Open /setup and walk the wizard.
+ *   pnpm db:reset:bootstrap   # truncate + insert one minimal clubs row.
+ *                             # Skips the v1.9 wizard; tests the spec 008
+ *                             # promotion path in isolation (the wizard
+ *                             # also exercises spec 008 at the end via
+ *                             # the magic-link verify, but this shortcut
+ *                             # lets you target promotion-only behaviour).
  *
  * Refuses to run unless DATABASE_URL points at localhost / 127.0.0.1
  * (or NEON_LOCAL_PROXY_HOST is set). Production DBs are not touchable

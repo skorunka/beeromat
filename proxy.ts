@@ -55,6 +55,25 @@ export default async function proxy(request: NextRequest): Promise<NextResponse>
     return intlMiddleware(request);
   }
 
+  // Spec 009 FR-010 — /setup is invisible once bootstrapped. Cookie-
+  // presence is the cheap gate (the destination route's layout does
+  // full session validation); admin OR regular member, doesn't matter
+  // here — the wizard is for fresh installs, not re-configuration.
+  if (SETUP_PATH_RE.test(pathname)) {
+    const locale = resolveLocale(request);
+    const url = request.nextUrl.clone();
+    url.search = '';
+    const hasSession = request.cookies
+      .getAll()
+      .some((c) => c.name.startsWith('better-auth.session'));
+    if (hasSession) {
+      url.pathname = locale === routing.defaultLocale ? '/' : `/${locale}`;
+    } else {
+      url.pathname = locale === routing.defaultLocale ? '/sign-in' : `/${locale}/sign-in`;
+    }
+    return NextResponse.redirect(url);
+  }
+
   // Honour a remembered locale choice for unprefixed paths. The
   // language switcher writes the NEXT_LOCALE cookie; localeDetection
   // stays off, so this never sniffs Accept-Language — only an explicit

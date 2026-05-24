@@ -48,6 +48,11 @@ export interface BeerTypeManagerView {
   name: string;
   unitPriceMinor: string;
   priceDisplay: string;
+  // Spec 011 — optional buy price + per-unit margin. null when admin
+  // hasn't set a buy price yet.
+  buyPriceMinor: string | null;
+  buyPriceDisplay: string | null;
+  marginPerUnitDisplay: string | null;
   currentStock: number;
   lowStockThreshold: number;
   isLowStock: boolean;
@@ -69,6 +74,7 @@ const digitsOnly = (v: string) => v.replace(/\D/g, '');
 interface BeerFormValues {
   name: string;
   price: string;
+  buyPrice: string;
   initialStock: string;
   lowStockThreshold: string;
 }
@@ -96,6 +102,7 @@ function BeerForm({
     defaultValues: {
       name: beer?.name ?? '',
       price: beer ? (Number(beer.unitPriceMinor) / 100).toFixed(2) : '',
+      buyPrice: beer?.buyPriceMinor ? (Number(beer.buyPriceMinor) / 100).toFixed(2) : '',
       initialStock: '0',
       lowStockThreshold: beer ? String(beer.lowStockThreshold) : '5',
     },
@@ -104,12 +111,18 @@ function BeerForm({
   function onSubmit(values: BeerFormValues) {
     const priceMinor = toMinor(values.price);
     if (priceMinor === null) return; // schema guarantees this
+    // Spec 011 — convert empty buyPrice to null; otherwise parse to
+    // minor units. Schema rejects malformed input before we get here.
+    const buyMinor = values.buyPrice.trim() === '' ? null : toMinor(values.buyPrice);
+    if (buyMinor === null && values.buyPrice.trim() !== '') return;
+    const buyPriceMinor = buyMinor === null ? null : buyMinor.toString();
     startTransition(async () => {
       const result =
         mode === 'create'
           ? await createBeerTypeAction({
               name: values.name.trim(),
               unitPriceMinor: priceMinor.toString(),
+              buyPriceMinor,
               initialStock: Number(values.initialStock) || 0,
               lowStockThreshold: Number(values.lowStockThreshold) || 0,
             })
@@ -118,6 +131,7 @@ function BeerForm({
               patch: {
                 name: values.name.trim(),
                 unitPriceMinor: priceMinor.toString(),
+                buyPriceMinor,
                 lowStockThreshold: Number(values.lowStockThreshold) || 0,
               },
             });
@@ -126,6 +140,8 @@ function BeerForm({
         onDone();
       } else if (result.code === 'DUPLICATE_NAME') {
         form.setError('name', { message: 'admin.duplicateName' });
+      } else if (result.code === 'BUY_ABOVE_SELL') {
+        form.setError('buyPrice', { message: 'admin.beerTypeBuyAboveSell' });
       } else {
         form.setError('root', { message: 'admin.beerTypeFieldsError' });
       }
@@ -158,6 +174,21 @@ function BeerForm({
                 <Input inputMode="decimal" placeholder="52.00" {...field} />
               </FormControl>
               <FormDescription>{tForms('amountHint')}</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {/* Spec 011 — optional buy price for margin tracking. */}
+        <FormField
+          control={form.control}
+          name="buyPrice"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('buyPriceLabel', { currency: currencyCode })}</FormLabel>
+              <FormControl>
+                <Input inputMode="decimal" placeholder="40.00" {...field} />
+              </FormControl>
+              <FormDescription>{t('buyPriceHint')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -464,6 +495,15 @@ export function BeerTypeManager({
                       threshold: beer.lowStockThreshold,
                     })}
                   </div>
+                  {/* Spec 011 — per-unit margin row when buy price set. */}
+                  {beer.marginPerUnitDisplay && beer.buyPriceDisplay ? (
+                    <div className="text-muted-foreground mt-0.5 text-xs">
+                      {t('marginPerUnit', {
+                        buy: beer.buyPriceDisplay,
+                        margin: beer.marginPerUnitDisplay,
+                      })}
+                    </div>
+                  ) : null}
                 </div>
                 <Link
                   href={`/admin/beer-types/${beer.id}/history` as Route}

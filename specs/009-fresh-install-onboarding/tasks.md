@@ -117,7 +117,7 @@ beeromat is a single Next.js 16 application at the repository root. Source lives
 ## Phase 7: Polish & Cross-Cutting Concerns
 
 - [X] T020 [P] Update `scripts/db-reset.ts` header comment block — promote `pnpm db:reset` (bare) to the canonical "test the v1.9 wizard from true-fresh state" command in the docstring; keep `pnpm db:reset:bootstrap` documented but mark it as "skips the wizard; tests the spec 008 promotion path in isolation". No behavioural change. **Verifier**: existing `pnpm db:reset` + `pnpm db:reset:bootstrap` commands still run without error (manual diff review confirms doc-only change).
-- [ ] T021 Manual quickstart walk — execute `specs/009-fresh-install-onboarding/quickstart.md` steps 1–11 plus the three failure-mode verifications, on the local dev stack with Mailpit. Confirm timing meets SC-001 (under 90 seconds end-to-end on mobile-emulated viewport in DevTools). Note the elapsed time in the spec's Status when promoting it to "Implemented". **Verifier**: manual sign-off referenced in the commit message that closes this task.
+- [X] T021 Manual quickstart walk — execute `specs/009-fresh-install-onboarding/quickstart.md` steps 1–11 plus the three failure-mode verifications, on the local dev stack with Mailpit. Confirm timing meets SC-001 (under 90 seconds end-to-end on mobile-emulated viewport in DevTools). Note the elapsed time in the spec's Status when promoting it to "Implemented". **Verifier**: manual sign-off referenced in the commit message that closes this task.
 
 ---
 

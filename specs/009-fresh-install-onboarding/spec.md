@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-24
 
-**Status**: Draft
+**Status**: Shipped (2026-05-24)
 
 **Input**: User description: "Add a fresh-install onboarding wizard at /setup that handles the case spec 008 explicitly left out: the deployment has no clubs row AND no users yet. When the app detects this state, every incoming route redirects to /setup. The wizard collects from the very first visitor: club name (min 1, max 120 chars), currency code (ISO 4217, e.g. CZK), default locale (from routing.locales — currently cs | en), and the admin's email address. On submit: inserts the clubs row + empty club_banking_profiles row + pre-creates the user with emailVerified=false and dispatches a magic-link email. Clicking the magic link verifies normally; spec 008's session.create.after databaseHook then auto-promotes that user to club_admin on the just-created club. Once a clubs row + a users row both exist, /setup MUST NOT be accessible. SEED_* env vars and scripts/seed.ts remain available for CI fixtures but become OPTIONAL for production bootstrap."
 

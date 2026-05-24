@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { LanguageSwitcher } from '@/components/nav/language-switcher';
+import { SignOutButton } from '@/components/nav/sign-out-button';
 import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
 import { formatMoney } from '@/lib/format';
@@ -37,7 +38,10 @@ export default async function AppHomePage({
           </Link>
           <h1 className="text-2xl font-bold leading-tight">{ctx.club.name}</h1>
         </div>
-        <LanguageSwitcher />
+        <div className="flex flex-col items-end gap-1">
+          <LanguageSwitcher />
+          <SignOutButton />
+        </div>
       </header>
 
       {/* The outstanding balance — the focal point of the home screen.

@@ -10,43 +10,67 @@ import {
   Text,
 } from '@react-email/components';
 
+// Pure-prop component (spec 007 FR-002). React Email components render
+// outside next-intl's React tree, so they can't call useTranslations.
+// The mailer (lib/email/mailer.ts) pre-resolves the locale-bound
+// strings via getTranslations({ locale, namespace: 'emails.magicLink' })
+// and hands them in as props. The template is presentation only.
 interface MagicLinkEmailProps {
   url: string;
+  previewText: string;
+  heading: string;
+  bodyParagraph: string;
+  buttonLabel: string;
+  fallbackLinkLabel: string;
+  signoffParagraph: string;
 }
 
-export function MagicLinkEmail({ url }: MagicLinkEmailProps) {
+export function MagicLinkEmail({
+  url,
+  previewText,
+  heading: headingText,
+  bodyParagraph,
+  buttonLabel,
+  fallbackLinkLabel,
+  signoffParagraph,
+}: MagicLinkEmailProps) {
   return (
     <Html>
       <Head />
-      <Preview>Your beeromat sign-in link (valid for 5 minutes)</Preview>
+      <Preview>{previewText}</Preview>
       <Body style={body}>
         <Container style={container}>
-          <Heading style={heading}>Sign in to beeromat</Heading>
-          <Text style={paragraph}>
-            Tap the button below to sign in. This link is valid for 5 minutes and can only be used
-            once.
-          </Text>
+          <Heading style={heading}>{headingText}</Heading>
+          <Text style={paragraph}>{bodyParagraph}</Text>
           <Section style={buttonSection}>
             <Button href={url} style={button}>
-              Sign in
+              {buttonLabel}
             </Button>
           </Section>
           <Text style={small}>
-            Or paste this link into your browser:
+            {fallbackLinkLabel}
             <br />
             <span style={mono}>{url}</span>
           </Text>
-          <Text style={small}>
-            If you didn&apos;t request this, you can ignore this email — nothing will happen.
-          </Text>
+          <Text style={small}>{signoffParagraph}</Text>
         </Container>
       </Body>
     </Html>
   );
 }
 
+// PreviewProps so React Email's `pnpm email` preview server still
+// renders this in isolation with sample copy.
 MagicLinkEmail.PreviewProps = {
   url: 'https://beeromat.example.com/api/auth/magic-link/callback?token=abc123',
+  previewText: 'Link valid for 5 minutes.',
+  heading: 'Sign in to beeromat',
+  bodyParagraph:
+    'Tap the button to sign in. The link is valid for 5 minutes and can only be used once.',
+  buttonLabel: 'Sign in',
+  fallbackLinkLabel: 'Or paste this link into your browser:',
+  signoffParagraph:
+    "If you didn't request this, you can safely ignore this email — nothing will happen.",
 } satisfies MagicLinkEmailProps;
 
 export default MagicLinkEmail;

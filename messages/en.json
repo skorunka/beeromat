@@ -81,6 +81,28 @@
     "errorNameRequired": "Pop your name in first.",
     "errorGeneric": "That didn't work — give it another go."
   },
+  "emails": {
+    "magicLink": {
+      "subject": "Your beeromat sign-in link",
+      "previewText": "Link valid for 5 minutes.",
+      "heading": "Sign in to beeromat",
+      "bodyParagraph": "Tap the button to sign in. The link is valid for 5 minutes.",
+      "buttonLabel": "Sign in",
+      "fallbackLinkLabel": "Or paste this link into your browser:",
+      "signoffParagraph": "If you didn't request this, you can safely ignore this email."
+    },
+    "invitation": {
+      "subject": "{inviterName} invited you to {clubName}",
+      "previewText": "Join the crew on beeromat.",
+      "heading": "Welcome to {clubName}",
+      "bodyIntro": "Hey! {inviterName} invited you to {clubName} on beeromat — the app the club uses to keep tabs on after-match beers.",
+      "bodyPitch": "Tap the button to set up your profile and join in.",
+      "buttonLabel": "Accept invitation",
+      "fallbackLinkLabel": "Or paste this link into your browser:",
+      "expiryNote": "Invitation valid for 14 days.",
+      "ignoreNote": "If you don't recognise {inviterName}, you can safely ignore this email."
+    }
+  },
   "home": {
     "greeting": "Hey {name}",
     "outstandingBalance": "Your tab",

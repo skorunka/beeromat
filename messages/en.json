@@ -64,7 +64,7 @@
       "wrongPin": "Nope. {remaining} tries left.",
       "lockedTitle": "Locked",
       "lockedBody": "Five wrong tries. Sign in again with the link from your email.",
-      "forgotPin": "Forgot your PIN? Email me a link",
+      "forgotPin": "Forgot your PIN?",
       "forgotPinSent": "Link sent — check your email to set a new PIN."
     }
   },

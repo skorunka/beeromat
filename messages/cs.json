@@ -64,7 +64,7 @@
       "wrongPin": "Špatně. Zbývá pokusů: {remaining}.",
       "lockedTitle": "Zamčeno",
       "lockedBody": "Pět špatných pokusů. Přihlas se znovu odkazem z e‑mailu.",
-      "forgotPin": "Nevíš PIN? Pošli mi odkaz",
+      "forgotPin": "Zapomenutý PIN?",
       "forgotPinSent": "Odkaz odeslán — v e‑mailu si nastavíš nový PIN."
     }
   },

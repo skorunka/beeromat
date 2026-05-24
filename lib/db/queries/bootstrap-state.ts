@@ -31,7 +31,20 @@ type CountRow = {
 } & Record<string, unknown>;
 
 export async function isFreshDeployment(): Promise<boolean> {
-  if (isFreshCached === false) return false;
+  // 'sticky' (prod default) — once we observe a populated DB, the
+  // cache wins forever; the proxy pays zero DB cost for every
+  // subsequent request.
+  // 'off' (test rig) — query every time so a between-test truncate
+  // produces a clean re-detection. Same code path, env-driven —
+  // constitution Test/Prod Code Separation worked example.
+  //
+  // Read process.env directly (not via lib/env's parsed view) so
+  // unit tests that import this module don't need the whole env
+  // schema satisfied — the cache mode has a safe default.
+  const cacheMode = process.env.BOOTSTRAP_STATE_CACHE ?? 'sticky';
+  if (cacheMode === 'sticky' && isFreshCached === false) {
+    return false;
+  }
   const result = await db.execute<CountRow>(sql`
     SELECT
       (SELECT count(*)::text FROM clubs) AS clubs,

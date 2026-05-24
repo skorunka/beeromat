@@ -1,9 +1,12 @@
 import 'server-only';
+import { randomUUID } from 'node:crypto';
 import { eq, sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { users } from '@/lib/db/schema/auth';
+import { clubs, clubBankingProfiles } from '@/lib/db/schema/clubs';
 import { members } from '@/lib/db/schema/members';
+import type { OnboardingInput } from '@/lib/validation/onboarding';
 
 // Spec 008 — self-bootstrap post-verify promotion.
 //
@@ -70,5 +73,74 @@ export async function promoteFirstUserIfNeeded(
     });
 
     return { promoted: true };
+  });
+}
+
+// Spec 009 — wizard's transactional insert leg.
+//
+// Extracted from app/[locale]/setup/actions.ts::bootstrapClubAction
+// so the state-machine logic (advisory lock, FR-012 recheck, three
+// inserts in one transaction) is directly unit-testable via
+// vi.mock('@/lib/db/client') + PGlite — same pattern this file's
+// promoteFirstUserIfNeeded uses for spec 008.
+//
+// The action wraps this with: input parsing, fresh-state cache
+// invalidation, NEXT_LOCALE cookie set, magic-link dispatch via
+// Better Auth, revalidatePath. None of those belong in the
+// transaction itself.
+export type CreateClubAndAdminUserResult =
+  | { kind: 'inserted'; clubId: string; userId: string }
+  | { kind: 'already-complete' };
+
+export async function createClubAndAdminUserTx(
+  input: OnboardingInput,
+): Promise<CreateClubAndAdminUserResult> {
+  return db.transaction(async (tx) => {
+    // Spec 008 + 009 share advisory-lock key 1008 so all three
+    // bootstrap entry points (wizard, requestMagicLinkAction
+    // pre-create, promoteFirstUserIfNeeded) serialise correctly.
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(1008)`);
+
+    // FR-012 — defence in depth. The proxy is supposed to redirect
+    // post-bootstrap /setup visits before this code runs, but the
+    // recheck inside the transaction is the real boundary: a crafted
+    // POST cannot insert a second clubs row.
+    const counts = await tx.execute<{ clubs: string; users: string } & Record<string, unknown>>(
+      sql`
+        SELECT
+          (SELECT count(*)::text FROM clubs) AS clubs,
+          (SELECT count(*)::text FROM "user") AS users
+      `,
+    );
+    const row = counts.rows[0];
+    const clubsCount = Number(row?.clubs ?? 0);
+    const usersCount = Number(row?.users ?? 0);
+    if (clubsCount > 0 || usersCount > 0) {
+      return { kind: 'already-complete' as const };
+    }
+
+    const [clubRow] = await tx
+      .insert(clubs)
+      .values({
+        name: input.clubName,
+        currencyCode: input.currencyCode,
+        defaultLocale: input.defaultLocale,
+      })
+      .returning();
+    if (!clubRow) throw new Error('[bootstrap] failed to insert clubs row');
+
+    await tx.insert(clubBankingProfiles).values({ clubId: clubRow.id });
+
+    const userId = randomUUID();
+    await tx.insert(users).values({
+      id: userId,
+      email: input.adminEmail,
+      // Local-part of the email as a friendly default display name;
+      // the admin can change it later via /admin/config or /account.
+      name: input.adminEmail.split('@')[0] ?? input.adminEmail,
+      emailVerified: false,
+    });
+
+    return { kind: 'inserted' as const, clubId: clubRow.id, userId };
   });
 }

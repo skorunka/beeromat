@@ -11,6 +11,31 @@ import { promoteFirstUserIfNeeded } from '@/lib/auth/bootstrap';
 import { sendMagicLink } from '@/lib/email/mailer';
 import type { Locale } from '@/lib/i18n/routing';
 
+// Spec 009 — wizard locale override for sendMagicLink.
+//
+// The wizard's submit context is `/en/setup` (or `/cs/setup`); a user
+// on /en/setup who picks `cs` as the club default expects the
+// magic-link email in Czech, not English. getLocale() at callback
+// time reflects the URL prefix, not the chosen defaultLocale —
+// they're independent.
+//
+// withBootstrapLocale runs the inner callback with `pendingLocale`
+// set so sendMagicLink picks it up. Used only by bootstrapClubAction;
+// the wizard is one-shot per deployment so there is no concurrency
+// concern between two callers.
+let pendingBootstrapLocale: Locale | null = null;
+export async function withBootstrapLocale<T>(
+  locale: Locale,
+  fn: () => Promise<T>,
+): Promise<T> {
+  pendingBootstrapLocale = locale;
+  try {
+    return await fn();
+  } finally {
+    pendingBootstrapLocale = null;
+  }
+}
+
 // Better Auth v1.6 server instance with the magic-link plugin.
 // Constitution Principle IV: invitation-only, magic-link as root of trust,
 // device-scoped PIN handled separately by lib/auth/pin.ts.
@@ -54,7 +79,14 @@ export const auth = betterAuth({
         // seatbelt — if this callback ever runs outside a request
         // context, the mailer's own fallback (normalizeLocale →
         // routing.defaultLocale) kicks in.
-        const locale = (await getLocale().catch(() => undefined)) as Locale | undefined;
+        //
+        // Spec 009: when the wizard is dispatching (one-shot per
+        // deployment), pendingBootstrapLocale carries the chosen
+        // club-default locale which may differ from the URL locale —
+        // see withBootstrapLocale.
+        const locale =
+          pendingBootstrapLocale ??
+          ((await getLocale().catch(() => undefined)) as Locale | undefined);
         await sendMagicLink({ to: email, url, locale });
       },
     }),

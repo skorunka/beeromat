@@ -2,21 +2,64 @@
 // proxy() function with the same signature as the old middleware()
 // function. next-intl's middleware handles locale detection +
 // redirection (e.g. browser language → /cs or /en prefix).
+//
+// Spec 009 adds a fresh-state redirect: when the deployment is truly
+// fresh (no clubs row AND no users row), every non-static request is
+// redirected to /<locale>/setup so the very first visitor lands on
+// the onboarding wizard. The check goes through isFreshDeployment()
+// which is sticky-false-cached after the first observation of a
+// populated deployment — so post-bootstrap requests pay zero DB cost.
 
 import createMiddleware from 'next-intl/middleware';
 import { type NextRequest, NextResponse } from 'next/server';
 
+import { isFreshDeployment } from '@/lib/db/queries/bootstrap-state';
 import { routing } from '@/lib/i18n/routing';
 
 const intlMiddleware = createMiddleware(routing);
 
-export default function proxy(request: NextRequest): NextResponse {
+const SETUP_PATH_RE = /^\/(?:(cs|en)\/)?setup(?:\/.*)?$/;
+
+function resolveLocale(request: NextRequest): 'cs' | 'en' {
+  const prefix = /^\/(cs|en)(?:\/|$)/.exec(request.nextUrl.pathname);
+  if (prefix) return prefix[1] as 'cs' | 'en';
+  const cookie = request.cookies.get('NEXT_LOCALE')?.value;
+  if (cookie === 'cs' || cookie === 'en') return cookie;
+  return routing.defaultLocale;
+}
+
+function setupUrlFor(locale: 'cs' | 'en', request: NextRequest): URL {
+  const url = request.nextUrl.clone();
+  // Czech is the unprefixed default per routing.ts; the english variant
+  // is prefixed so the redirect resolves cleanly through next-intl.
+  url.pathname = locale === routing.defaultLocale ? '/setup' : `/${locale}/setup`;
+  url.search = '';
+  return url;
+}
+
+export default async function proxy(request: NextRequest): Promise<NextResponse> {
+  const { pathname } = request.nextUrl;
+
+  // Spec 009 FR-011 — true-fresh deployments funnel every visitor to
+  // the wizard. The check is `false` for the lifetime of any process
+  // that has ever seen a populated DB; the typical post-bootstrap
+  // path adds ~zero overhead. Runs BEFORE the NEXT_LOCALE redirect so
+  // a `cs`-cookie'd visitor on a fresh deploy still lands on /setup,
+  // not on / (which would then bounce back).
+  if (await isFreshDeployment()) {
+    if (!SETUP_PATH_RE.test(pathname)) {
+      const locale = resolveLocale(request);
+      return NextResponse.redirect(setupUrlFor(locale, request));
+    }
+    // In-state-X visit to /setup itself — let next-intl render it.
+    return intlMiddleware(request);
+  }
+
   // Honour a remembered locale choice for unprefixed paths. The
   // language switcher writes the NEXT_LOCALE cookie; localeDetection
   // stays off, so this never sniffs Accept-Language — only an explicit
   // prior choice sends a member to /en. Czech (the default) needs no
   // prefix, so a `cs` cookie is a no-op.
-  const { pathname } = request.nextUrl;
   const hasLocalePrefix = /^\/(cs|en)(\/|$)/.test(pathname);
   if (!hasLocalePrefix && request.cookies.get('NEXT_LOCALE')?.value === 'en') {
     const url = request.nextUrl.clone();

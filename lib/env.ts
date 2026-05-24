@@ -36,15 +36,24 @@ const envSchema = z.object({
   UPSTASH_REDIS_REST_URL: z.string().url(),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
 
-  // Seed (used only by scripts/seed.ts)
-  SEED_ADMIN_EMAIL: z.string().email(),
-  SEED_ADMIN_NAME: z.string().min(1),
-  SEED_CLUB_NAME: z.string().min(1),
+  // Seed — consumed only by scripts/seed.ts (and by the v1.8 bootstrap
+  // fallback for the very first sign-in if no club row exists yet).
+  // Optional at runtime: a deployment that has already bootstrapped its
+  // club via the admin UI (constitution Principle II) doesn't need these
+  // env vars to start. scripts/seed.ts does its own strict check at the
+  // top of main() before reading them.
+  SEED_ADMIN_EMAIL: z.string().email().optional(),
+  SEED_ADMIN_NAME: z.string().min(1).optional(),
+  SEED_CLUB_NAME: z.string().min(1).optional(),
   SEED_CLUB_CURRENCY: z
     .string()
     .length(3)
-    .regex(/^[A-Z]{3}$/, 'Must be an ISO 4217 currency code, e.g. CZK'),
-  SEED_CLUB_LOCALE: z.string().regex(/^[a-z]{2}(-[A-Z]{2})?$/),
+    .regex(/^[A-Z]{3}$/, 'Must be an ISO 4217 currency code, e.g. CZK')
+    .optional(),
+  SEED_CLUB_LOCALE: z
+    .string()
+    .regex(/^[a-z]{2}(-[A-Z]{2})?$/)
+    .optional(),
 
   // Runtime
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),

@@ -24,18 +24,52 @@ import { members } from '@/lib/db/schema/members';
 import { users } from '@/lib/db/schema/auth';
 import { env } from '@/lib/env';
 
+// SEED_* env vars are optional in lib/env.ts (the running app no longer
+// needs them once the club is bootstrapped via the admin UI), so this
+// script asserts them locally before reading. Loud, single-call check.
+function requireSeedEnv(): {
+  SEED_ADMIN_EMAIL: string;
+  SEED_ADMIN_NAME: string;
+  SEED_CLUB_NAME: string;
+  SEED_CLUB_CURRENCY: string;
+  SEED_CLUB_LOCALE: string;
+} {
+  const missing: string[] = [];
+  const get = (key: 'SEED_ADMIN_EMAIL' | 'SEED_ADMIN_NAME' | 'SEED_CLUB_NAME' | 'SEED_CLUB_CURRENCY' | 'SEED_CLUB_LOCALE'): string => {
+    const v = env[key];
+    if (!v) missing.push(key);
+    return v ?? '';
+  };
+  const out = {
+    SEED_ADMIN_EMAIL: get('SEED_ADMIN_EMAIL'),
+    SEED_ADMIN_NAME: get('SEED_ADMIN_NAME'),
+    SEED_CLUB_NAME: get('SEED_CLUB_NAME'),
+    SEED_CLUB_CURRENCY: get('SEED_CLUB_CURRENCY'),
+    SEED_CLUB_LOCALE: get('SEED_CLUB_LOCALE'),
+  };
+  if (missing.length > 0) {
+    throw new Error(
+      `[seed] Missing required env vars for seeding: ${missing.join(', ')}.\n` +
+        'These are bootstrap-only — set them in .env.local just to run pnpm db:seed.',
+    );
+  }
+  return out;
+}
+
 async function main(): Promise<void> {
   console.log('[seed] Starting seed for beeromat v1 single-club deployment…');
 
+  const seed = requireSeedEnv();
+
   // 1) Club row (find or insert by name).
-  let club = await db.query.clubs.findFirst({ where: eq(clubs.name, env.SEED_CLUB_NAME) });
+  let club = await db.query.clubs.findFirst({ where: eq(clubs.name, seed.SEED_CLUB_NAME) });
   if (!club) {
     const [inserted] = await db
       .insert(clubs)
       .values({
-        name: env.SEED_CLUB_NAME,
-        currencyCode: env.SEED_CLUB_CURRENCY,
-        defaultLocale: env.SEED_CLUB_LOCALE,
+        name: seed.SEED_CLUB_NAME,
+        currencyCode: seed.SEED_CLUB_CURRENCY,
+        defaultLocale: seed.SEED_CLUB_LOCALE,
       })
       .returning();
     if (!inserted) throw new Error('Failed to insert club');
@@ -60,14 +94,14 @@ async function main(): Promise<void> {
   // 3) Better Auth user (so magic-link sign-in with disableSignUp:true
   //    can find the existing user record).
   let adminUser = await db.query.users.findFirst({
-    where: eq(users.email, env.SEED_ADMIN_EMAIL),
+    where: eq(users.email, seed.SEED_ADMIN_EMAIL),
   });
   if (!adminUser) {
     const [inserted] = await db
       .insert(users)
       .values({
-        email: env.SEED_ADMIN_EMAIL,
-        name: env.SEED_ADMIN_NAME,
+        email: seed.SEED_ADMIN_EMAIL,
+        name: seed.SEED_ADMIN_NAME,
         emailVerified: true,
       })
       .returning();

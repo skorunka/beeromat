@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-23
 
-**Status**: Draft
+**Status**: Shipped
 
 **Input**: User description: "Our emails are English only. Localize the magic-link and invitation emails so the language matches the rest of the user's experience."
 

@@ -38,7 +38,7 @@ export default async function AppHomePage({
           </Link>
           <h1 className="text-2xl font-bold leading-tight">{ctx.club.name}</h1>
         </div>
-        <div className="flex flex-col items-end gap-1">
+        <div className="flex items-center gap-2">
           <LanguageSwitcher />
           <SignOutButton />
         </div>

@@ -26,6 +26,10 @@ export const beerTypes = pgTable(
       .references(() => clubs.id, { onDelete: 'restrict' }),
     name: text().notNull(),
     unitPriceMinor: bigint({ mode: 'bigint' }).notNull(),
+    // Spec 011 — optional purchase price for margin tracking. Nullable
+    // because existing beer types pre-v1.11 don't have it, and the admin
+    // fills it in over time as cases arrive.
+    buyPriceMinor: bigint({ mode: 'bigint' }),
     currentStock: integer().notNull().default(0),
     lowStockThreshold: integer().notNull().default(5),
     isArchived: boolean().notNull().default(false),
@@ -38,6 +42,10 @@ export const beerTypes = pgTable(
   (t) => [
     check('beer_types_stock_non_negative', sql`${t.currentStock} >= 0`),
     check('beer_types_threshold_non_negative', sql`${t.lowStockThreshold} >= 0`),
+    check(
+      'beer_types_buy_price_non_negative',
+      sql`${t.buyPriceMinor} IS NULL OR ${t.buyPriceMinor} >= 0`,
+    ),
     index('idx_beer_types_club_active_order').on(t.clubId, t.isArchived, t.displayOrder),
     uniqueIndex('uniq_beer_types_club_name_active')
       .on(t.clubId, t.name)

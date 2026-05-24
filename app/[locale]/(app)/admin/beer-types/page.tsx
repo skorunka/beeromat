@@ -3,8 +3,9 @@ import { Link } from '@/lib/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { BeerTypeManager, type BeerTypeManagerView } from '@/components/admin/beer-type-manager';
+import { Card } from '@/components/ui/card';
 import { requireRole } from '@/lib/auth/session';
-import { getBeerTypeCatalog } from '@/lib/db/queries/catalog';
+import { getBeerTypeCatalog, getClubMarginSummary } from '@/lib/db/queries/catalog';
 import { formatMoney } from '@/lib/format';
 
 // US7 — stock manager's beer-type catalog (includes archived types).
@@ -20,6 +21,7 @@ export default async function BeerTypesAdminPage({
   const t = await getTranslations('admin');
   const tCommon = await getTranslations('common');
   const beers = await getBeerTypeCatalog(ctx.club.id, { includeArchived: true });
+  const marginSummary = await getClubMarginSummary(ctx.club.id);
   const { currencyCode, defaultLocale } = ctx.club;
 
   const view: BeerTypeManagerView[] = beers.map((b) => ({
@@ -27,6 +29,13 @@ export default async function BeerTypesAdminPage({
     name: b.name,
     unitPriceMinor: b.unitPriceMinor.toString(),
     priceDisplay: formatMoney(b.unitPriceMinor, currencyCode, defaultLocale),
+    buyPriceMinor: b.buyPriceMinor === null ? null : b.buyPriceMinor.toString(),
+    buyPriceDisplay:
+      b.buyPriceMinor === null ? null : formatMoney(b.buyPriceMinor, currencyCode, defaultLocale),
+    marginPerUnitDisplay:
+      b.buyPriceMinor === null
+        ? null
+        : formatMoney(b.unitPriceMinor - b.buyPriceMinor, currencyCode, defaultLocale),
     currentStock: b.currentStock,
     lowStockThreshold: b.lowStockThreshold,
     isLowStock: b.isLowStock,
@@ -43,6 +52,20 @@ export default async function BeerTypesAdminPage({
         ← {tCommon('back')}
       </Link>
       <h1 className="mb-4 text-2xl font-bold">{t('beerTypesTitle')}</h1>
+      {/* Spec 011 — club margin summary. */}
+      <Card className="mb-4 p-4">
+        <div className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+          {t('clubMarginTitle')}
+        </div>
+        <div className="text-foreground text-2xl font-extrabold tabular-nums">
+          {formatMoney(marginSummary.totalMarginMinor, currencyCode, defaultLocale)}
+        </div>
+        {marginSummary.untrackedBeerCount > 0 ? (
+          <div className="text-muted-foreground mt-1 text-xs">
+            {t('clubMarginUntrackedNote', { count: marginSummary.untrackedBeerCount })}
+          </div>
+        ) : null}
+      </Card>
       <BeerTypeManager beerTypes={view} currencyCode={currencyCode} />
     </main>
   );

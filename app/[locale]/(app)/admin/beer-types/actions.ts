@@ -34,6 +34,9 @@ async function nameTaken(clubId: string, name: string, excludeId?: string): Prom
 const createSchema = z.object({
   name: z.string().trim().min(1).max(120),
   unitPriceMinor: z.string().regex(/^\d+$/),
+  // Spec 011 — optional buy price (minor units, decimal-string).
+  // null and undefined both mean "no buy price set".
+  buyPriceMinor: z.string().regex(/^\d+$/).nullable().optional(),
   initialStock: z.number().int().nonnegative(),
   lowStockThreshold: z.number().int().nonnegative(),
   displayOrder: z.number().int().optional(),
@@ -41,7 +44,7 @@ const createSchema = z.object({
 
 export type CreateBeerTypeResult =
   | { ok: true; beerTypeId: string }
-  | { ok: false; code: 'DUPLICATE_NAME' | 'INVALID_INPUT' };
+  | { ok: false; code: 'DUPLICATE_NAME' | 'INVALID_INPUT' | 'BUY_ABOVE_SELL' };
 
 export async function createBeerTypeAction(rawInput: unknown): Promise<CreateBeerTypeResult> {
   const ctx = await requireRole('stock_manager', 'club_admin');
@@ -51,6 +54,13 @@ export async function createBeerTypeAction(rawInput: unknown): Promise<CreateBee
 
   const unitPriceMinor = BigInt(input.unitPriceMinor);
   if (unitPriceMinor <= 0n) return { ok: false, code: 'INVALID_INPUT' };
+  const buyPriceMinor =
+    input.buyPriceMinor != null ? BigInt(input.buyPriceMinor) : null;
+  if (buyPriceMinor !== null && buyPriceMinor > unitPriceMinor) {
+    // FR-004 defence-in-depth: client schema enforces this too but
+    // crafted POSTs can bypass the client.
+    return { ok: false, code: 'BUY_ABOVE_SELL' };
+  }
   if (await nameTaken(ctx.club.id, input.name)) {
     return { ok: false, code: 'DUPLICATE_NAME' };
   }
@@ -71,6 +81,7 @@ export async function createBeerTypeAction(rawInput: unknown): Promise<CreateBee
         clubId: ctx.club.id,
         name: input.name,
         unitPriceMinor,
+        buyPriceMinor,
         currentStock: input.initialStock,
         lowStockThreshold: input.lowStockThreshold,
         displayOrder,
@@ -101,6 +112,9 @@ const updateSchema = z.object({
   patch: z.object({
     name: z.string().trim().min(1).max(120).optional(),
     unitPriceMinor: z.string().regex(/^\d+$/).optional(),
+    // Spec 011 — optional buy-price patch. Explicit `null` means
+    // "clear it"; undefined means "don't touch".
+    buyPriceMinor: z.string().regex(/^\d+$/).nullable().optional(),
     lowStockThreshold: z.number().int().nonnegative().optional(),
     displayOrder: z.number().int().optional(),
   }),
@@ -108,7 +122,7 @@ const updateSchema = z.object({
 
 export type UpdateBeerTypeResult =
   | { ok: true }
-  | { ok: false; code: 'NOT_FOUND' | 'DUPLICATE_NAME' | 'INVALID_INPUT' };
+  | { ok: false; code: 'NOT_FOUND' | 'DUPLICATE_NAME' | 'INVALID_INPUT' | 'BUY_ABOVE_SELL' };
 
 export async function updateBeerTypeAction(rawInput: unknown): Promise<UpdateBeerTypeResult> {
   const ctx = await requireRole('stock_manager', 'club_admin');
@@ -128,10 +142,24 @@ export async function updateBeerTypeAction(rawInput: unknown): Promise<UpdateBee
   // Changing the price never rewrites past consumptions' snapshots.
   const set: Partial<typeof beerTypes.$inferInsert> = {};
   if (patch.name !== undefined) set.name = patch.name;
+  let nextSell = existing.unitPriceMinor;
   if (patch.unitPriceMinor !== undefined) {
     const price = BigInt(patch.unitPriceMinor);
     if (price <= 0n) return { ok: false, code: 'INVALID_INPUT' };
     set.unitPriceMinor = price;
+    nextSell = price;
+  }
+  if (patch.buyPriceMinor !== undefined) {
+    if (patch.buyPriceMinor === null) {
+      set.buyPriceMinor = null;
+    } else {
+      const buy = BigInt(patch.buyPriceMinor);
+      if (buy > nextSell) {
+        // FR-004 defence-in-depth.
+        return { ok: false, code: 'BUY_ABOVE_SELL' };
+      }
+      set.buyPriceMinor = buy;
+    }
   }
   if (patch.lowStockThreshold !== undefined) set.lowStockThreshold = patch.lowStockThreshold;
   if (patch.displayOrder !== undefined) set.displayOrder = patch.displayOrder;

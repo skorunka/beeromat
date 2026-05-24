@@ -1,0 +1,2 @@
+ALTER TABLE "beer_types" ADD COLUMN "buy_price_minor" bigint;--> statement-breakpoint
+ALTER TABLE "beer_types" ADD CONSTRAINT "beer_types_buy_price_non_negative" CHECK ("beer_types"."buy_price_minor" IS NULL OR "beer_types"."buy_price_minor" >= 0);

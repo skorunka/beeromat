@@ -81,9 +81,9 @@ Standard Next.js 16 App Router layout. New test dirs are siblings under `tests/`
 
 ### Implementation
 
-- [ ] T018 [US2] Create sample mocked-E2E test at `C:\_\beeromat\tests\e2e-mock\sample-form-error.spec.ts`: drives `/match` (which exists from spec 013), calls `mockServerAction` with a `VALIDATION_FAILED` response shape, asserts the error toast renders. Inherits the shared admin storageState from auth.setup (per `playwright.config.ts` project dependencies).
-- [ ] T019 [US2] Add a post-test assertion to T018: query `payments`, `consumptions`, `match_agreements` table counts before AND after the test; assert delta = 0 (no DB writes). This proves the mock-boundary contract from FR-005.
-- [ ] T020 [US2] Verify `pnpm test:e2e-mock` runs T018 green; total wall time ≤ 90s (SC-002). If it exceeds, investigate webserver-reuse with the other chromium project.
+- [X] T018 [US2] Create sample mocked-E2E test at `C:\_\beeromat\tests\e2e-mock\sample-form-error.spec.ts`: drives `/match` (which exists from spec 013), calls `mockServerAction` with a `VALIDATION_FAILED` response shape, asserts the error toast renders. Inherits the shared admin storageState from auth.setup (per `playwright.config.ts` project dependencies).
+- [X] T019 [US2] Add a post-test assertion to T018: query `payments`, `consumptions`, `match_agreements` table counts before AND after the test; assert delta = 0 (no DB writes). This proves the mock-boundary contract from FR-005.
+- [ ] T020 [US2] Verify `pnpm test:e2e-mock` runs T018 green — DEFERRED to Polish 8-gate run (T047) to avoid paying cold-build cost twice; total wall time ≤ 90s (SC-002). If it exceeds, investigate webserver-reuse with the other chromium project.
 
 **Checkpoint**: US2 fully functional. Mocked-E2E layer has a working pattern.
 

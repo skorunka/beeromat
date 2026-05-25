@@ -11,6 +11,11 @@ import { clubs, clubBankingProfiles } from '@/lib/db/schema/clubs';
 import { users } from '@/lib/db/schema/auth';
 import { members } from '@/lib/db/schema/members';
 
+
+// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
+// so it MUST start with no saved auth state. Remove this opt-out + the
+// signInAndUnlock call(s) once migrated to the authedTest fixture.
+test.use({ storageState: { cookies: [], origins: [] } });
 // Spec 009 — Fresh-install onboarding wizard E2E coverage.
 //
 // US1: a true-fresh DB → first visitor lands on /setup → submits the

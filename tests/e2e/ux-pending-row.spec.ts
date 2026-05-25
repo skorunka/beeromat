@@ -2,6 +2,11 @@ import { test, expect } from './fixtures/test';
 import { signInAndUnlock } from './fixtures/auth';
 import { expectSeparated, setPhoneViewport } from './fixtures/viewport';
 
+
+// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
+// so it MUST start with no saved auth state. Remove this opt-out + the
+// signInAndUnlock call(s) once migrated to the authedTest fixture.
+test.use({ storageState: { cookies: [], origins: [] } });
 // US3 (v1.1) — the treasurer pending row is legible and mis-tap-safe.
 
 const TREASURER_EMAIL = 'ux-pending-treasurer@example.test';

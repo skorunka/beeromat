@@ -121,6 +121,46 @@ export async function truncateAll(db: Db): Promise<void> {
   await db.execute(sql.raw(`TRUNCATE TABLE ${list} CASCADE`));
 }
 
+// Tables the authenticated-fixture (spec 014 E2E perf work) preserves
+// across tests. These hold the SHARED admin identity + their baseline
+// club + member row that the saved storageState in
+// playwright/.auth/admin.json references. Wiping these would invalidate
+// the storage state and force every test to re-sign-in.
+//
+// Order matters when constructing the truncate list — but TRUNCATE …
+// CASCADE handles FK dependencies for us, so we just enumerate the
+// preserved set.
+const PRESERVED_AUTH_TABLES: ReadonlySet<string> = new Set([
+  'user',
+  'session',
+  'account',
+  'verification',
+  'device_sessions',
+  'clubs',
+  'club_banking_profiles',
+  'members',
+]);
+
+/**
+ * TRUNCATE only domain tables (consumptions, bets, matches, payments,
+ * beer_types, etc.), preserving the auth + baseline-club + members
+ * rows that the saved Playwright storageState depends on.
+ *
+ * Used by the `authenticated` fixture so per-test reset is fast AND
+ * the shared admin's session cookies remain valid across the run.
+ */
+export async function truncateDomainOnly(db: Db): Promise<void> {
+  const result = await db.execute<{ tablename: string }>(
+    sql.raw("SELECT tablename FROM pg_tables WHERE schemaname = 'public'"),
+  );
+  const names = result.rows
+    .map((r) => r.tablename)
+    .filter((n) => !PRESERVED_AUTH_TABLES.has(n));
+  if (names.length === 0) return;
+  const list = names.map((t) => `"${t}"`).join(', ');
+  await db.execute(sql.raw(`TRUNCATE TABLE ${list} CASCADE`));
+}
+
 async function seedRows(db: Db, e: NodeJS.ProcessEnv): Promise<TestDbSeed> {
   const [club] = await db
     .insert(clubs)

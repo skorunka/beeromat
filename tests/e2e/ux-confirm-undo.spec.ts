@@ -4,6 +4,11 @@ import { test, expect } from './fixtures/test';
 import { signInAndUnlock } from './fixtures/auth';
 import { payments } from '@/lib/db/schema/payments';
 
+
+// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
+// so it MUST start with no saved auth state. Remove this opt-out + the
+// signInAndUnlock call(s) once migrated to the authedTest fixture.
+test.use({ storageState: { cookies: [], origins: [] } });
 // US4 (v1.1) — a treasurer can undo a mistaken confirmation.
 
 const TREASURER_EMAIL = 'ux-undo-treasurer@example.test';

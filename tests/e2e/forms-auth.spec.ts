@@ -3,6 +3,11 @@ import type { Page } from '@playwright/test';
 import { test, expect } from './fixtures/test';
 import { reachPinSetupGate } from './fixtures/auth';
 
+
+// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
+// so it MUST start with no saved auth state. Remove this opt-out + the
+// signInAndUnlock call(s) once migrated to the authedTest fixture.
+test.use({ storageState: { cookies: [], origins: [] } });
 // v1.2 US1 — trustworthy auth & onboarding forms.
 // Every auth/onboarding form validates in-app, in the active locale, with no
 // browser-native validation bubble. Acceptance scenarios from spec.md US1.

@@ -6,6 +6,11 @@ import type { SeedContext } from './fixtures/test';
 import { payments } from '@/lib/db/schema/payments';
 import { clubBankingProfiles } from '@/lib/db/schema/clubs';
 
+
+// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
+// so it MUST start with no saved auth state. Remove this opt-out + the
+// signInAndUnlock call(s) once migrated to the authedTest fixture.
+test.use({ storageState: { cookies: [], origins: [] } });
 // US2 — Settle my tab via QR Platba.
 // Backfills User Story 2 acceptance scenarios against the real app:
 // admin configures banking → member with a balance settles → QR is

@@ -1,6 +1,11 @@
 import { test, expect } from './fixtures/test';
 import { signInAndUnlock } from './fixtures/auth';
 
+
+// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
+// so it MUST start with no saved auth state. Remove this opt-out + the
+// signInAndUnlock call(s) once migrated to the authedTest fixture.
+test.use({ storageState: { cookies: [], origins: [] } });
 // v1.3 US3 — the home balance reflects a just-logged beer (UX review F2).
 
 const EMAIL = 'ux2-balance@example.test';

@@ -5,6 +5,11 @@ import { signInAndUnlock } from './fixtures/auth';
 import type { SeedContext } from './fixtures/test';
 import { betTransferVoids, betTransfers } from '@/lib/db/schema/bets';
 
+
+// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
+// so it MUST start with no saved auth state. Remove this opt-out + the
+// signInAndUnlock call(s) once migrated to the authedTest fixture.
+test.use({ storageState: { cookies: [], origins: [] } });
 // US6 — Bet transfer between members.
 // Backfills User Story 6: a member takes another member's drink onto
 // their own tab; balances move; the transfer can be undone.

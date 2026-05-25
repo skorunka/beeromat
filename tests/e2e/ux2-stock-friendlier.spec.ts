@@ -4,6 +4,11 @@ import { test, expect } from './fixtures/test';
 import { signInAndUnlock } from './fixtures/auth';
 import { beerTypes } from '@/lib/db/schema/catalog';
 
+
+// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
+// so it MUST start with no saved auth state. Remove this opt-out + the
+// signInAndUnlock call(s) once migrated to the authedTest fixture.
+test.use({ storageState: { cookies: [], origins: [] } });
 // v1.3 US2 — friendlier stock management (UX review F9/F10).
 // Restock is the dominant row action; the adjust flow uses a positive
 // quantity + Add/Remove choice — never a signed number.

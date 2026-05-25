@@ -4,6 +4,11 @@ import { test, expect } from './fixtures/test';
 import { signInAndUnlock } from './fixtures/auth';
 import { payments, paymentStateTransitions } from '@/lib/db/schema/payments';
 
+
+// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
+// so it MUST start with no saved auth state. Remove this opt-out + the
+// signInAndUnlock call(s) once migrated to the authedTest fixture.
+test.use({ storageState: { cookies: [], origins: [] } });
 // US3 — Treasurer confirms received payments.
 // Backfills User Story 3's acceptance scenarios + SC-007a (a single
 // claimed payment is confirmed in exactly one tap).

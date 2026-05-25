@@ -5,6 +5,11 @@ import { signInAndUnlock } from './fixtures/auth';
 import { users } from '@/lib/db/schema/auth';
 import { members } from '@/lib/db/schema/members';
 
+
+// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
+// so it MUST start with no saved auth state. Remove this opt-out + the
+// signInAndUnlock call(s) once migrated to the authedTest fixture.
+test.use({ storageState: { cookies: [], origins: [] } });
 const PIN = '4271';
 
 // Spec 010 — /account display-name edit E2E coverage.

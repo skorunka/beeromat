@@ -2,6 +2,11 @@ import { test, expect } from './fixtures/test';
 import { signInAndUnlock } from './fixtures/auth';
 import type { SeedContext } from './fixtures/test';
 
+
+// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
+// so it MUST start with no saved auth state. Remove this opt-out + the
+// signInAndUnlock call(s) once migrated to the authedTest fixture.
+test.use({ storageState: { cookies: [], origins: [] } });
 // v1.2 US2 — trustworthy money forms.
 // The settle "paid another way" form and the treasurer manual-payment form
 // validate amounts and notes in-app, in the active locale, with no native

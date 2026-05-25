@@ -1,6 +1,11 @@
 import { test, expect } from './fixtures/test';
 import { signInAndUnlock } from './fixtures/auth';
 
+
+// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
+// so it MUST start with no saved auth state. Remove this opt-out + the
+// signInAndUnlock call(s) once migrated to the authedTest fixture.
+test.use({ storageState: { cookies: [], origins: [] } });
 // v1.2 US3 — trustworthy admin forms.
 // Member invite, banking profile, and the beer-type / restock / adjust forms
 // validate in-app, in the active locale, with no native validation bubble.

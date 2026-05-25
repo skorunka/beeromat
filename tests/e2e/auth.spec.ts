@@ -1,6 +1,11 @@
 import { test, expect } from './fixtures/test';
 import { signInAndUnlock } from './fixtures/auth';
 
+
+// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
+// so it MUST start with no saved auth state. Remove this opt-out + the
+// signInAndUnlock call(s) once migrated to the authedTest fixture.
+test.use({ storageState: { cookies: [], origins: [] } });
 // Verify chain link 3: the auth fixture.
 //
 // Proves a seeded member can be driven through the real magic-link

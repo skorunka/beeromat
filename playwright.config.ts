@@ -38,9 +38,27 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   projects: [
+    // Spec 014 (E2E perf) — setup project. Signs the SHARED admin in
+    // once and saves the authenticated browser context to
+    // playwright/.auth/admin.json. Runs ONCE before chromium tests
+    // start (Playwright dependency). Specs using the `authedTest`
+    // fixture from tests/e2e/fixtures/test.ts pick up that storage
+    // state via the `storageState` use option below, skipping the
+    // per-test magic-link sign-in cost.
+    {
+      name: 'setup',
+      testMatch: /auth\.setup\.ts$/,
+    },
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        // Pre-authenticated context for the suite. Auth-flow specs
+        // that explicitly drive sign-in opt out via:
+        //   test.use({ storageState: { cookies: [], origins: [] } })
+        storageState: 'playwright/.auth/admin.json',
+      },
+      dependencies: ['setup'],
     },
   ],
   webServer: {

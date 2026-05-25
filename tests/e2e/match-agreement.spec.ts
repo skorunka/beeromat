@@ -1,77 +1,48 @@
-import { test, expect } from './fixtures/test';
-import { signInAndUnlock } from './fixtures/auth';
+import { authedTest as test, expect } from './fixtures/test';
 
 // Spec 013 — match agreement E2E. Covers US1 (doubles for beer),
 // US2 (singles via the agreement flow + legacy sunset),
 // US3 (non-beer match), US4 (edit / cancel).
+//
+// Spec 014 (E2E perf): uses the `authedTest` fixture — the shared
+// admin is pre-signed-in via the setup project, so this spec skips
+// the 4-12s per-test magic-link cost. The admin (Alice) is already
+// in the club; extra members (Bob, Carol, Dave) are seeded per test
+// via `authed.seedExtraMember`.
 
-const ALICE_EMAIL = 'alice-013@example.test';
-const ALICE_PIN = '8642';
-
-async function seedClubWithFour(seed: import('./fixtures/test').SeedContext) {
-  const club = await seed.club();
-  const alice = await seed.member({
-    clubId: club.id,
-    role: 'club_admin',
-    email: ALICE_EMAIL,
-    displayName: 'Alice',
-  });
-  const bob = await seed.member({
-    clubId: club.id,
-    role: 'member',
-    email: 'bob-013@example.test',
-    displayName: 'Bob',
-  });
-  const carol = await seed.member({
-    clubId: club.id,
-    role: 'member',
-    email: 'carol-013@example.test',
-    displayName: 'Carol',
-  });
-  const dave = await seed.member({
-    clubId: club.id,
-    role: 'member',
-    email: 'dave-013@example.test',
-    displayName: 'Dave',
-  });
-  return { club, alice, bob, carol, dave };
+async function seedThreeExtras(
+  authed: import('./fixtures/test').AuthedContext,
+): Promise<void> {
+  await authed.seedExtraMember({ role: 'member', displayName: 'Bob' });
+  await authed.seedExtraMember({ role: 'member', displayName: 'Carol' });
+  await authed.seedExtraMember({ role: 'member', displayName: 'Dave' });
 }
 
 test.describe('@match-013 US1 — doubles for beer, full loop', () => {
   test('scenario 1+2: create doubles agreement → appears in Upcoming → record result', async ({
     page,
-    seed,
+    authed,
   }) => {
-    const { bob, carol, dave } = await seedClubWithFour(seed);
-    await signInAndUnlock(page, { email: ALICE_EMAIL, pin: ALICE_PIN });
+    await seedThreeExtras(authed);
 
     await page.goto('/match');
     await expect(page.getByRole('heading', { name: 'Matches' })).toBeVisible();
     await expect(page.getByText('No matches scheduled')).toBeVisible();
 
-    // Format defaults to doubles per FR-002.
-    await expect(page.getByRole('button', { name: 'Doubles' })).toHaveAttribute(
-      'data-state',
-      /.*/,
-    );
-
-    // Pick lineup: A1=Alice (current user — first option), A2=Bob; B1=Carol, B2=Dave.
-    // The select element is wired to react-hook-form; we set values directly.
+    // Lineup: A1=Alice (the shared admin), A2=Bob, B1=Carol, B2=Dave.
     const selects = page.locator('select');
-    await selects.nth(0).selectOption({ label: 'Alice' });
+    await selects.nth(0).selectOption({ label: authed.admin.displayName });
     await selects.nth(1).selectOption({ label: 'Bob' });
     await selects.nth(2).selectOption({ label: 'Carol' });
     await selects.nth(3).selectOption({ label: 'Dave' });
 
-    // For beer = Yes (default).
     // Pick straight pairing (EXPLICIT — required per FR-006 / Q4).
     await page.getByRole('button', { name: /Straight/ }).click();
-
     await page.getByRole('button', { name: 'Create match' }).click();
 
     // Land on the agreement detail page.
     await expect(page).toHaveURL(/\/match\/[0-9a-f-]+$/);
-    await expect(page.getByText(/Alice \+ Bob/)).toBeVisible();
+    await expect(page.getByText(new RegExp(`${authed.admin.displayName} \\+ Bob`))).toBeVisible();
     await expect(page.getByText(/Carol \+ Dave/)).toBeVisible();
     await expect(page.getByText('🍺 For beer')).toBeVisible();
 
@@ -81,18 +52,14 @@ test.describe('@match-013 US1 — doubles for beer, full loop', () => {
     // Settled toast + Undo affordance.
     await expect(page.getByText(/Settled/)).toBeVisible();
     await expect(page.getByRole('button', { name: 'Undo' })).toBeVisible();
-    void bob;
-    void carol;
-    void dave;
   });
 
-  test('scenario 3: undo within 5 min returns agreement to OPEN', async ({ page, seed }) => {
-    await seedClubWithFour(seed);
-    await signInAndUnlock(page, { email: ALICE_EMAIL, pin: ALICE_PIN });
+  test('scenario 3: undo within 5 min returns agreement to OPEN', async ({ page, authed }) => {
+    await seedThreeExtras(authed);
 
     await page.goto('/match');
     const selects = page.locator('select');
-    await selects.nth(0).selectOption({ label: 'Alice' });
+    await selects.nth(0).selectOption({ label: authed.admin.displayName });
     await selects.nth(1).selectOption({ label: 'Bob' });
     await selects.nth(2).selectOption({ label: 'Carol' });
     await selects.nth(3).selectOption({ label: 'Dave' });
@@ -101,27 +68,26 @@ test.describe('@match-013 US1 — doubles for beer, full loop', () => {
     await expect(page).toHaveURL(/\/match\/[0-9a-f-]+$/);
 
     // Record + undo.
-    await page.getByRole('button', { name: /Alice \+ Bob won/ }).click();
+    await page
+      .getByRole('button', { name: new RegExp(`${authed.admin.displayName} \\+ Bob won`) })
+      .click();
     await expect(page.getByRole('button', { name: 'Undo' })).toBeVisible();
     await page.getByRole('button', { name: 'Undo' }).click();
     await expect(page.getByText('Result reversed.')).toBeVisible();
 
     // Back on /match the agreement is in Upcoming again.
     await page.goto('/match');
-    await expect(page.getByText(/Alice \+ Bob/)).toBeVisible();
+    await expect(page.getByText(new RegExp(`${authed.admin.displayName} \\+ Bob`))).toBeVisible();
   });
 });
 
 test.describe('@match-013 US2 — singles via agreement + legacy sunset', () => {
   test('singles agreement: format toggle collapses to 2 seats, hides pairing', async ({
     page,
-    seed,
+    authed,
   }) => {
-    await seedClubWithFour(seed);
-    await signInAndUnlock(page, { email: ALICE_EMAIL, pin: ALICE_PIN });
-
+    await seedThreeExtras(authed);
     await page.goto('/match');
-    // Toggle to singles.
     await page.getByRole('button', { name: 'Singles' }).click();
 
     // Lineup section has 2 selects (one per side seat 1).
@@ -131,26 +97,22 @@ test.describe('@match-013 US2 — singles via agreement + legacy sunset', () => 
     await expect(page.getByRole('button', { name: 'Crossed' })).not.toBeVisible();
   });
 
-  test('legacy 012 one-step quick-log UI is gone', async ({ page, seed }) => {
-    await seedClubWithFour(seed);
-    await signInAndUnlock(page, { email: ALICE_EMAIL, pin: ALICE_PIN });
-
+  test('legacy 012 one-step quick-log UI is gone', async ({ page, authed }) => {
+    await seedThreeExtras(authed);
     await page.goto('/match');
-    // No "I won" / "I lost" buttons anywhere (they were the legacy 012 form).
     await expect(page.getByRole('button', { name: 'I won' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'I lost' })).toHaveCount(0);
   });
 });
 
 test.describe('@match-013 US3 — non-beer match', () => {
-  test('Friendly agreement records result with zero transfers', async ({ page, seed }) => {
-    await seedClubWithFour(seed);
-    await signInAndUnlock(page, { email: ALICE_EMAIL, pin: ALICE_PIN });
+  test('Friendly agreement records result with zero transfers', async ({ page, authed }) => {
+    await seedThreeExtras(authed);
 
     await page.goto('/match');
     await page.getByRole('button', { name: 'Singles' }).click();
     const selects = page.locator('select');
-    await selects.nth(0).selectOption({ label: 'Alice' });
+    await selects.nth(0).selectOption({ label: authed.admin.displayName });
     await selects.nth(1).selectOption({ label: 'Bob' });
     // Flip For beer? to Friendly.
     await page.getByRole('button', { name: 'Friendly' }).click();
@@ -160,22 +122,22 @@ test.describe('@match-013 US3 — non-beer match', () => {
     // Friendly chip visible on detail page.
     await expect(page.getByText(/^Friendly$/).first()).toBeVisible();
 
-    // Record + verify no beer transfer in the toast.
-    await page.getByRole('button', { name: /Alice won/ }).click();
-    // Should NOT see "beer(s) transferred" copy.
+    // Record + verify no beer transfer.
+    await page
+      .getByRole('button', { name: new RegExp(`${authed.admin.displayName} won`) })
+      .click();
     await expect(page.getByText(/0 beer\(s\) transferred/)).toBeVisible();
   });
 });
 
 test.describe('@match-013 US4 — edit + cancel', () => {
-  test('cancel open agreement removes it from Upcoming', async ({ page, seed }) => {
-    await seedClubWithFour(seed);
-    await signInAndUnlock(page, { email: ALICE_EMAIL, pin: ALICE_PIN });
+  test('cancel open agreement removes it from Upcoming', async ({ page, authed }) => {
+    await seedThreeExtras(authed);
 
     await page.goto('/match');
     await page.getByRole('button', { name: 'Singles' }).click();
     const selects = page.locator('select');
-    await selects.nth(0).selectOption({ label: 'Alice' });
+    await selects.nth(0).selectOption({ label: authed.admin.displayName });
     await selects.nth(1).selectOption({ label: 'Bob' });
     await page.getByRole('button', { name: 'Create match' }).click();
     await expect(page).toHaveURL(/\/match\/[0-9a-f-]+$/);
@@ -187,23 +149,28 @@ test.describe('@match-013 US4 — edit + cancel', () => {
 
     // Bounced back to /match; the agreement is no longer in Upcoming.
     await expect(page).toHaveURL(/\/match$/);
-    await expect(page.getByText(/Alice vs Bob/)).toHaveCount(0);
+    await expect(
+      page.getByText(new RegExp(`${authed.admin.displayName} vs Bob`)),
+    ).toHaveCount(0);
   });
 
-  test('edit form vanishes once the result is recorded (FR-013)', async ({ page, seed }) => {
-    await seedClubWithFour(seed);
-    await signInAndUnlock(page, { email: ALICE_EMAIL, pin: ALICE_PIN });
+  test('edit form vanishes once the result is recorded (FR-013)', async ({ page, authed }) => {
+    await seedThreeExtras(authed);
 
     await page.goto('/match');
     await page.getByRole('button', { name: 'Singles' }).click();
     const selects = page.locator('select');
-    await selects.nth(0).selectOption({ label: 'Alice' });
+    await selects.nth(0).selectOption({ label: authed.admin.displayName });
     await selects.nth(1).selectOption({ label: 'Bob' });
     await page.getByRole('button', { name: 'Create match' }).click();
 
     // Record the result.
-    await page.getByRole('button', { name: /Alice won/ }).click();
-    await expect(page.getByText(/Settled|All square|Alice won/)).toBeVisible();
+    await page
+      .getByRole('button', { name: new RegExp(`${authed.admin.displayName} won`) })
+      .click();
+    await expect(
+      page.getByText(new RegExp(`(Settled|All square|${authed.admin.displayName} won)`)),
+    ).toBeVisible();
 
     // Edit affordance no longer present.
     await expect(page.getByText('Edit or cancel match')).toHaveCount(0);

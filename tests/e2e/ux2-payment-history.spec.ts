@@ -1,6 +1,11 @@
 import { test, expect } from './fixtures/test';
 import { signInAndUnlock } from './fixtures/auth';
 
+
+// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
+// so it MUST start with no saved auth state. Remove this opt-out + the
+// signInAndUnlock call(s) once migrated to the authedTest fixture.
+test.use({ storageState: { cookies: [], origins: [] } });
 // v1.3 US1 — a member can see their own payment history (UX review F20).
 // The member's own timeline of every payment, including confirmed ones.
 

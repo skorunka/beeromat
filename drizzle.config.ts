@@ -1,4 +1,10 @@
+import { loadEnvConfig } from '@next/env';
 import { defineConfig } from 'drizzle-kit';
+
+// Drizzle-kit runs outside the Next.js runtime, so it doesn't pick up
+// .env.local / .env.development on its own. @next/env applies the same
+// precedence Next uses (recommended by drizzle-team/drizzle-orm#2781).
+loadEnvConfig(process.cwd());
 
 export default defineConfig({
   schema: './lib/db/schema/index.ts',

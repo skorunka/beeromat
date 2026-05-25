@@ -5,10 +5,14 @@ import { Link } from '@/lib/i18n/navigation';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { requireUnlocked } from '@/lib/auth/session';
-import { getAgreement } from '@/lib/db/queries/match-agreements';
+import {
+  getAgreement,
+  listActiveClubMembers,
+} from '@/lib/db/queries/match-agreements';
 import { joinSideNames } from '@/lib/format/match-sides';
 import { canRecordMatchResult } from '@/lib/permissions';
 
+import { EditAgreementForm } from './EditAgreementForm';
 import { RecordResultForm } from './RecordResultForm';
 
 // Spec 013 — agreement detail page. Shows lineup, state, and the
@@ -37,6 +41,13 @@ export default async function AgreementDetailPage({
   const isOpen = !agreement.resultRecordedAt && !agreement.cancelledAt;
   const isRecorded = !!agreement.resultRecordedAt;
   const isCancelled = !!agreement.cancelledAt;
+
+  const members = isOpen ? await listActiveClubMembers(ctx.club.id) : [];
+
+  function pickSeat(side: 'A' | 'B', seat: 1 | 2): string | null {
+    const found = agreement!.sides[side].find((s) => s.seat === seat);
+    return found ? found.memberId : null;
+  }
 
   const sideAName = joinSideNames(agreement.sides.A);
   const sideBName = joinSideNames(agreement.sides.B);
@@ -101,6 +112,29 @@ export default async function AgreementDetailPage({
         />
       ) : isOpen ? (
         <Card className="text-muted-foreground p-4 text-sm">{t('viewerCannotRecord')}</Card>
+      ) : null}
+
+      {isOpen ? (
+        <details className="border-border rounded-md border p-4">
+          <summary className="cursor-pointer text-sm font-semibold">
+            {t('editMatchSummary')}
+          </summary>
+          <div className="mt-4">
+            <EditAgreementForm
+              agreementId={agreement.id}
+              members={members}
+              initial={{
+                format: agreement.format,
+                forBeer: agreement.forBeer,
+                pairingKind: agreement.pairingKind,
+                a1: pickSeat('A', 1) ?? '',
+                a2: pickSeat('A', 2),
+                b1: pickSeat('B', 1) ?? '',
+                b2: pickSeat('B', 2),
+              }}
+            />
+          </div>
+        </details>
       ) : null}
     </main>
   );

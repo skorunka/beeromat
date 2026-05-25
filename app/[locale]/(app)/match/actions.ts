@@ -1,10 +1,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { and, eq } from 'drizzle-orm';
 
 import { requireUnlocked } from '@/lib/auth/session';
-import { db } from '@/lib/db/client';
 import {
   cancelAgreementTx,
   createAgreementTx,
@@ -13,9 +11,6 @@ import {
   recordResultTx,
   reverseResultTx,
 } from '@/lib/db/queries/match-agreements';
-import { logMatchTx, voidMatchTx } from '@/lib/db/queries/matches';
-import { matchAgreementSides } from '@/lib/db/schema/matches';
-import { matches } from '@/lib/db/schema/matches';
 import { canRecordMatchResult } from '@/lib/permissions';
 import {
   cancelAgreementSchema,
@@ -24,7 +19,6 @@ import {
   recordResultSchema,
   reverseResultSchema,
 } from '@/lib/validation/match-agreement';
-import { logMatchSchema } from '@/lib/validation/match';
 
 // Spec 013 — match-agreement Server Actions.
 //
@@ -37,11 +31,9 @@ import { logMatchSchema } from '@/lib/validation/match';
 //     typed errors
 //   - revalidate /match (and / for tab updates) after writes
 //
-// Legacy spec-012 `logMatchAction` + `voidMatchAction` are kept below
-// during the US1 phase so the existing /match form keeps working;
-// US2 deletes them along with the form (per FR-017).
-
-// -- US1 / US2 / US3 / US4 — agreement-flow actions --------------------
+// FR-017 — the legacy 012 `logMatchAction` + `voidMatchAction` were
+// removed when this module migrated to the agreement flow. New singles
+// matches go through createAgreementAction + recordResultAction.
 
 export type CreateAgreementResult =
   | { ok: true; agreementId: string }
@@ -190,79 +182,3 @@ export async function reverseResultAction(rawInput: unknown): Promise<ReverseRes
   return result;
 }
 
-// -- Legacy 012 quick-log actions (kept during US1; removed in US2) ----
-
-export type LogMatchResult =
-  | { ok: true; matchId: string; transferredCount: number; requestedCount: number }
-  | { ok: false; code: 'VALIDATION_FAILED'; fieldErrors: Record<string, string[]> }
-  | { ok: false; code: 'SELF_MATCH' };
-
-export async function logMatchAction(rawInput: unknown): Promise<LogMatchResult> {
-  const parsed = logMatchSchema.safeParse(rawInput);
-  if (!parsed.success) {
-    const fieldErrors: Record<string, string[]> = {};
-    for (const issue of parsed.error.issues) {
-      const key = issue.path.join('.') || '_root';
-      (fieldErrors[key] ??= []).push(issue.message);
-    }
-    return { ok: false, code: 'VALIDATION_FAILED', fieldErrors };
-  }
-  const ctx = await requireUnlocked();
-  const { outcome, opponentMemberId } = parsed.data;
-  if (opponentMemberId === ctx.member.id) return { ok: false, code: 'SELF_MATCH' };
-
-  const winnerMemberId = outcome === 'won' ? ctx.member.id : opponentMemberId;
-  const loserMemberId = outcome === 'won' ? opponentMemberId : ctx.member.id;
-  const beerCount = Math.max(1, ctx.club.matchLoserBeerCount ?? 1);
-
-  const result = await logMatchTx({
-    clubId: ctx.club.id,
-    winnerMemberId,
-    loserMemberId,
-    createdByUserId: ctx.user.id,
-    beerCount,
-  });
-  revalidatePath('/', 'layout');
-  return {
-    ok: true,
-    matchId: result.matchId,
-    transferredCount: result.transferredCount,
-    requestedCount: result.requestedCount,
-  };
-}
-
-export type VoidMatchResult =
-  | { ok: true; voidedTransferCount: number }
-  | { ok: false; code: 'NOT_FOUND' | 'UNDO_WINDOW_EXPIRED' | 'ALREADY_VOIDED' };
-
-const UNDO_WINDOW_MS = 5 * 60 * 1000;
-
-export async function voidMatchAction(matchId: string): Promise<VoidMatchResult> {
-  const ctx = await requireUnlocked();
-
-  const matchRow = await db.query.matches.findFirst({
-    where: and(eq(matches.id, matchId), eq(matches.clubId, ctx.club.id)),
-  });
-  if (!matchRow) return { ok: false, code: 'NOT_FOUND' };
-  if (matchRow.voidedAt) return { ok: false, code: 'ALREADY_VOIDED' };
-
-  const isWithinWindow = Date.now() - matchRow.createdAt.getTime() <= UNDO_WINDOW_MS;
-  const isOriginalLogger = matchRow.createdByUserId === ctx.user.id;
-  if (!isWithinWindow && !isOriginalLogger) {
-    return { ok: false, code: 'UNDO_WINDOW_EXPIRED' };
-  }
-
-  const result = await voidMatchTx({
-    matchId,
-    clubId: ctx.club.id,
-    voidedByUserId: ctx.user.id,
-  });
-
-  revalidatePath('/', 'layout');
-  if (!result.voided) return { ok: false, code: 'ALREADY_VOIDED' };
-  return { ok: true, voidedTransferCount: result.voidedTransferCount };
-}
-
-// Reference imports to silence "unused" lint complaints — these are
-// used implicitly via the schema modules but the lint can't see it.
-void matchAgreementSides;

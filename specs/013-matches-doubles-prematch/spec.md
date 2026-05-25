@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-25
 
-**Status**: Draft
+**Status**: Implementation complete 2026-05-25 — pending E2E run + browser smoke test
 
 **Input**: User description (2026-05-25): Extend spec 012 matches with
 (a) doubles support — doubles is the club's default match format

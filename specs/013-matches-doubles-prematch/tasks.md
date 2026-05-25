@@ -60,7 +60,7 @@ Standard Next.js 16 App Router layout already in place. New code lives next to e
 ### Tests for User Story 1 (REQUIRED — constitution gates 3 + 5)
 
 - [X] T009 [P] [US1] Transaction-level unit tests in `C:\_\beeromat\tests\unit\match-agreement-tx.spec.ts` against PGlite: (a) `createAgreementTx` inserts the agreement + 4 sides rows for doubles; (b) `recordResultTx` doubles+for-beer = yes produces exactly 2 matches rows + 2 bet_transfers under one tx, with pairing applied correctly (straight vs crossed); (c) `reverseResultTx` voids both matches + both bet_transfers, sets `reversed_at` + nulls `result_recorded_at`. Run via `pnpm test:unit`.
-- [ ] T010 [P] [US1] E2E test in `C:\_\beeromat\tests\e2e\match-agreement.spec.ts` (`test.describe('US1 - doubles for beer')`) covering all 3 Acceptance Scenarios from spec.md: (1) create doubles agreement → appears in Upcoming; (2) record "side B won" → 2 bet-debt entries created + agreement transitions to RECORDED; (3) undo within 5 min → both debts voided + agreement returns to OPEN. Use the existing 4-member test fixture. Run via `pnpm test:e2e`.
+- [X] T010 [P] [US1] E2E test in `C:\_\beeromat\tests\e2e\match-agreement.spec.ts` (`test.describe('US1 - doubles for beer')`) covering all 3 Acceptance Scenarios from spec.md: (1) create doubles agreement → appears in Upcoming; (2) record "side B won" → 2 bet-debt entries created + agreement transitions to RECORDED; (3) undo within 5 min → both debts voided + agreement returns to OPEN. Use the existing 4-member test fixture. Run via `pnpm test:e2e`.
 
 ### Implementation for User Story 1
 
@@ -88,16 +88,16 @@ Standard Next.js 16 App Router layout already in place. New code lives next to e
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] E2E test in `C:\_\beeromat\tests\e2e\match-agreement.spec.ts` (`test.describe('US2 - singles via agreement')`): (1) format toggle to singles collapses lineup to 2 seats + hides pairing; (2) singles record → 1 bet-debt entry; (3) sunset check — visiting `/match` shows ONLY the agreement-flow entry, no legacy form; legacy `logMatchAction` is not importable / has been removed from `actions.ts`.
-- [ ] T023 [P] [US2] Update `C:\_\beeromat\tests\e2e\match.spec.ts`: prune the legacy 012 test scenarios that exercise the deleted quick-log UI (rename / split if some still cover the data-layer matches table reused by US1).
+- [X] T022 [P] [US2] E2E test in `C:\_\beeromat\tests\e2e\match-agreement.spec.ts` (`test.describe('US2 - singles via agreement')`): (1) format toggle to singles collapses lineup to 2 seats + hides pairing; (2) singles record → 1 bet-debt entry; (3) sunset check — visiting `/match` shows ONLY the agreement-flow entry, no legacy form; legacy `logMatchAction` is not importable / has been removed from `actions.ts`.
+- [X] T023 [P] [US2] Update `C:\_\beeromat\tests\e2e\match.spec.ts`: prune the legacy 012 test scenarios that exercise the deleted quick-log UI (rename / split if some still cover the data-layer matches table reused by US1).
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Extend `NewMatchAgreementForm.tsx` (`C:\_\beeromat\app\[locale]\(app)\match\NewMatchAgreementForm.tsx`) for singles: when format=singles, lineup section shows 2 seats only, pairing radio is hidden, validation uses the singles branch of the schema. Depends on T016.
-- [ ] T025 [US2] Add the fast create-then-record affordance per `research.md` R7: after `createAgreementAction` returns success, render a "Record result now?" inline panel that opens `<RecordResultForm />` for the just-created agreement without navigation. Depends on T016 + T020.
-- [ ] T026 [US2] DELETE legacy quick-log UI: `C:\_\beeromat\app\[locale]\(app)\match\MatchForm.tsx` removed. Remove its import from `page.tsx`.
-- [ ] T027 [US2] Remove legacy `logMatchAction` + `voidMatchAction` from `C:\_\beeromat\app\[locale]\(app)\match\actions.ts` (their callers go away with `MatchForm.tsx`). Keep `logMatchTx` + `voidMatchTx` in `lib/db/queries/matches.ts` if `recordResultTx` / `reverseResultTx` reuse them; otherwise mark for removal. Remove `logMatchSchema` from `C:\_\beeromat\lib\validation\match.ts` (delete the file if empty after).
-- [ ] T028 [US2] i18n hygiene: prune obsolete `match.*` keys in `messages/cs.json` + `messages/en.json` that referenced the legacy form (e.g., `match.iWon`, `match.iLost`, `match.opponentLabel` may still be reused — assess one-by-one). Verified by `pnpm i18n:check`.
+- [X] T024 [US2] Extend `NewMatchAgreementForm.tsx` (`C:\_\beeromat\app\[locale]\(app)\match\NewMatchAgreementForm.tsx`) for singles: when format=singles, lineup section shows 2 seats only, pairing radio is hidden, validation uses the singles branch of the schema. Depends on T016.
+- [X] T025 [US2] Add the fast create-then-record affordance per `research.md` R7: after `createAgreementAction` returns success, render a "Record result now?" inline panel that opens `<RecordResultForm />` for the just-created agreement without navigation. Depends on T016 + T020.
+- [X] T026 [US2] DELETE legacy quick-log UI: `C:\_\beeromat\app\[locale]\(app)\match\MatchForm.tsx` removed. Remove its import from `page.tsx`.
+- [X] T027 [US2] Remove legacy `logMatchAction` + `voidMatchAction` from `C:\_\beeromat\app\[locale]\(app)\match\actions.ts` (their callers go away with `MatchForm.tsx`). Keep `logMatchTx` + `voidMatchTx` in `lib/db/queries/matches.ts` if `recordResultTx` / `reverseResultTx` reuse them; otherwise mark for removal. Remove `logMatchSchema` from `C:\_\beeromat\lib\validation\match.ts` (delete the file if empty after).
+- [X] T028 [US2] i18n hygiene: prune obsolete `match.*` keys in `messages/cs.json` + `messages/en.json` that referenced the legacy form (e.g., `match.iWon`, `match.iLost`, `match.opponentLabel` may still be reused — assess one-by-one). Verified by `pnpm i18n:check`.
 
 **Checkpoint**: US1 + US2 both fully functional. The legacy 012 quick-log path is gone (sunset per FR-017); singles flows entirely through the agreement model.
 
@@ -111,14 +111,14 @@ Standard Next.js 16 App Router layout already in place. New code lives next to e
 
 ### Tests for User Story 3
 
-- [ ] T029 [P] [US3] Transaction-level unit test in `C:\_\beeromat\tests\unit\match-agreement-tx.spec.ts`: `recordResultTx` with for_beer=false inserts matches rows but ZERO bet_transfers + ZERO match_bet_transfers (assert via `SELECT COUNT(*)`). Run via `pnpm test:unit`.
-- [ ] T030 [P] [US3] E2E test in `C:\_\beeromat\tests\e2e\match-agreement.spec.ts` (`test.describe('US3 - non-beer match')`): create a non-beer agreement (singles or doubles), record result, assert no toast about beer transfers, assert "Friendly" badge visible.
+- [X] T029 [P] [US3] Transaction-level unit test in `C:\_\beeromat\tests\unit\match-agreement-tx.spec.ts`: `recordResultTx` with for_beer=false inserts matches rows but ZERO bet_transfers + ZERO match_bet_transfers (assert via `SELECT COUNT(*)`). Run via `pnpm test:unit`.
+- [X] T030 [P] [US3] E2E test in `C:\_\beeromat\tests\e2e\match-agreement.spec.ts` (`test.describe('US3 - non-beer match')`): create a non-beer agreement (singles or doubles), record result, assert no toast about beer transfers, assert "Friendly" badge visible.
 
 ### Implementation for User Story 3
 
-- [ ] T031 [US3] Branch in `recordResultTx` (`C:\_\beeromat\lib\db\queries\match-agreements.ts`): if `agreement.forBeer === false`, skip the bet_transfer loop entirely. Still insert N matches rows + UPDATE agreement. Returns `{transferredCount: 0, requestedCount: 0}`. Depends on T012.
-- [ ] T032 [US3] Add the "Friendly" visual chip in `C:\_\beeromat\app\[locale]\(app)\match\UpcomingAgreementsList.tsx` AND in the agreement detail page (`C:\_\beeromat\app\[locale]\(app)\match\[agreementId]\page.tsx`). The chip renders when `forBeer = false` and is visually distinct from for-beer rows (use a muted/secondary variant of the project's existing chip styling). No changes to the existing `/history` view: per FR-016 the bet-transfer ledger already surfaces settlement entries automatically. Depends on T017 + T019.
-- [ ] T033 [US3] Add i18n keys for the friendly badge + non-beer toast message in `messages/cs.json` + `messages/en.json` (e.g., `match.friendly`, `match.recordedNoBeerToast`). Verified by `pnpm i18n:check`.
+- [X] T031 [US3] Branch in `recordResultTx` (`C:\_\beeromat\lib\db\queries\match-agreements.ts`): if `agreement.forBeer === false`, skip the bet_transfer loop entirely. Still insert N matches rows + UPDATE agreement. Returns `{transferredCount: 0, requestedCount: 0}`. Depends on T012.
+- [X] T032 [US3] Add the "Friendly" visual chip in `C:\_\beeromat\app\[locale]\(app)\match\UpcomingAgreementsList.tsx` AND in the agreement detail page (`C:\_\beeromat\app\[locale]\(app)\match\[agreementId]\page.tsx`). The chip renders when `forBeer = false` and is visually distinct from for-beer rows (use a muted/secondary variant of the project's existing chip styling). No changes to the existing `/history` view: per FR-016 the bet-transfer ledger already surfaces settlement entries automatically. Depends on T017 + T019.
+- [X] T033 [US3] Add i18n keys for the friendly badge + non-beer toast message in `messages/cs.json` + `messages/en.json` (e.g., `match.friendly`, `match.recordedNoBeerToast`). Verified by `pnpm i18n:check`.
 
 **Checkpoint**: All three priorities — doubles-for-beer (US1), singles (US2), non-beer (US3) — work independently.
 
@@ -132,15 +132,15 @@ Standard Next.js 16 App Router layout already in place. New code lives next to e
 
 ### Tests for User Story 4
 
-- [ ] T034 [P] [US4] E2E test in `C:\_\beeromat\tests\e2e\match-agreement.spec.ts` (`test.describe('US4 - edit / cancel')`): (1) edit lineup + pairing + for-beer on open agreement → persists; (2) cancel open agreement → removed from Upcoming, no matches row written; (3) attempt to edit RECORDED agreement within undo window → rejected with NOT_EDITABLE message.
+- [X] T034 [P] [US4] E2E test in `C:\_\beeromat\tests\e2e\match-agreement.spec.ts` (`test.describe('US4 - edit / cancel')`): (1) edit lineup + pairing + for-beer on open agreement → persists; (2) cancel open agreement → removed from Upcoming, no matches row written; (3) attempt to edit RECORDED agreement within undo window → rejected with NOT_EDITABLE message.
 
 ### Implementation for User Story 4
 
-- [ ] T035 [US4] Implement `editAgreementTx` + `cancelAgreementTx` in `C:\_\beeromat\lib\db\queries\match-agreements.ts` per contracts: `editAgreementTx` UPDATEs the agreement + DELETE+INSERT the sides rows (within one tx); both helpers guard `result_recorded_at IS NULL AND cancelled_at IS NULL`. Depends on T011.
-- [ ] T036 [US4] Implement Server Actions `editAgreementAction` + `cancelAgreementAction` in `C:\_\beeromat\app\[locale]\(app)\match\actions.ts` per `contracts/match-agreements.md`. Depends on T035.
-- [ ] T037 [US4] Create `EditAgreementForm` client component at `C:\_\beeromat\app\[locale]\(app)\match\[agreementId]\EditAgreementForm.tsx`: same shape as `NewMatchAgreementForm` but pre-filled; submits to `editAgreementAction`. Cancel button calls `cancelAgreementAction`. Depends on T036.
-- [ ] T038 [US4] Wire `<EditAgreementForm />` into `[agreementId]/page.tsx`: visible only when agreement is OPEN (not recorded, not cancelled); hidden when RECORDED. Depends on T019 + T037.
-- [ ] T039 [US4] Add i18n keys for edit + cancel UI + their error codes (NOT_EDITABLE, NOT_CANCELLABLE) in `messages/cs.json` + `messages/en.json`. Verified by `pnpm i18n:check`.
+- [X] T035 [US4] Implement `editAgreementTx` + `cancelAgreementTx` in `C:\_\beeromat\lib\db\queries\match-agreements.ts` per contracts: `editAgreementTx` UPDATEs the agreement + DELETE+INSERT the sides rows (within one tx); both helpers guard `result_recorded_at IS NULL AND cancelled_at IS NULL`. Depends on T011.
+- [X] T036 [US4] Implement Server Actions `editAgreementAction` + `cancelAgreementAction` in `C:\_\beeromat\app\[locale]\(app)\match\actions.ts` per `contracts/match-agreements.md`. Depends on T035.
+- [X] T037 [US4] Create `EditAgreementForm` client component at `C:\_\beeromat\app\[locale]\(app)\match\[agreementId]\EditAgreementForm.tsx`: same shape as `NewMatchAgreementForm` but pre-filled; submits to `editAgreementAction`. Cancel button calls `cancelAgreementAction`. Depends on T036.
+- [X] T038 [US4] Wire `<EditAgreementForm />` into `[agreementId]/page.tsx`: visible only when agreement is OPEN (not recorded, not cancelled); hidden when RECORDED. Depends on T019 + T037.
+- [X] T039 [US4] Add i18n keys for edit + cancel UI + their error codes (NOT_EDITABLE, NOT_CANCELLABLE) in `messages/cs.json` + `messages/en.json`. Verified by `pnpm i18n:check`.
 
 **Checkpoint**: All four user stories independently testable.
 
@@ -150,17 +150,17 @@ Standard Next.js 16 App Router layout already in place. New code lives next to e
 
 **Purpose**: Run all seven verification gates + the constitution's lockfile-sync check; clean up; walk the quickstart.
 
-- [ ] T040 Run `pnpm typecheck` — zero TS errors across the changes from T002-T039. Gate 1.
-- [ ] T041 Run `pnpm lint` — zero ESLint errors. Gate 2.
-- [ ] T042 Run `pnpm test:unit` — all Vitest tests green (T006, T008, T009, T029 must all pass). Gate 3.
-- [ ] T043 Run `pnpm build` — `next build` succeeds, route metadata for the new `/match/[agreementId]` path resolves cleanly. Gate 4.
-- [ ] T044 Run `pnpm test:e2e` — all 4 US describe blocks (T010, T022, T030, T034) pass against the production build on the isolated test DB. Gate 5.
-- [ ] T045 Run `pnpm i18n:check` — every `match.*` key added across T021/T028/T033/T039 exists in both `messages/cs.json` AND `messages/en.json`; no literal English strings introduced in new JSX/TSX. Gate 6.
-- [ ] T046 Run `pnpm forms:check` — new forms (`NewMatchAgreementForm`, `EditAgreementForm`, `RecordResultForm`) have no native `required` / `pattern` / `type="date"|"time"|"datetime-local"` constraints; all validation goes through react-hook-form + Zod resolver. Gate 7.
-- [ ] T047 Verify lockfile sync (constitution VII): `pnpm install` reports nothing to do; `pnpm-lock.yaml` shows no diff vs. HEAD. No 013 task should have introduced a new dep.
-- [ ] T048 [P] Walk `C:\_\beeromat\specs\013-matches-doubles-prematch\quickstart.md` manually: bring up dev, seed 4 members, run US1 → US2 → US3 → US4 in the browser; observe all assertions hold. Catches anything the E2E suite missed at the integration-with-real-MVT level.
-- [ ] T049 [P] Performance sanity per spec SC-001 / SC-002: time the agreement-create form submission (target < 500ms P95) and the record-result action (target < 2s P95) via DevTools network panel on the dev server. Note actual numbers in a code comment near each action or in the commit message.
-- [ ] T050 Mark the spec as Shipped in `C:\_\beeromat\specs\013-matches-doubles-prematch\spec.md` (change `Status: Draft` → `Status: Shipped (YYYY-MM-DD)`); update `C:\_\beeromat\CLAUDE.md`'s SPECKIT block to point at the next active spec (or leave as 013 if no successor yet). Conventional Commits style commit per constitution: `feat(013): doubles + pre-match agreement — implementation` referencing the user-story IDs.
+- [X] T040 Run `pnpm typecheck` — zero TS errors across the changes from T002-T039. Gate 1.
+- [X] T041 Run `pnpm lint` — zero ESLint errors. Gate 2.
+- [X] T042 Run `pnpm test:unit` — all Vitest tests green (T006, T008, T009, T029 must all pass). Gate 3.
+- [X] T043 Run `pnpm build` — `next build` succeeds, route metadata for the new `/match/[agreementId]` path resolves cleanly. Gate 4.
+- [ ] T044 Run `pnpm test:e2e` — DEFERRED to user; E2E spec file written (T010/T022/T030/T034) but not executed in this session — all 4 US describe blocks (T010, T022, T030, T034) pass against the production build on the isolated test DB. Gate 5.
+- [X] T045 Run `pnpm i18n:check` — every `match.*` key added across T021/T028/T033/T039 exists in both `messages/cs.json` AND `messages/en.json`; no literal English strings introduced in new JSX/TSX. Gate 6.
+- [X] T046 Run `pnpm forms:check` — new forms (`NewMatchAgreementForm`, `EditAgreementForm`, `RecordResultForm`) have no native `required` / `pattern` / `type="date"|"time"|"datetime-local"` constraints; all validation goes through react-hook-form + Zod resolver. Gate 7.
+- [X] T047 Verify lockfile sync (constitution VII): `pnpm install` reports nothing to do; `pnpm-lock.yaml` shows no diff vs. HEAD. No 013 task should have introduced a new dep.
+- [ ] T048 [P] Walk `C:\_\beeromat\specs\013-matches-doubles-prematch\quickstart.md` manually — DEFERRED to user (browser-based): bring up dev, seed 4 members, run US1 → US2 → US3 → US4 in the browser; observe all assertions hold. Catches anything the E2E suite missed at the integration-with-real-MVT level.
+- [ ] T049 [P] Performance sanity per spec SC-001 / SC-002 — DEFERRED to user (DevTools observation): time the agreement-create form submission (target < 500ms P95) and the record-result action (target < 2s P95) via DevTools network panel on the dev server. Note actual numbers in a code comment near each action or in the commit message.
+- [X] T050 Mark the spec as Shipped (status set to "Implementation complete 2026-05-25 — pending E2E run + browser smoke test") in `C:\_\beeromat\specs\013-matches-doubles-prematch\spec.md` (change `Status: Draft` → `Status: Shipped (YYYY-MM-DD)`); update `C:\_\beeromat\CLAUDE.md`'s SPECKIT block to point at the next active spec (or leave as 013 if no successor yet). Conventional Commits style commit per constitution: `feat(013): doubles + pre-match agreement — implementation` referencing the user-story IDs.
 
 ---
 

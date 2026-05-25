@@ -25,3 +25,18 @@ export function roleSatisfies(actual: Role, required: Role): boolean {
 export function hasAnyRole(actual: Role, ...required: Role[]): boolean {
   return required.some((r) => roleSatisfies(actual, r));
 }
+
+/**
+ * Spec 013 — gate for recording / reversing a match-agreement result.
+ * Returns true iff the caller is either a named match participant
+ * (their `memberId` is in `participantMemberIds`) OR their role is
+ * `treasurer` or above (override path per FR-007).
+ */
+export function canRecordMatchResult(
+  callerMemberId: string,
+  callerRole: Role,
+  participantMemberIds: readonly string[],
+): boolean {
+  if (participantMemberIds.includes(callerMemberId)) return true;
+  return roleSatisfies(callerRole, 'treasurer');
+}

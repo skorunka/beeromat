@@ -4,8 +4,6 @@ import { Receipt } from 'lucide-react';
 
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { LanguageSwitcher } from '@/components/nav/language-switcher';
-import { SignOutButton } from '@/components/nav/sign-out-button';
 import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
 import { formatMoney } from '@/lib/format';
@@ -29,20 +27,14 @@ export default async function AppHomePage({
 
   return (
     <main className="mx-auto max-w-md p-5">
-      <header className="mb-7 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <Link
-            href="/account"
-            className="text-muted-foreground inline-flex min-h-11 items-center text-sm underline"
-          >
-            {t('greeting', { name: ctx.member.displayName })}
-          </Link>
-          <h1 className="text-2xl font-bold leading-tight">{ctx.club.name}</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <LanguageSwitcher />
-          <SignOutButton />
-        </div>
+      <header className="mb-7 flex flex-col gap-1">
+        <Link
+          href="/account"
+          className="text-foreground hover:text-primary inline-flex min-h-11 items-center text-base font-medium transition-colors"
+        >
+          {t('greeting', { name: ctx.member.displayName })}
+        </Link>
+        <h1 className="text-2xl font-bold leading-tight">{ctx.club.name}</h1>
       </header>
 
       {/* The outstanding balance — the focal point of the home screen.

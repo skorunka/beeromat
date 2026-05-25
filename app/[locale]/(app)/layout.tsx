@@ -9,6 +9,7 @@ import { formatMoney } from '@/lib/format';
 import { roleSatisfies } from '@/lib/permissions';
 import { PinGate } from '@/components/pin/pin-gate';
 import { DisputeBanner } from '@/components/dispute-banner';
+import { AppHeader } from '@/components/nav/app-header';
 import { BottomNav, type NavItem } from '@/components/nav/bottom-nav';
 
 // Authenticated route group layout. Gates everything under (app)/* behind
@@ -67,6 +68,7 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
           }))}
         />
       ) : null}
+      <AppHeader />
       {/* Bottom padding clears the fixed nav so it never occludes content. */}
       <div className="pb-20">{children}</div>
       <BottomNav items={navItems} />

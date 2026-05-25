@@ -22,6 +22,8 @@
     "db:seed": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/seed.ts",
     "db:reset": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/db-reset.ts",
     "db:reset:bootstrap": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/db-reset.ts --with-club",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
     "i18n:check": "tsx scripts/i18n-check.ts",
     "forms:check": "tsx scripts/forms-check.ts"
   },

@@ -156,7 +156,7 @@
     }
   },
   "onboarding": {
-    "title": "Vítej v beeromatu",
+    "title": "Vítej",
     "subtitle": "Pár věcí a jdeme na první pivo.",
     "clubNameLabel": "Název klubu",
     "clubNamePlaceholder": "TK Slávia Praha",
@@ -220,7 +220,7 @@
     }
   },
   "home": {
-    "greeting": "Ahoj {name}",
+    "greeting": "Ahoj, {name} 👋",
     "outstandingBalance": "Tvoje útrata",
     "allSquare": "Vyrovnáno — na pípě nic nemáš 🍺",
     "logABeer": "Zapsat pivo",

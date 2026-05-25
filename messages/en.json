@@ -156,7 +156,7 @@
     }
   },
   "onboarding": {
-    "title": "Welcome to beeromat",
+    "title": "Welcome",
     "subtitle": "A few details and we're on to the first beer.",
     "clubNameLabel": "Club name",
     "clubNamePlaceholder": "Riverside Tennis Club",
@@ -220,7 +220,7 @@
     }
   },
   "home": {
-    "greeting": "Hey {name}",
+    "greeting": "Hey, {name} 👋",
     "outstandingBalance": "Your tab",
     "allSquare": "All square — your tab's empty 🍺",
     "logABeer": "Log a beer",

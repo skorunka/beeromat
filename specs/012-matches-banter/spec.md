@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-24
 
-**Status**: Approved (defaults locked 2026-05-24 — Q1 singles only, Q2 1 beer per loss configurable, Q3 immediate transfer + 5-min undo, Q4 new /match route + bottom-nav tab)
+**Status**: Shipped (2026-05-25)
 
 **Input**: User description (2026-05-24): "+ new feature, organise matches and beer banter, then settle after match who won gets beers from losers, need to refine this feature later" and "for the easy user flow — we sit and I bring beers then everyone opens app and log the beer, also losers should log in beer as part of the lost match, figure out the WLO [win-loss-other], texting, icons, it must be funny but still mobile friendly and easy to use."
 

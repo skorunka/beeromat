@@ -93,7 +93,7 @@ test.describe('@buy-price spec 011 — beer buy-price + margin', () => {
     await page.goto('/log');
 
     // No "club margin" / margin row anywhere on /log.
-    await expect(page.getByText(/Club margin|Klubový marže/)).toHaveCount(0);
+    await expect(page.getByText(/Club margin|Marže klubu/)).toHaveCount(0);
     await expect(page.getByText(/buy.*margin/i)).toHaveCount(0);
   });
 });

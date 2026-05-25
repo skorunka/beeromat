@@ -103,9 +103,10 @@ test.describe('@forms-admin admin form validation', () => {
     await signInAndUnlock(page, { email: ADMIN_EMAIL, pin: ADMIN_PIN });
 
     await page.goto('/cs/admin/beer-types');
-    // The card's buttons are restock, adjust, edit — adjust is the first
-    // "Upravit" (the adjust + edit labels collide in the Czech catalog).
-    await page.getByRole('button', { name: 'Upravit' }).first().click();
+    // The card's buttons are restock, adjust, edit. v1.13 disambiguates
+    // the adjust/edit labels in Czech: "Upravit stav" (adjust the stock
+    // count) vs "Upravit pivo" (edit beer-type metadata).
+    await page.getByRole('button', { name: 'Upravit stav' }).click();
     // v1.3: the adjust form is a positive quantity + Add/Remove choice.
     await expect(page.locator('#quantity')).toBeVisible();
 

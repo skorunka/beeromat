@@ -22,6 +22,7 @@
     "log": "Log",
     "tab": "Tab",
     "bet": "Bet",
+    "match": "Match",
     "history": "History",
     "treasurer": "Treasurer",
     "stock": "Stock",
@@ -68,6 +69,29 @@
       "lockedBody": "Five wrong tries. Sign in again with the link from your email.",
       "forgotPin": "Forgot your PIN?",
       "forgotPinSent": "Link sent — check your email to set a new PIN."
+    }
+  },
+  "match": {
+    "title": "Match",
+    "subtitle": "Whoever lost, buys the beer.",
+    "opponentLabel": "Opponent",
+    "opponentPlaceholder": "Pick your opponent",
+    "iWon": "🏆 I won",
+    "iLost": "🍺 I lost",
+    "logging": "Logging…",
+    "noOpponents": "No one to play with yet — invite a mate.",
+    "winToast": "🏆 Your beer, {opponent}'s paying.",
+    "lostToast": "🍺 Beer for {opponent}. Get 'em next time.",
+    "partialTransferNote": "Transferred {transferred} of {requested} beers — the rest will move when {opponent} logs another.",
+    "noTransferNote": "Match logged. {opponent} hasn't logged a beer yet — move it manually from /bet once they do.",
+    "undo": "Undo",
+    "undone": "Undone.",
+    "undoWindowExpired": "Too late to undo — talk to the treasurer.",
+    "errors": {
+      "opponentRequired": "Pick an opponent.",
+      "outcomeRequired": "Pick how it ended.",
+      "selfMatch": "Yourself? Nice try.",
+      "generic": "That didn't work — give it another go."
     }
   },
   "onboarding": {

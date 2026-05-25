@@ -3,32 +3,46 @@
 import { revalidatePath } from 'next/cache';
 
 import { requireUnlocked } from '@/lib/auth/session';
-import { logMatchTx, voidMatchTx } from '@/lib/db/queries/matches';
-import { logMatchSchema } from '@/lib/validation/match';
-import { db } from '@/lib/db/client';
-import { matches } from '@/lib/db/schema/matches';
-import { and, eq } from 'drizzle-orm';
+import {
+  cancelAgreementTx,
+  createAgreementTx,
+  editAgreementTx,
+  getAgreement,
+  recordResultTx,
+  reverseResultTx,
+} from '@/lib/db/queries/match-agreements';
+import { canRecordMatchResult } from '@/lib/permissions';
+import {
+  cancelAgreementSchema,
+  createAgreementSchema,
+  editAgreementSchema,
+  recordResultSchema,
+  reverseResultSchema,
+} from '@/lib/validation/match-agreement';
 
-// Spec 012 — match log + undo actions.
+// Spec 013 — match-agreement Server Actions.
 //
-// logMatchAction(outcome, opponentMemberId): the caller is whichever
-// member is signed in. outcome = 'won' → caller is winner, opponent
-// is loser. outcome = 'lost' → caller is loser. The action looks up
-// match_loser_beer_count from the club row to size the bet_transfer
-// batch (best-effort — falls back to a matches-row-only insert if
-// winner has no transferable consumptions in the open session).
+// All actions follow the project convention:
+//   - call requireUnlocked() first (session + PIN + tenant scope)
+//   - validate input through the Zod schema (lib/validation/match-agreement)
+//   - delegate the real work to a transactional helper in
+//     lib/db/queries/match-agreements
+//   - return a discriminated-union result so the client can render
+//     typed errors
+//   - revalidate /match (and / for tab updates) after writes
 //
-// voidMatchAction: 5-minute undo window (constitution V reversibility
-// + spec 001 convention). Outside the window only the original
-// logger or a treasurer can void.
+// FR-017 — the legacy 012 `logMatchAction` + `voidMatchAction` were
+// removed when this module migrated to the agreement flow. New singles
+// matches go through createAgreementAction + recordResultAction.
 
-export type LogMatchResult =
-  | { ok: true; matchId: string; transferredCount: number; requestedCount: number }
+export type CreateAgreementResult =
+  | { ok: true; agreementId: string }
   | { ok: false; code: 'VALIDATION_FAILED'; fieldErrors: Record<string, string[]> }
-  | { ok: false; code: 'SELF_MATCH' };
+  | { ok: false; code: 'DUPLICATE_MEMBER' }
+  | { ok: false; code: 'MEMBER_NOT_IN_CLUB' };
 
-export async function logMatchAction(rawInput: unknown): Promise<LogMatchResult> {
-  const parsed = logMatchSchema.safeParse(rawInput);
+export async function createAgreementAction(rawInput: unknown): Promise<CreateAgreementResult> {
+  const parsed = createAgreementSchema.safeParse(rawInput);
   if (!parsed.success) {
     const fieldErrors: Record<string, string[]> = {};
     for (const issue of parsed.error.issues) {
@@ -38,62 +52,133 @@ export async function logMatchAction(rawInput: unknown): Promise<LogMatchResult>
     return { ok: false, code: 'VALIDATION_FAILED', fieldErrors };
   }
   const ctx = await requireUnlocked();
-  const { outcome, opponentMemberId } = parsed.data;
-  if (opponentMemberId === ctx.member.id) {
-    return { ok: false, code: 'SELF_MATCH' };
-  }
-
-  const winnerMemberId = outcome === 'won' ? ctx.member.id : opponentMemberId;
-  const loserMemberId = outcome === 'won' ? opponentMemberId : ctx.member.id;
-  const beerCount = Math.max(1, ctx.club.matchLoserBeerCount ?? 1);
-
-  const result = await logMatchTx({
+  const result = await createAgreementTx({
     clubId: ctx.club.id,
-    winnerMemberId,
-    loserMemberId,
     createdByUserId: ctx.user.id,
-    beerCount,
+    input: parsed.data,
   });
-
-  revalidatePath('/', 'layout');
-  return {
-    ok: true,
-    matchId: result.matchId,
-    transferredCount: result.transferredCount,
-    requestedCount: result.requestedCount,
-  };
+  if (result.ok) {
+    revalidatePath('/match');
+  }
+  return result;
 }
 
-export type VoidMatchResult =
-  | { ok: true; voidedTransferCount: number }
-  | { ok: false; code: 'NOT_FOUND' | 'UNDO_WINDOW_EXPIRED' | 'ALREADY_VOIDED' };
+export type EditAgreementResult =
+  | { ok: true }
+  | { ok: false; code: 'VALIDATION_FAILED'; fieldErrors: Record<string, string[]> }
+  | { ok: false; code: 'NOT_FOUND' }
+  | { ok: false; code: 'NOT_EDITABLE' }
+  | { ok: false; code: 'DUPLICATE_MEMBER' }
+  | { ok: false; code: 'MEMBER_NOT_IN_CLUB' };
 
-const UNDO_WINDOW_MS = 5 * 60 * 1000;
+export async function editAgreementAction(rawInput: unknown): Promise<EditAgreementResult> {
+  const parsed = editAgreementSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string[]> = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path.join('.') || '_root';
+      (fieldErrors[key] ??= []).push(issue.message);
+    }
+    return { ok: false, code: 'VALIDATION_FAILED', fieldErrors };
+  }
+  const ctx = await requireUnlocked();
+  const result = await editAgreementTx({
+    agreementId: parsed.data.agreementId,
+    clubId: ctx.club.id,
+    input: parsed.data.patch,
+  });
+  if (result.ok) {
+    revalidatePath('/match');
+    revalidatePath(`/match/${parsed.data.agreementId}`);
+  }
+  return result;
+}
 
-export async function voidMatchAction(matchId: string): Promise<VoidMatchResult> {
+export type CancelAgreementResult =
+  | { ok: true }
+  | { ok: false; code: 'NOT_FOUND' }
+  | { ok: false; code: 'NOT_CANCELLABLE' };
+
+export async function cancelAgreementAction(rawInput: unknown): Promise<CancelAgreementResult> {
+  const parsed = cancelAgreementSchema.safeParse(rawInput);
+  if (!parsed.success) return { ok: false, code: 'NOT_FOUND' };
+  const ctx = await requireUnlocked();
+  const result = await cancelAgreementTx({
+    agreementId: parsed.data.agreementId,
+    clubId: ctx.club.id,
+    cancelledByUserId: ctx.user.id,
+  });
+  if (result.ok) revalidatePath('/match');
+  return result;
+}
+
+export type RecordResultResult =
+  | {
+      ok: true;
+      matchRowIds: string[];
+      transferredCount: number;
+      requestedCount: number;
+    }
+  | { ok: false; code: 'NOT_FOUND' }
+  | { ok: false; code: 'NOT_AUTHORIZED' }
+  | {
+      ok: false;
+      code: 'ALREADY_RECORDED';
+      recordedAt: Date;
+      recordedByUserId: string | null;
+    }
+  | { ok: false; code: 'CANCELLED' };
+
+export async function recordResultAction(rawInput: unknown): Promise<RecordResultResult> {
+  const parsed = recordResultSchema.safeParse(rawInput);
+  if (!parsed.success) return { ok: false, code: 'NOT_FOUND' };
   const ctx = await requireUnlocked();
 
-  const matchRow = await db.query.matches.findFirst({
-    where: and(eq(matches.id, matchId), eq(matches.clubId, ctx.club.id)),
-  });
-  if (!matchRow) return { ok: false, code: 'NOT_FOUND' };
-  if (matchRow.voidedAt) return { ok: false, code: 'ALREADY_VOIDED' };
-
-  const isWithinWindow = Date.now() - matchRow.createdAt.getTime() <= UNDO_WINDOW_MS;
-  const isOriginalLogger = matchRow.createdByUserId === ctx.user.id;
-  if (!isWithinWindow && !isOriginalLogger) {
-    // Treasurer override is out of v1.12 scope; original logger can
-    // still undo past the window for forgiveness.
-    return { ok: false, code: 'UNDO_WINDOW_EXPIRED' };
+  // Authorization (FR-007): only participants OR treasurer-and-above.
+  const agreement = await getAgreement(parsed.data.agreementId, ctx.club.id);
+  if (!agreement) return { ok: false, code: 'NOT_FOUND' };
+  if (!canRecordMatchResult(ctx.member.id, ctx.member.role, agreement.participantMemberIds)) {
+    return { ok: false, code: 'NOT_AUTHORIZED' };
   }
 
-  const result = await voidMatchTx({
-    matchId,
+  const result = await recordResultTx({
+    agreementId: parsed.data.agreementId,
     clubId: ctx.club.id,
-    voidedByUserId: ctx.user.id,
+    recordedByUserId: ctx.user.id,
+    winningSide: parsed.data.winningSide,
   });
-
-  revalidatePath('/', 'layout');
-  if (!result.voided) return { ok: false, code: 'ALREADY_VOIDED' };
-  return { ok: true, voidedTransferCount: result.voidedTransferCount };
+  if (result.ok) {
+    revalidatePath('/', 'layout');
+  }
+  return result;
 }
+
+export type ReverseResultResult =
+  | { ok: true; voidedMatchCount: number; voidedTransferCount: number }
+  | { ok: false; code: 'NOT_FOUND' }
+  | { ok: false; code: 'NOT_AUTHORIZED' }
+  | { ok: false; code: 'NOT_RECORDED' }
+  | { ok: false; code: 'UNDO_WINDOW_EXPIRED' };
+
+export async function reverseResultAction(rawInput: unknown): Promise<ReverseResultResult> {
+  const parsed = reverseResultSchema.safeParse(rawInput);
+  if (!parsed.success) return { ok: false, code: 'NOT_FOUND' };
+  const ctx = await requireUnlocked();
+
+  const agreement = await getAgreement(parsed.data.agreementId, ctx.club.id);
+  if (!agreement) return { ok: false, code: 'NOT_FOUND' };
+  if (!canRecordMatchResult(ctx.member.id, ctx.member.role, agreement.participantMemberIds)) {
+    return { ok: false, code: 'NOT_AUTHORIZED' };
+  }
+
+  const result = await reverseResultTx({
+    agreementId: parsed.data.agreementId,
+    clubId: ctx.club.id,
+    reversedByUserId: ctx.user.id,
+  });
+  if (result.ok) {
+    revalidatePath('/', 'layout');
+  }
+  return result;
+}
+

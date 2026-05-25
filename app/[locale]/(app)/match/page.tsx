@@ -1,13 +1,17 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-import { MatchForm } from './MatchForm';
+import { NewMatchAgreementForm } from './NewMatchAgreementForm';
+import { UpcomingAgreementsList } from './UpcomingAgreementsList';
 import { requireUnlocked } from '@/lib/auth/session';
-import { listOpponentsForMember } from '@/lib/db/queries/matches';
+import {
+  listActiveClubMembers,
+  listOpenAgreements,
+} from '@/lib/db/queries/match-agreements';
 
-// Spec 012 — /match page. Opponent picker + I won / I lost buttons.
-// The action is best-effort: creates the matches row always; creates
-// N bet_transfer rows when the winner has eligible recent consumptions
-// in the open session.
+// Spec 013 — /match hub: Upcoming agreements list on top, New match
+// form below. The legacy 012 one-step quick-log UI is sunset per
+// FR-017 (full removal happens in US2; for now the agreement flow is
+// the only entry point).
 
 export default async function MatchPage({
   params,
@@ -19,15 +23,27 @@ export default async function MatchPage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('match');
-  const opponents = await listOpponentsForMember(ctx.club.id, ctx.member.id);
+  const [agreements, members] = await Promise.all([
+    listOpenAgreements(ctx.club.id),
+    listActiveClubMembers(ctx.club.id),
+  ]);
 
   return (
     <main className="mx-auto max-w-md p-5">
       <header className="mb-6">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
+        <h1 className="text-2xl font-bold">{t('hubTitle')}</h1>
+        <p className="text-muted-foreground mt-1 text-sm">{t('hubSubtitle')}</p>
       </header>
-      <MatchForm opponents={opponents} />
+
+      <section className="mb-8 flex flex-col gap-3">
+        <h2 className="text-sm font-semibold tracking-wide uppercase">{t('upcomingHeading')}</h2>
+        <UpcomingAgreementsList agreements={agreements} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-semibold tracking-wide uppercase">{t('newMatchHeading')}</h2>
+        <NewMatchAgreementForm members={members} />
+      </section>
     </main>
   );
 }

@@ -43,6 +43,13 @@
       "when": 1779633100832,
       "tag": "0005_watery_bug",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779728134975,
+      "tag": "0006_friendly_tarot",
+      "breakpoints": true
     }
   ]
 }

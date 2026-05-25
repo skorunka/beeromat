@@ -1,86 +1,46 @@
-import { test, expect } from './fixtures/test';
-import { signInAndUnlock } from './fixtures/auth';
+import { authedTest as test, expect } from './fixtures/test';
 import { betTransfers } from '@/lib/db/schema/bets';
 
-
-// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
-// so it MUST start with no saved auth state. Remove this opt-out + the
-// signInAndUnlock call(s) once migrated to the authedTest fixture.
-test.use({ storageState: { cookies: [], origins: [] } });
 // US8 — Cross-session history.
-// Backfills User Story 8: a member browses past sessions and drills
-// into one to see line items, with bet transfers correctly attributed.
-
-const MEMBER_EMAIL = 'us8-member@example.test';
-const MEMBER_PIN = '8080';
+//
+// Spec 014 (E2E perf) — migrated. The shared admin browses their
+// own past sessions; scenario 3 uses admin as Alice + a seeded Bob.
 
 test.describe('@us8 cross-session history', () => {
-  test('scenario 1: the history list shows past sessions', async ({ page, seed }) => {
-    const club = await seed.club();
-    const { user, member } = await seed.member({
-      clubId: club.id,
-      role: 'member',
-      email: MEMBER_EMAIL,
-    });
-    const beer = await seed.beerType({
-      clubId: club.id,
-      createdByUserId: user.id,
-      name: 'Pilsner Urquell',
-    });
+  test('scenario 1: the history list shows past sessions', async ({ page, authed }) => {
+    const beer = await authed.seed.beerType({ name: 'Pilsner Urquell' });
     for (const title of ['Spring match', 'Summer match']) {
-      const session = await seed.drinkSession({
-        clubId: club.id,
-        openedByUserId: user.id,
+      const session = await authed.seed.drinkSession({
         title,
         startedAt: new Date(),
         endedAt: new Date(),
       });
-      await seed.consumption({
-        clubId: club.id,
+      await authed.seed.consumption({
         drinkSessionId: session.id,
-        memberId: member.id,
+        memberId: authed.admin.memberId,
         beerTypeId: beer.id,
-        createdByUserId: user.id,
         unitPriceMinorSnapshot: 5000n,
       });
     }
-
-    await signInAndUnlock(page, { email: MEMBER_EMAIL, pin: MEMBER_PIN });
 
     await page.goto('/history');
     await expect(page.getByText('Spring match')).toBeVisible();
     await expect(page.getByText('Summer match')).toBeVisible();
   });
 
-  test('scenario 2: drilling into a session shows its line items', async ({ page, seed }) => {
-    const club = await seed.club();
-    const { user, member } = await seed.member({
-      clubId: club.id,
-      role: 'member',
-      email: MEMBER_EMAIL,
-    });
-    const beer = await seed.beerType({
-      clubId: club.id,
-      createdByUserId: user.id,
-      name: 'Kozel',
-    });
-    const session = await seed.drinkSession({
-      clubId: club.id,
-      openedByUserId: user.id,
+  test('scenario 2: drilling into a session shows its line items', async ({ page, authed }) => {
+    const beer = await authed.seed.beerType({ name: 'Kozel' });
+    const session = await authed.seed.drinkSession({
       title: 'Cup final',
       startedAt: new Date(),
       endedAt: new Date(),
     });
-    await seed.consumption({
-      clubId: club.id,
+    await authed.seed.consumption({
       drinkSessionId: session.id,
-      memberId: member.id,
+      memberId: authed.admin.memberId,
       beerTypeId: beer.id,
-      createdByUserId: user.id,
       unitPriceMinorSnapshot: 5000n,
     });
-
-    await signInAndUnlock(page, { email: MEMBER_EMAIL, pin: MEMBER_PIN });
 
     await page.goto('/history');
     await page.getByText('Cup final').click();
@@ -88,56 +48,43 @@ test.describe('@us8 cross-session history', () => {
     await expect(page.getByText(/50[.,]00/).first()).toBeVisible();
   });
 
-  test('scenario 3: a session detail attributes a bet transfer', async ({ page, seed }) => {
-    const club = await seed.club();
-    const alice = await seed.member({ clubId: club.id, role: 'member', email: MEMBER_EMAIL });
-    const bob = await seed.member({ clubId: club.id, role: 'member', displayName: 'Bob' });
-    const beer = await seed.beerType({
-      clubId: club.id,
-      createdByUserId: alice.user.id,
-      name: 'Radegast',
-    });
-    const session = await seed.drinkSession({
-      clubId: club.id,
-      openedByUserId: alice.user.id,
+  test('scenario 3: a session detail attributes a bet transfer', async ({ page, authed }) => {
+    const bob = await authed.seedExtraMember({ role: 'member', displayName: 'Bob' });
+    const beer = await authed.seed.beerType({ name: 'Radegast' });
+    const session = await authed.seed.drinkSession({
       title: 'Derby night',
       startedAt: new Date(),
       endedAt: new Date(),
     });
-    // Alice's own drink (so the session appears in her history).
-    await seed.consumption({
-      clubId: club.id,
+    // Admin's own drink (so the session appears in their history).
+    await authed.seed.consumption({
       drinkSessionId: session.id,
-      memberId: alice.member.id,
+      memberId: authed.admin.memberId,
       beerTypeId: beer.id,
-      createdByUserId: alice.user.id,
       unitPriceMinorSnapshot: 5000n,
     });
-    // Bob's drink, which Alice takes on a lost bet.
-    const bobDrink = await seed.consumption({
-      clubId: club.id,
+    // Bob's drink, which admin takes on a lost bet.
+    const bobDrink = await authed.seed.consumption({
       drinkSessionId: session.id,
-      memberId: bob.member.id,
+      memberId: bob.memberId,
       beerTypeId: beer.id,
-      createdByUserId: bob.user.id,
+      createdByUserId: bob.userId,
       unitPriceMinorSnapshot: 5000n,
     });
-    await seed.db.insert(betTransfers).values({
-      clubId: club.id,
+    await authed.db.insert(betTransfers).values({
+      clubId: authed.admin.clubId,
       sourceConsumptionId: bobDrink.id,
-      fromMemberId: bob.member.id,
-      toMemberId: alice.member.id,
-      createdByUserId: alice.user.id,
+      fromMemberId: bob.memberId,
+      toMemberId: authed.admin.memberId,
+      createdByUserId: authed.admin.userId,
     });
-
-    await signInAndUnlock(page, { email: MEMBER_EMAIL, pin: MEMBER_PIN });
 
     await page.goto('/history');
     await page.getByText('Derby night').click();
 
-    // The transfer is shown, attributed to Alice taking Bob's drink.
+    // The transfer is shown, attributed to admin taking Bob's drink.
     await expect(page.getByText(/you took bob/i)).toBeVisible();
-    // Effective total: her own 50.00 + Bob's transferred 50.00 = 100.00.
+    // Effective total: admin's own 50.00 + Bob's transferred 50.00 = 100.00.
     await expect(page.getByText(/100[.,]00/).first()).toBeVisible();
   });
 });

@@ -1,59 +1,41 @@
 import { and, eq } from 'drizzle-orm';
 
-import { test, expect } from './fixtures/test';
-import { signInAndUnlock } from './fixtures/auth';
+import { authedTest as test, expect } from './fixtures/test';
 import { payments, paymentStateTransitions } from '@/lib/db/schema/payments';
 
-
-// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
-// so it MUST start with no saved auth state. Remove this opt-out + the
-// signInAndUnlock call(s) once migrated to the authedTest fixture.
-test.use({ storageState: { cookies: [], origins: [] } });
 // US3 — Treasurer confirms received payments.
-// Backfills User Story 3's acceptance scenarios + SC-007a (a single
-// claimed payment is confirmed in exactly one tap).
-
-const TREASURER_EMAIL = 'us3-treasurer@example.test';
-const TREASURER_PIN = '2468';
-const MEMBER_PIN = '1111';
+//
+// Spec 014 (E2E perf) — migrated. The shared admin (club_admin ≥
+// treasurer) acts as the treasurer for scenarios 1-4. Scenario 5
+// seeds a dispute against the admin themselves — they see the banner
+// on protected pages.
 
 test.describe('@us3 treasurer confirms payments', () => {
-  test('scenario 1: the treasurer sees a pending claim', async ({ page, seed }) => {
-    const club = await seed.club();
-    await seed.member({ clubId: club.id, role: 'treasurer', email: TREASURER_EMAIL });
-    const { user, member } = await seed.member({
-      clubId: club.id,
+  test('scenario 1: the treasurer sees a pending claim', async ({ page, authed }) => {
+    const pavel = await authed.seedExtraMember({
       role: 'member',
       displayName: 'Pavel Dlužník',
     });
-    await seed.payment({
-      clubId: club.id,
-      memberId: member.id,
-      createdByUserId: user.id,
+    await authed.seed.payment({
+      memberId: pavel.memberId,
+      createdByUserId: pavel.userId,
       amountMinor: 10_000n,
       status: 'claimed',
     });
-
-    await signInAndUnlock(page, { email: TREASURER_EMAIL, pin: TREASURER_PIN });
 
     await page.goto('/admin/pending');
     await expect(page.getByText('Pavel Dlužník')).toBeVisible();
     await expect(page.getByText(/100[.,]00/)).toBeVisible();
   });
 
-  test('scenario 2 (SC-007a): one tap confirms a claimed payment', async ({ page, seed }) => {
-    const club = await seed.club();
-    await seed.member({ clubId: club.id, role: 'treasurer', email: TREASURER_EMAIL });
-    const { user, member } = await seed.member({ clubId: club.id, role: 'member' });
-    const payment = await seed.payment({
-      clubId: club.id,
-      memberId: member.id,
-      createdByUserId: user.id,
+  test('scenario 2 (SC-007a): one tap confirms a claimed payment', async ({ page, authed }) => {
+    const member = await authed.seedExtraMember({ role: 'member', displayName: 'Member' });
+    const payment = await authed.seed.payment({
+      memberId: member.memberId,
+      createdByUserId: member.userId,
       amountMinor: 8_000n,
       status: 'claimed',
     });
-
-    await signInAndUnlock(page, { email: TREASURER_EMAIL, pin: TREASURER_PIN });
 
     await page.goto('/admin/pending');
     // SC-007a: exactly one tap — no confirmation dialog, no form.
@@ -62,7 +44,7 @@ test.describe('@us3 treasurer confirms payments', () => {
     await expect
       .poll(
         async () => {
-          const row = await seed.db.query.payments.findFirst({
+          const row = await authed.db.query.payments.findFirst({
             where: eq(payments.id, payment.id),
           });
           return row?.status ?? null;
@@ -72,21 +54,16 @@ test.describe('@us3 treasurer confirms payments', () => {
       .toBe('confirmed');
   });
 
-  test('scenario 3: bulk-confirm selected claims', async ({ page, seed }) => {
-    const club = await seed.club();
-    await seed.member({ clubId: club.id, role: 'treasurer', email: TREASURER_EMAIL });
+  test('scenario 3: bulk-confirm selected claims', async ({ page, authed }) => {
     for (let i = 0; i < 3; i += 1) {
-      const { user, member } = await seed.member({ clubId: club.id, role: 'member' });
-      await seed.payment({
-        clubId: club.id,
-        memberId: member.id,
-        createdByUserId: user.id,
+      const m = await authed.seedExtraMember({ role: 'member', displayName: `Member ${i + 1}` });
+      await authed.seed.payment({
+        memberId: m.memberId,
+        createdByUserId: m.userId,
         amountMinor: 5_000n,
         status: 'claimed',
       });
     }
-
-    await signInAndUnlock(page, { email: TREASURER_EMAIL, pin: TREASURER_PIN });
 
     await page.goto('/admin/pending');
     const checkboxes = page.getByRole('checkbox');
@@ -98,8 +75,11 @@ test.describe('@us3 treasurer confirms payments', () => {
     await expect
       .poll(
         async () => {
-          const rows = await seed.db.query.payments.findMany({
-            where: and(eq(payments.clubId, club.id), eq(payments.status, 'confirmed')),
+          const rows = await authed.db.query.payments.findMany({
+            where: and(
+              eq(payments.clubId, authed.admin.clubId),
+              eq(payments.status, 'confirmed'),
+            ),
           });
           return rows.length;
         },
@@ -108,19 +88,14 @@ test.describe('@us3 treasurer confirms payments', () => {
       .toBe(3);
   });
 
-  test('scenario 4: disputing a claim records the reason', async ({ page, seed }) => {
-    const club = await seed.club();
-    await seed.member({ clubId: club.id, role: 'treasurer', email: TREASURER_EMAIL });
-    const { user, member } = await seed.member({ clubId: club.id, role: 'member' });
-    const payment = await seed.payment({
-      clubId: club.id,
-      memberId: member.id,
-      createdByUserId: user.id,
+  test('scenario 4: disputing a claim records the reason', async ({ page, authed }) => {
+    const member = await authed.seedExtraMember({ role: 'member', displayName: 'Member' });
+    const payment = await authed.seed.payment({
+      memberId: member.memberId,
+      createdByUserId: member.userId,
       amountMinor: 7_000n,
       status: 'claimed',
     });
-
-    await signInAndUnlock(page, { email: TREASURER_EMAIL, pin: TREASURER_PIN });
 
     await page.goto('/admin/pending');
     await page.getByRole('button', { name: /something.s off/i }).click();
@@ -132,7 +107,7 @@ test.describe('@us3 treasurer confirms payments', () => {
     await expect
       .poll(
         async () => {
-          const row = await seed.db.query.payments.findFirst({
+          const row = await authed.db.query.payments.findFirst({
             where: eq(payments.id, payment.id),
           });
           return row?.status ?? null;
@@ -141,7 +116,7 @@ test.describe('@us3 treasurer confirms payments', () => {
       )
       .toBe('disputed');
 
-    const transition = await seed.db.query.paymentStateTransitions.findFirst({
+    const transition = await authed.db.query.paymentStateTransitions.findFirst({
       where: and(
         eq(paymentStateTransitions.paymentId, payment.id),
         eq(paymentStateTransitions.toStatus, 'disputed'),
@@ -150,26 +125,18 @@ test.describe('@us3 treasurer confirms payments', () => {
     expect(transition?.reason).toBe('No matching transfer on the bank statement');
   });
 
-  test('scenario 5: a member sees the dispute banner', async ({ page, seed }) => {
-    const club = await seed.club();
-    const memberEmail = 'us3-disputed-member@example.test';
-    const { user, member } = await seed.member({
-      clubId: club.id,
-      role: 'member',
-      email: memberEmail,
-    });
-    await seed.payment({
-      clubId: club.id,
-      memberId: member.id,
-      createdByUserId: user.id,
+  test('scenario 5: a member sees the dispute banner', async ({ page, authed }) => {
+    // Seed a disputed payment against the admin themselves — the
+    // banner renders in the (app) layout on every protected page for
+    // whoever's payment got flagged.
+    await authed.seed.payment({
+      memberId: authed.admin.memberId,
       amountMinor: 6_000n,
       status: 'disputed',
       reason: 'Amount does not match the transfer',
     });
 
-    await signInAndUnlock(page, { email: memberEmail, pin: MEMBER_PIN });
-
-    // The banner renders in the (app) layout on every protected page.
+    await page.goto('/');
     await expect(page.getByText(/got flagged/i)).toBeVisible();
     await expect(page.getByText(/Amount does not match the transfer/i)).toBeVisible();
   });

@@ -1,29 +1,17 @@
-import { test, expect } from './fixtures/test';
-import { signInAndUnlock } from './fixtures/auth';
+import { authedTest as test, expect } from './fixtures/test';
 
-
-// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
-// so it MUST start with no saved auth state. Remove this opt-out + the
-// signInAndUnlock call(s) once migrated to the authedTest fixture.
-test.use({ storageState: { cookies: [], origins: [] } });
 // v1.3 US3 — the home balance reflects a just-logged beer (UX review F2).
-
-const EMAIL = 'ux2-balance@example.test';
-const PIN = '4040';
+//
+// Spec 014 (E2E perf) — migrated. The shared admin logs the beer
+// against their own tab; balance assertions read off the admin's row.
 
 test.describe('@ux2-home-balance live home balance', () => {
-  test('scenario 1: logging a beer raises the home balance', async ({ page, seed }) => {
-    const club = await seed.club();
-    const { user } = await seed.member({ clubId: club.id, role: 'member', email: EMAIL });
-    await seed.beerType({
-      clubId: club.id,
-      createdByUserId: user.id,
+  test('scenario 1: logging a beer raises the home balance', async ({ page, authed }) => {
+    await authed.seed.beerType({
       name: 'Pilsner Urquell',
       unitPriceMinor: 5000n,
       currentStock: 50,
     });
-
-    await signInAndUnlock(page, { email: EMAIL, pin: PIN });
 
     // Home balance starts at zero.
     await page.goto('/');
@@ -39,18 +27,12 @@ test.describe('@ux2-home-balance live home balance', () => {
     await expect(page.getByText(/50[.,]00/)).toBeVisible();
   });
 
-  test('scenario 2: undoing a beer drops the home balance back', async ({ page, seed }) => {
-    const club = await seed.club();
-    const { user } = await seed.member({ clubId: club.id, role: 'member', email: EMAIL });
-    await seed.beerType({
-      clubId: club.id,
-      createdByUserId: user.id,
+  test('scenario 2: undoing a beer drops the home balance back', async ({ page, authed }) => {
+    await authed.seed.beerType({
       name: 'Pilsner Urquell',
       unitPriceMinor: 5000n,
       currentStock: 50,
     });
-
-    await signInAndUnlock(page, { email: EMAIL, pin: PIN });
 
     await page.goto('/log');
     await page.getByRole('button', { name: /Pilsner Urquell/ }).click();
@@ -61,7 +43,6 @@ test.describe('@ux2-home-balance live home balance', () => {
     await expect(page.getByText('Pilsner Urquell')).toBeVisible();
     await page.getByRole('button', { name: /back|zpět|undo/i }).first().click();
     // The tab's session total drops back to zero — the void has landed.
-    // (The voided row and the session total both read 0,00 — first match.)
     await expect(page.getByText(/0[.,]00/).first()).toBeVisible({ timeout: 15_000 });
 
     // Home balance reflects the removal.

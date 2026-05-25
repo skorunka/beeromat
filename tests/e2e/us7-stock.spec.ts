@@ -1,28 +1,15 @@
 import { eq } from 'drizzle-orm';
 
-import { test, expect } from './fixtures/test';
-import { signInAndUnlock } from './fixtures/auth';
+import { authedTest as test, expect } from './fixtures/test';
 import { beerTypes } from '@/lib/db/schema/catalog';
 
-
-// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
-// so it MUST start with no saved auth state. Remove this opt-out + the
-// signInAndUnlock call(s) once migrated to the authedTest fixture.
-test.use({ storageState: { cookies: [], origins: [] } });
 // US7 — Stock management & low-stock alerts.
-// Backfills User Story 7: a stock manager maintains the beer catalog;
-// the log screen reflects low-stock and archived state.
-
-const MANAGER_EMAIL = 'us7-stock@example.test';
-const MANAGER_PIN = '7070';
+//
+// Spec 014 (E2E perf) — migrated. Admin (club_admin ≥ stock_manager)
+// acts as the stock manager.
 
 test.describe('@us7 stock management', () => {
-  test('scenario 1: a stock manager adds a beer type', async ({ page, seed }) => {
-    const club = await seed.club();
-    await seed.member({ clubId: club.id, role: 'stock_manager', email: MANAGER_EMAIL });
-
-    await signInAndUnlock(page, { email: MANAGER_EMAIL, pin: MANAGER_PIN });
-
+  test('scenario 1: a stock manager adds a beer type', async ({ page, authed }) => {
     await page.goto('/admin/beer-types');
     await page.getByRole('button', { name: /add a beer/i }).click();
     await page.locator('#name').fill('Kozel Černý');
@@ -34,7 +21,7 @@ test.describe('@us7 stock management', () => {
     await expect
       .poll(
         async () => {
-          const row = await seed.db.query.beerTypes.findFirst({
+          const row = await authed.db.query.beerTypes.findFirst({
             where: eq(beerTypes.name, 'Kozel Černý'),
           });
           return row ? `${row.currentStock}:${row.unitPriceMinor}` : null;
@@ -44,21 +31,8 @@ test.describe('@us7 stock management', () => {
       .toBe('30:4800');
   });
 
-  test('scenario 2: a restock raises the stock level', async ({ page, seed }) => {
-    const club = await seed.club();
-    const { user } = await seed.member({
-      clubId: club.id,
-      role: 'stock_manager',
-      email: MANAGER_EMAIL,
-    });
-    const beer = await seed.beerType({
-      clubId: club.id,
-      createdByUserId: user.id,
-      name: 'Pilsner Urquell',
-      currentStock: 10,
-    });
-
-    await signInAndUnlock(page, { email: MANAGER_EMAIL, pin: MANAGER_PIN });
+  test('scenario 2: a restock raises the stock level', async ({ page, authed }) => {
+    const beer = await authed.seed.beerType({ name: 'Pilsner Urquell', currentStock: 10 });
 
     await page.goto('/admin/beer-types');
     await page.getByRole('button', { name: /^restock$/i }).click();
@@ -68,7 +42,7 @@ test.describe('@us7 stock management', () => {
     await expect
       .poll(
         async () => {
-          const row = await seed.db.query.beerTypes.findFirst({
+          const row = await authed.db.query.beerTypes.findFirst({
             where: eq(beerTypes.id, beer.id),
           });
           return row?.currentStock ?? null;
@@ -78,24 +52,12 @@ test.describe('@us7 stock management', () => {
       .toBe(34);
   });
 
-  test('scenario 3: an adjustment below zero is rejected', async ({ page, seed }) => {
-    const club = await seed.club();
-    const { user } = await seed.member({
-      clubId: club.id,
-      role: 'stock_manager',
-      email: MANAGER_EMAIL,
-    });
-    const beer = await seed.beerType({
-      clubId: club.id,
-      createdByUserId: user.id,
-      name: 'Radegast',
-      currentStock: 3,
-    });
-
-    await signInAndUnlock(page, { email: MANAGER_EMAIL, pin: MANAGER_PIN });
+  test('scenario 3: an adjustment below zero is rejected', async ({ page, authed }) => {
+    const beer = await authed.seed.beerType({ name: 'Radegast', currentStock: 3 });
 
     await page.goto('/admin/beer-types');
-    await page.getByRole('button', { name: /^adjust$/i }).click();
+    // Czech label "Upravit stav" disambiguates adjust vs edit (spec 014).
+    await page.getByRole('button', { name: /upravit stav|^adjust$/i }).click();
     // v1.3: adjust is a positive quantity + an Add/Remove choice.
     await page.getByRole('button', { name: /take away/i }).click();
     await page.locator('#quantity').fill('5');
@@ -104,29 +66,15 @@ test.describe('@us7 stock management', () => {
 
     await expect(page.getByText(/below zero/i)).toBeVisible();
     // Stock is untouched.
-    const row = await seed.db.query.beerTypes.findFirst({ where: eq(beerTypes.id, beer.id) });
+    const row = await authed.db.query.beerTypes.findFirst({ where: eq(beerTypes.id, beer.id) });
     expect(row?.currentStock).toBe(3);
   });
 
   test('scenario 4: a low-stock beer shows the badge on the log screen', async ({
     page,
-    seed,
+    authed,
   }) => {
-    const club = await seed.club();
-    const { user } = await seed.member({
-      clubId: club.id,
-      role: 'stock_manager',
-      email: MANAGER_EMAIL,
-    });
-    await seed.beerType({
-      clubId: club.id,
-      createdByUserId: user.id,
-      name: 'Budvar',
-      currentStock: 4,
-      lowStockThreshold: 5,
-    });
-
-    await signInAndUnlock(page, { email: MANAGER_EMAIL, pin: MANAGER_PIN });
+    await authed.seed.beerType({ name: 'Budvar', currentStock: 4, lowStockThreshold: 5 });
 
     await page.goto('/log');
     await expect(page.getByRole('button', { name: /Budvar/ })).toBeVisible();
@@ -135,22 +83,9 @@ test.describe('@us7 stock management', () => {
 
   test('scenario 5: archiving a beer type hides it from the log screen', async ({
     page,
-    seed,
+    authed,
   }) => {
-    const club = await seed.club();
-    const { user } = await seed.member({
-      clubId: club.id,
-      role: 'stock_manager',
-      email: MANAGER_EMAIL,
-    });
-    await seed.beerType({
-      clubId: club.id,
-      createdByUserId: user.id,
-      name: 'Staropramen',
-      currentStock: 20,
-    });
-
-    await signInAndUnlock(page, { email: MANAGER_EMAIL, pin: MANAGER_PIN });
+    await authed.seed.beerType({ name: 'Staropramen', currentStock: 20 });
 
     // Visible on the log screen before archiving.
     await page.goto('/log');

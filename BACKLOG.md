@@ -69,27 +69,56 @@ When one matures, run `/speckit-specify` and the item moves into
 
 ---
 
-## E2E performance (in-flight)
+## E2E performance — follow-ups to spec 015
 
-- **Bulk-migrate the remaining 30 specs to `authedTest`** (started in
-  spec 014 E2E perf work; `ux-loading` + `ux-bet-no-session` migrated
-  as the first wave). Not mechanical — each spec needs case-by-case
-  judgment:
-    - Many specs need a `seed.payment` / `seed.consumption` /
-      `seed.beerType` builder bound to the shared admin's club. **Step
-      one**: expand the `AuthedContext` interface in
-      `tests/e2e/fixtures/test.ts` with these builders so migration of
-      the seed-heavy specs (`ux-pending-row`, `us2-settle`,
-      `us3-treasurer-confirm`, etc.) becomes a 5-line file edit.
-    - Specs that test multiple roles per test (`forms-money`,
-      `ux-touch-targets`, `ux3-redesign`) need a "switch role" helper
-      OR splitting into multiple test files. Hard.
-    - Auth-flow specs (`auth`, `forms-auth`, `onboarding`,
-      `us5-invite-onboard`, `ux-forgot-pin`, `email-i18n`,
-      `admin-config` bootstrap test) MUST keep the opt-out — they
-      test sign-in/onboarding/invitation directly.
+Spec 015 shipped the **infrastructure** for the four-layer pyramid
+(Component / API-mocked E2E / db.setup Playwright project /
+Constitution Principle VIII) — but the bulk spec migrations
+(US3 + US4 + Polish) were **deferred**. Two reasons surfaced during
+implementation that mean the original tasks.md categorisation was
+optimistic:
+
+1. **Component-layer migrations need production-code refactoring.**
+   Most ux-* specs target Next.js server-component pages (`/log`,
+   `/admin/pending`, `(app)/layout.tsx`'s dispute banner, the
+   `loading.tsx` skeleton) — none of which can be rendered in
+   isolation under Playwright CT or RTL. Migrating them requires
+   first extracting their visual sub-components into pure
+   presentational React components, which is outside spec 015's
+   scope ("DOES NOT include changing production code paths").
+
+2. **Mocked-E2E migrations save less than expected.** Most
+   form-validation tests in the suite seed DB state so the form
+   actually RENDERS (balance > 0, member exists, banking profile
+   present). The mocked-E2E layer's "no DB writes via web" benefit
+   only applies to the action-submission step, which most tests
+   never reach (Zod blocks bad input client-side). After spec
+   014's storageState removed the per-test sign-in cost, the
+   remaining wall-time tax is the seed work — which mocked-E2E
+   doesn't address.
+
+### Follow-up specs to queue
+
+- **(016?) Presentational-component extraction** — refactor a handful
+  of `(app)/*` server components to delegate UI to pure
+  presentational components under `components/`. Targets identified
+  during 015: dispute banner, loading skeletons, empty-state views
+  for /log + /bet + /history, locale-rendered headings. ~10
+  refactors, each tiny. Once these exist, the corresponding ux-*
+  specs migrate to the component layer for real wall-time wins.
+
+- **(017?) Per-spec true-migration audit** — case-by-case decision
+  for each of the ~30 remaining E2E specs: stay at true-E2E
+  (critical journey), move to mocked-E2E (genuine no-seed win),
+  or block on (016)'s refactor. Replace the spec-015 tasks.md R8
+  table with an evidence-based one based on actual measured costs.
 
 - **Per-worker DB + raise `workers`** (option B from the perf
-  analysis). Bigger effort (1-2 days), larger speedup on top of the
-  storageState work. Park until the storageState migration is done
-  and we measure the new baseline.
+  analysis). Bigger effort (1-2 days), larger speedup on top of
+  storageState. Park until the layer split has measurable wins.
+
+- **Backfill `specs/014-e2e-perf-storagestate/`** — the storageState
+  work landed as commits on `main` without a spec directory. Future
+  readers expect a 014 dir. Backfill with a brief retrospective
+  spec.md documenting what shipped + the constraints we discovered
+  that led to spec 015.

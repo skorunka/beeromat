@@ -89,7 +89,19 @@ Standard Next.js 16 App Router layout. New test dirs are siblings under `tests/`
 
 ---
 
-## Phase 5: User Story 3 — Migrate ≥4 specs to the component layer (Priority: P2)
+## Phase 5: User Story 3 — Migrate ≥4 specs to the component layer (Priority: P2) — DEFERRED
+
+> **Deferred to a follow-up spec (BACKLOG: "Presentational-component
+> extraction").** Implementation analysis showed that most ux-* specs
+> target Next.js server-component pages (`/log`, `/admin/pending`,
+> the `(app)/layout.tsx` dispute banner, `loading.tsx` skeletons) —
+> none of which mount in isolation under Playwright CT or Vitest+RTL
+> without first extracting their visual sub-components into pure
+> presentational React components. That refactoring is outside
+> spec 015's scope per the Out of Scope section ("DOES NOT include
+> changing production code paths"). The two BrandMark samples
+> shipped with US1 (T013 + T014) prove the layer works; real
+> migration tasks ship as part of the follow-up spec.
 
 **Goal**: deliver measurable suite-time savings by migrating the easiest-win visual + locale + empty-state specs.
 
@@ -109,7 +121,24 @@ Standard Next.js 16 App Router layout. New test dirs are siblings under `tests/`
 
 ---
 
-## Phase 6: User Story 4 — Migrate ≥4 specs to the API-mocked layer (Priority: P3)
+## Phase 6: User Story 4 — Migrate ≥4 specs to the API-mocked layer (Priority: P3) — DEFERRED
+
+> **Deferred to a follow-up spec (BACKLOG: "Per-spec true-migration
+> audit").** Implementation analysis showed that the mocked-E2E
+> layer's savings are smaller than tasks.md projected:
+>
+> - Spec 014's storageState reuse already removed the per-test
+>   sign-in cost (the original source of E2E wall-time pain).
+> - Most "form-validation" specs (forms-admin, forms-money,
+>   forms-auth) seed DB state so the FORM RENDERS — the seed is
+>   the cost, not the action submission. Mocked-E2E doesn't help.
+> - The truly clean candidates (forms-auth with no seed, parts of
+>   account) have other constraints — forms-auth tests sign-in
+>   itself, so it can't load admin storageState.
+>
+> The mockServerAction helper + sample (T018-T020) prove the
+> infrastructure is in place; the follow-up audit picks the
+> handful of specs where migration genuinely saves wall time.
 
 **Goal**: pull form-validation + UI-feedback specs out of true-E2E since they don't need DB writes.
 
@@ -128,7 +157,12 @@ Standard Next.js 16 App Router layout. New test dirs are siblings under `tests/`
 
 ---
 
-## Phase 7: User Story 5 — Constitution amendment verified + decision rule in use (Priority: P3)
+## Phase 7: User Story 5 — Constitution amendment verified + decision rule in use (Priority: P3) — PARTIAL
+
+> Amendment LANDED with US1 (T015 — Principle VIII + 8-gate list
+> + 1.7.0 → 1.8.0 bump). Audit of "next 5 specs default to
+> documented layer" (T035 / SC-007) carries forward in BACKLOG
+> ("Per-spec true-migration audit").
 
 **Goal**: confirm Principle VIII is doing its job (the amendment shipped with US1 in T015; this phase verifies adoption).
 
@@ -143,7 +177,13 @@ Standard Next.js 16 App Router layout. New test dirs are siblings under `tests/`
 
 ---
 
-## Phase 8: Polish — Remaining migrations + 8-gate orchestration + suite-time validation
+## Phase 8: Polish — Remaining migrations + 8-gate orchestration + suite-time validation — DEFERRED
+
+> Migration tasks T036-T046 deferred per the US3 + US4 deferrals
+> above. The 8-gate orchestration (T047 onwards) runs as part of
+> the spec close-out commit but at INFRASTRUCTURE scope only — the
+> "≤ 17 min total" target (SC-004) won't measure meaningfully
+> until the deferred migrations land.
 
 **Purpose**: cover the remaining ~20 specs (per FR-008a: ALL 33 categorised). Validate the wall-time target (SC-004).
 

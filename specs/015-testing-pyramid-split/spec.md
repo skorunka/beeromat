@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-25
 
-**Status**: Draft
+**Status**: Infrastructure shipped 2026-05-26. US1 (component layer + Constitution Principle VIII) + US2 (mocked-E2E sample) committed. US3/US4 bulk migrations DEFERRED to follow-up specs (presentational-component extraction + per-spec migration audit) per implementation-phase analysis — see BACKLOG.md.
 
 **Input**: User description (2026-05-25): rework the E2E test architecture
 into a proper testing pyramid. Spec 014's storageState reuse work removed

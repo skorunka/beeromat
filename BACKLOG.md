@@ -41,12 +41,23 @@ When one matures, run `/speckit-specify` and the item moves into
 
 ## E2E performance (in-flight)
 
-- **Bulk-migrate the remaining 32 specs to `authedTest`** (started in
-  spec 014 E2E perf work). Each migration: remove the
-  `test.use({ storageState: {…} })` opt-out, swap the import to
-  `authedTest`, drop the `signInAndUnlock` call(s) at the top, and
-  swap any references to a per-spec `ADMIN_EMAIL` constant to
-  `ctx.admin.email`. Mechanical but file-by-file.
+- **Bulk-migrate the remaining 30 specs to `authedTest`** (started in
+  spec 014 E2E perf work; `ux-loading` + `ux-bet-no-session` migrated
+  as the first wave). Not mechanical — each spec needs case-by-case
+  judgment:
+    - Many specs need a `seed.payment` / `seed.consumption` /
+      `seed.beerType` builder bound to the shared admin's club. **Step
+      one**: expand the `AuthedContext` interface in
+      `tests/e2e/fixtures/test.ts` with these builders so migration of
+      the seed-heavy specs (`ux-pending-row`, `us2-settle`,
+      `us3-treasurer-confirm`, etc.) becomes a 5-line file edit.
+    - Specs that test multiple roles per test (`forms-money`,
+      `ux-touch-targets`, `ux3-redesign`) need a "switch role" helper
+      OR splitting into multiple test files. Hard.
+    - Auth-flow specs (`auth`, `forms-auth`, `onboarding`,
+      `us5-invite-onboard`, `ux-forgot-pin`, `email-i18n`,
+      `admin-config` bootstrap test) MUST keep the opt-out — they
+      test sign-in/onboarding/invitation directly.
 
 - **Per-worker DB + raise `workers`** (option B from the perf
   analysis). Bigger effort (1-2 days), larger speedup on top of the

@@ -1,24 +1,14 @@
-import { test, expect } from './fixtures/test';
-import { signInAndUnlock } from './fixtures/auth';
+import { authedTest as test, expect } from './fixtures/test';
 
-
-// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
-// so it MUST start with no saved auth state. Remove this opt-out + the
-// signInAndUnlock call(s) once migrated to the authedTest fixture.
-test.use({ storageState: { cookies: [], origins: [] } });
 // US8 (v1.1) — navigation shows a loading skeleton, never a frozen
 // screen. The destination's data fetch is held so the transient
 // skeleton (loading.tsx) stays visible long enough to assert.
-
-const EMAIL = 'ux-loading@example.test';
-const PIN = '8989';
+//
+// Spec 014 (E2E perf) — migrated to authedTest: the shared admin is
+// already signed in; the test just navigates.
 
 test.describe('@ux-loading route loading feedback', () => {
-  test('navigating to a route shows a loading skeleton', async ({ page, seed }) => {
-    const club = await seed.club();
-    await seed.member({ clubId: club.id, role: 'member', email: EMAIL });
-
-    await signInAndUnlock(page, { email: EMAIL, pin: PIN });
+  test('navigating to a route shows a loading skeleton', async ({ page }) => {
     await page.goto('/');
     // Wait until the app is hydrated, so clicking the nav is a
     // client-side navigation (which renders loading.tsx) — not a full

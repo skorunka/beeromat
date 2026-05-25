@@ -122,6 +122,38 @@ export interface AuthedContext {
     email?: string;
     displayName: string;
   }) => Promise<{ userId: string; memberId: string }>;
+  /**
+   * Domain-table seed builders bound to the shared admin's club.
+   * Mirror the legacy `seed.*` builders but auto-fill `clubId` (and,
+   * where applicable, `createdByUserId`) from the admin context.
+   * Domain rows are wiped between tests by `truncateDomainOnly`, so no
+   * per-test cleanup is needed.
+   */
+  seed: {
+    beerType: (
+      args?: Omit<Parameters<typeof seedBeerType>[1], 'clubId' | 'createdByUserId'> & {
+        createdByUserId?: string;
+      },
+    ) => ReturnType<typeof seedBeerType>;
+    drinkSession: (
+      args?: Omit<Parameters<typeof seedDrinkSession>[1], 'clubId' | 'openedByUserId'> & {
+        openedByUserId?: string;
+      },
+    ) => ReturnType<typeof seedDrinkSession>;
+    consumption: (
+      args: Omit<Parameters<typeof seedConsumption>[1], 'clubId' | 'createdByUserId'> & {
+        createdByUserId?: string;
+      },
+    ) => ReturnType<typeof seedConsumption>;
+    payment: (
+      args: Omit<Parameters<typeof seedPayment>[1], 'clubId' | 'createdByUserId'> & {
+        createdByUserId?: string;
+      },
+    ) => ReturnType<typeof seedPayment>;
+    bankingProfile: (
+      args?: Omit<Parameters<typeof seedBankingProfile>[1], 'clubId'>,
+    ) => ReturnType<typeof seedBankingProfile>;
+  };
 }
 
 let extraSeq = 0;
@@ -208,6 +240,34 @@ export const authedTest = base.extend<{ authed: AuthedContext }>({
             .returning();
           if (!m) throw new Error('seedExtraMember: member insert failed');
           return { userId: u.id, memberId: m.id };
+        },
+        seed: {
+          beerType: (args = {}) =>
+            seedBeerType(db, {
+              ...args,
+              clubId: adminClub.id,
+              createdByUserId: args.createdByUserId ?? adminUser.id,
+            }),
+          drinkSession: (args = {}) =>
+            seedDrinkSession(db, {
+              ...args,
+              clubId: adminClub.id,
+              openedByUserId: args.openedByUserId ?? adminUser.id,
+            }),
+          consumption: (args) =>
+            seedConsumption(db, {
+              ...args,
+              clubId: adminClub.id,
+              createdByUserId: args.createdByUserId ?? adminUser.id,
+            }),
+          payment: (args) =>
+            seedPayment(db, {
+              ...args,
+              clubId: adminClub.id,
+              createdByUserId: args.createdByUserId ?? adminUser.id,
+            }),
+          bankingProfile: (args = {}) =>
+            seedBankingProfile(db, { ...args, clubId: adminClub.id }),
         },
       };
       await use(ctx);

@@ -1,38 +1,29 @@
-import { test, expect } from './fixtures/test';
-import { signInAndUnlock } from './fixtures/auth';
+import { authedTest as test, expect } from './fixtures/test';
 import { expectSeparated, setPhoneViewport } from './fixtures/viewport';
 
-
-// Spec 014 (E2E perf) opt-out: this spec drives its own sign-in flow,
-// so it MUST start with no saved auth state. Remove this opt-out + the
-// signInAndUnlock call(s) once migrated to the authedTest fixture.
-test.use({ storageState: { cookies: [], origins: [] } });
 // US3 (v1.1) — the treasurer pending row is legible and mis-tap-safe.
-
-const TREASURER_EMAIL = 'ux-pending-treasurer@example.test';
-const PIN = '3434';
+//
+// Spec 014 (E2E perf) — migrated to authedTest: the shared admin is
+// club_admin (≥ treasurer per the role hierarchy) so they see the
+// /admin/pending screen. We seed Pavel as an extra member and a
+// claimed payment on his behalf via authed.seed.payment.
 
 test.describe('@ux-pending-row treasurer pending row', () => {
   test('amount + name are legible and Confirm / Dispute are separated', async ({
     page,
-    seed,
+    authed,
   }) => {
-    const club = await seed.club();
-    await seed.member({ clubId: club.id, role: 'treasurer', email: TREASURER_EMAIL });
-    const { user, member } = await seed.member({
-      clubId: club.id,
+    const pavel = await authed.seedExtraMember({
       role: 'member',
       displayName: 'Pavel Dlužník',
     });
-    await seed.payment({
-      clubId: club.id,
-      memberId: member.id,
-      createdByUserId: user.id,
+    await authed.seed.payment({
+      memberId: pavel.memberId,
+      createdByUserId: pavel.userId,
       status: 'claimed',
       amountMinor: 12_000n,
     });
 
-    await signInAndUnlock(page, { email: TREASURER_EMAIL, pin: PIN });
     await setPhoneViewport(page);
     await page.goto('/admin/pending');
 

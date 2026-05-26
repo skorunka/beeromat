@@ -1,0 +1,1 @@
+ALTER TABLE "consumptions" ADD COLUMN "on_behalf_reviewed_at" timestamp with time zone;

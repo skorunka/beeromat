@@ -1,17 +1,16 @@
 <!-- SPECKIT START -->
-No spec currently in flight. Most recent shipped specs: 018
-(match-bet → home awareness, MVP), 017 (home redesign + one-tap
-log), 016 (onboarding happy-path E2E). Each spec dir under
-`specs/NNN-…/` carries its plan.md / data-model.md / contracts/
-as the source of truth for the data model + server-action
-contracts + decisions.
+No spec currently in flight. Most recent shipped specs: 019
+(log-for-other-member + /tab origin-row expansion, code complete;
+gates pending re-install of node binary on host machine), 018
+(match-bet → home awareness MVP + follow-ups), 017 (home redesign
++ one-tap log), 016 (onboarding happy-path E2E). Each spec dir
+under `specs/NNN-…/` carries its plan.md / data-model.md /
+contracts/ as source of truth.
 
-Spec-018 deferred follow-ups (small UI work that didn't make
-the MVP cut): (a) optional beer-picker UI in `RecordResultForm`
-— backend override path via `betBeerOverrideId` is already
-wired through Zod schema + action + transaction; only the
-client-side picker remains. (b) `/tab` + admin "ze zápasu →"
-visual distinction for bet-linked consumption rows.
+Live backlog (BACKLOG.md): inline polish items including pay-debt
+button on /tab, money formatting without cents in the header,
+language-picker refinement in the user-menu, fun avatar picker,
+header brand → home link.
 
 Testing strategy (Constitution v1.10.0 — four-layer pyramid,
 clean separation, no glob bleed between layers):

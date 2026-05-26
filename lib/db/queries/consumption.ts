@@ -3,10 +3,12 @@ import { and, desc, eq, isNull } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { effectiveConsumptionTotal } from '@/lib/balance/calculate';
+import { users } from '@/lib/db/schema/auth';
 import { betTransfers, betTransferVoids } from '@/lib/db/schema/bets';
 import { beerTypes } from '@/lib/db/schema/catalog';
 import { consumptionVoids, consumptions } from '@/lib/db/schema/consumption';
 import { matchBetTransfers } from '@/lib/db/schema/matches';
+import { members } from '@/lib/db/schema/members';
 import { drinkSessions, type DrinkSession } from '@/lib/db/schema/sessions';
 import { getBetTransfersForSession, type BetTransferRow } from './bets';
 
@@ -75,6 +77,11 @@ export interface MemberTabEntry {
   // (non-voided) bet_transfer, sourceMatchId links to that match
   // so the UI can render "ze zápasu →" / "from the match →".
   sourceMatchId: string | null;
+  // Spec 019 — when the consumption is on-behalf (logger differs
+  // from consumer), or for a transfer_in entry, this carries the
+  // display name of the OTHER member (the logger for on-behalf,
+  // the winner-of-the-bet for transfer_in).
+  loggerDisplayName: string | null;
 }
 
 export interface MemberTab {
@@ -98,41 +105,77 @@ export async function getMyTabForSession(args: {
     return { session: null, entries: [], totalMinor: 0n };
   }
 
-  const rows = await db
-    .select({
-      consumptionId: consumptions.id,
-      beerTypeName: beerTypes.name,
-      unitPriceMinor: consumptions.unitPriceMinorSnapshot,
-      createdAt: consumptions.createdAt,
-      createdByUserId: consumptions.createdByUserId,
-      voidId: consumptionVoids.id,
-      // Spec 018 — if this consumption sources an unvoided bet
-      // transfer, the matchBetTransfers link tells us which match.
-      sourceMatchId: matchBetTransfers.matchId,
-      betTransferVoidId: betTransferVoids.id,
-    })
-    .from(consumptions)
-    .innerJoin(beerTypes, eq(beerTypes.id, consumptions.beerTypeId))
-    .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
-    // Bet transfer chain: only count it when both the transfer and
-    // its link are present AND the transfer isn't voided.
-    .leftJoin(betTransfers, eq(betTransfers.sourceConsumptionId, consumptions.id))
-    .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
-    .leftJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
-    .where(
-      and(
-        eq(consumptions.memberId, args.memberId),
-        eq(consumptions.drinkSessionId, args.session.id),
-      ),
-    )
-    .orderBy(desc(consumptions.createdAt));
+  // Two queries in parallel: (1) the member's own consumptions
+  // in this session — both self-logs and on-behalf logs land
+  // here because `member_id = consumer`. (2) bet transfers
+  // pointing AT this member (the loser's view) for any
+  // consumption that sits in this session — emitted as
+  // `transfer_in` entries so the /tab line items match the
+  // balance total (spec 019 FR-007a).
+  const [consumptionRows, transferRows] = await Promise.all([
+    db
+      .select({
+        consumptionId: consumptions.id,
+        beerTypeName: beerTypes.name,
+        unitPriceMinor: consumptions.unitPriceMinorSnapshot,
+        createdAt: consumptions.createdAt,
+        createdByUserId: consumptions.createdByUserId,
+        loggerDisplayName: users.name,
+        consumerMemberUserId: members.userId,
+        voidId: consumptionVoids.id,
+        sourceMatchId: matchBetTransfers.matchId,
+        betTransferVoidId: betTransferVoids.id,
+      })
+      .from(consumptions)
+      .innerJoin(beerTypes, eq(beerTypes.id, consumptions.beerTypeId))
+      .innerJoin(members, eq(members.id, consumptions.memberId))
+      .innerJoin(users, eq(users.id, consumptions.createdByUserId))
+      .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
+      .leftJoin(betTransfers, eq(betTransfers.sourceConsumptionId, consumptions.id))
+      .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
+      .leftJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
+      .where(
+        and(
+          eq(consumptions.memberId, args.memberId),
+          eq(consumptions.drinkSessionId, args.session.id),
+        ),
+      )
+      .orderBy(desc(consumptions.createdAt)),
+    db
+      .select({
+        transferId: betTransfers.id,
+        sourceConsumptionId: betTransfers.sourceConsumptionId,
+        beerTypeName: beerTypes.name,
+        unitPriceMinor: consumptions.unitPriceMinorSnapshot,
+        createdAt: betTransfers.createdAt,
+        fromMemberDisplayName: members.displayName,
+        sourceMatchId: matchBetTransfers.matchId,
+        voidId: betTransferVoids.id,
+      })
+      .from(betTransfers)
+      .innerJoin(consumptions, eq(consumptions.id, betTransfers.sourceConsumptionId))
+      .innerJoin(beerTypes, eq(beerTypes.id, consumptions.beerTypeId))
+      .innerJoin(members, eq(members.id, betTransfers.fromMemberId))
+      .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
+      .leftJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
+      .where(
+        and(
+          eq(betTransfers.toMemberId, args.memberId),
+          eq(consumptions.drinkSessionId, args.session.id),
+        ),
+      )
+      .orderBy(desc(betTransfers.createdAt)),
+  ]);
 
   const now = Date.now();
   const windowMs = args.undoWindowSeconds * 1000;
-  const entries: MemberTabEntry[] = rows.map((r) => {
+
+  const consumptionEntries: MemberTabEntry[] = consumptionRows.map((r) => {
     const voided = r.voidId !== null;
     const isLogger = r.createdByUserId === args.userId;
     const inWindow = now - r.createdAt.getTime() <= windowMs;
+    // On-behalf: createdByUserId differs from the consumer's user id.
+    const isOnBehalf = r.createdByUserId !== r.consumerMemberUserId;
     return {
       id: r.consumptionId,
       kind: 'consumption' as const,
@@ -141,13 +184,30 @@ export async function getMyTabForSession(args: {
       createdAt: r.createdAt,
       voided,
       canUndo: !voided && isLogger && inWindow,
-      // Surface match-link only when the linked bet transfer is
-      // still alive (not voided). If a match has been reversed
-      // the transfer is voided and the "ze zápasu" subtitle goes
-      // away.
       sourceMatchId: r.betTransferVoidId === null ? r.sourceMatchId : null,
+      loggerDisplayName: isOnBehalf ? r.loggerDisplayName : null,
     };
   });
+
+  const transferEntries: MemberTabEntry[] = transferRows
+    .filter((r) => r.voidId === null)
+    .map((r) => ({
+      id: r.transferId,
+      kind: 'transfer_in' as const,
+      beerTypeName: r.beerTypeName,
+      unitPriceMinor: r.unitPriceMinor,
+      createdAt: r.createdAt,
+      voided: false,
+      canUndo: false,
+      sourceMatchId: r.sourceMatchId,
+      loggerDisplayName: r.fromMemberDisplayName,
+    }));
+
+  // Merge + sort by createdAt DESC (Constitution V — single
+  // chronological line item list for the consumer).
+  const entries = [...consumptionEntries, ...transferEntries].sort(
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+  );
 
   const totalMinor = entries.reduce(
     (acc, e) => (e.voided ? acc : acc + e.unitPriceMinor),

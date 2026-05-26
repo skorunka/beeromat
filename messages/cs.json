@@ -254,6 +254,15 @@
       "many": "Útrata z dnešních zápasů: {count}× pivo",
       "reverseOne": "Vrátit zápas",
       "reverseMany": "Zobrazit zápasy"
+    },
+    "onBehalfReview": {
+      "heading": "Zápisy pro tebe",
+      "one": "{logger} ti zapsal: {beer}",
+      "reject": "Vrátit",
+      "keep": "Nechat",
+      "toastRejected": "Vráceno.",
+      "toastKept": "Necháno.",
+      "toastError": "Nepovedlo se to. Zkus to znovu."
     }
   },
   "account": {
@@ -300,7 +309,21 @@
     "left": "zbývá {count}",
     "added": "🍺 + {name}",
     "outOfStock": "Tohle už došlo",
-    "empty": "V lednici zatím nic není — řekni tomu, kdo má na starost sklad, ať něco přidá."
+    "empty": "V lednici zatím nic není — řekni tomu, kdo má na starost sklad, ať něco přidá.",
+    "onBehalf": {
+      "ctaLink": "Zapsat pro jiného člena",
+      "title": "Komu zapíšeš?",
+      "memberHint": "Vyber člena",
+      "noOtherMembers": "Zatím tu nejsou žádní další členové.",
+      "submitCta": "Zapsat {beer} pro {member}",
+      "submitting": "Zapisuji…",
+      "toastLogged": "Zapsáno: {beer} pro {member}",
+      "toastError": "Nepodařilo se zapsat. Zkus to znovu.",
+      "errors": {
+        "targetSelf": "Sám sobě piva přes tuhle cestu nezapisuj.",
+        "targetNotInClub": "Tohoto člena tu nemáme."
+      }
+    }
   },
   "tab": {
     "title": "Moje útrata",
@@ -308,7 +331,9 @@
     "sessionTotal": "Tohle kolo",
     "voided": "zrušeno",
     "empty": "Zatím nic — zapiš si první pivo.",
-    "fromMatch": "ze zápasu →"
+    "fromMatch": "ze zápasu →",
+    "byOther": "od {logger}",
+    "fromBet": "z prohrané sázky: {logger} · {beer}"
   },
   "settle": {
     "title": "Vyrovnat útratu",

@@ -1,15 +1,21 @@
 import type { Route } from 'next';
+import { and, eq, ne, sql } from 'drizzle-orm';
 import { Link } from '@/lib/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { buttonVariants } from '@/components/ui/button';
 import { HomeOneTapLog } from '@/components/home/home-one-tap-log';
 import { MatchBetModule } from '@/components/home/match-bet-module';
+import { OnBehalfReviewBanner } from '@/components/home/on-behalf-review-banner';
+import { LogForOtherLink } from '@/components/log/log-for-other-link';
+import { db } from '@/lib/db/client';
 import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
 import { lastBeerForMember } from '@/lib/db/queries/consumption';
 import { matchBetSummaryForMember } from '@/lib/db/queries/match-bet-summary';
+import { onBehalfReviewSummaryForMember } from '@/lib/db/queries/on-behalf-review';
 import { formatMoney } from '@/lib/format';
+import { members } from '@/lib/db/schema/members';
 
 // Spec 017 — home as the single action surface for the daily core
 // loop. Primary CTA = one-tap log of the member's last beer. Balance
@@ -25,11 +31,24 @@ export default async function AppHomePage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('home');
-  const [balanceMinor, lastBeer, betSummary] = await Promise.all([
-    memberBalance(ctx.member.id),
-    lastBeerForMember(ctx.member.id, ctx.club.id),
-    matchBetSummaryForMember(ctx.member.id, ctx.club.id),
-  ]);
+  const [balanceMinor, lastBeer, betSummary, otherMembersCountResult, onBehalfSummary] =
+    await Promise.all([
+      memberBalance(ctx.member.id),
+      lastBeerForMember(ctx.member.id, ctx.club.id),
+      matchBetSummaryForMember(ctx.member.id, ctx.club.id),
+      db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(members)
+        .where(
+          and(
+            eq(members.clubId, ctx.club.id),
+            eq(members.isActive, true),
+            ne(members.id, ctx.member.id),
+          ),
+        ),
+      onBehalfReviewSummaryForMember(ctx.member.id, ctx.club.id),
+    ]);
+  const hasOtherMembers = (otherMembersCountResult[0]?.n ?? 0) > 0;
   const owes = balanceMinor > 0n;
   const balanceFormatted = formatMoney(
     balanceMinor,
@@ -57,6 +76,14 @@ export default async function AppHomePage({
         </p>
       </header>
 
+      <OnBehalfReviewBanner
+        rows={onBehalfSummary.rows.map((r) => ({
+          consumptionId: r.consumptionId,
+          loggerDisplayName: r.loggerDisplayName,
+          beerName: r.beerName,
+        }))}
+      />
+
       <MatchBetModule
         betCount={betSummary.betCount}
         sourceMatchIds={betSummary.sourceMatchIds}
@@ -67,6 +94,8 @@ export default async function AppHomePage({
         currencyCode={ctx.club.currencyCode}
         locale={ctx.club.defaultLocale}
       />
+
+      <LogForOtherLink hasOtherMembers={hasOtherMembers} />
 
       {owes ? (
         <Link

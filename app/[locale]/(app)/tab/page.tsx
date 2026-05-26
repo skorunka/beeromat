@@ -1,9 +1,7 @@
-import type { Route } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-import { Link } from '@/lib/i18n/navigation';
-import { UndoButton } from '@/components/log/undo-button';
 import { Card } from '@/components/ui/card';
+import { TabEntryRow } from '@/components/tab/tab-entry-row';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getMyTabForSession } from '@/lib/db/queries/consumption';
 import { getOpenSessionForClub } from '@/lib/db/queries/sessions';
@@ -47,34 +45,12 @@ export default async function TabPage({
 
       <ul className="flex flex-col gap-2">
         {tab.entries.map((entry) => (
-          <li
-            key={entry.id}
-            className={`flex items-center justify-between rounded-md border p-3 ${entry.voided ? 'opacity-50' : ''}`}
-          >
-            <div className="min-w-0">
-              <div className="font-medium">{entry.beerTypeName}</div>
-              <div className="text-muted-foreground text-xs">
-                {new Intl.DateTimeFormat(ctx.club.defaultLocale, {
-                  timeStyle: 'short',
-                }).format(entry.createdAt)}
-                {entry.voided ? ` · ${t('voided')}` : null}
-              </div>
-              {entry.sourceMatchId ? (
-                <Link
-                  href={`/match/${entry.sourceMatchId}` as Route}
-                  className="text-muted-foreground hover:text-foreground mt-0.5 inline-flex text-xs underline-offset-2 hover:underline"
-                >
-                  {t('fromMatch')}
-                </Link>
-              ) : null}
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="font-mono text-sm">
-                {formatMoney(entry.unitPriceMinor, ctx.club.currencyCode, ctx.club.defaultLocale)}
-              </div>
-              {entry.canUndo ? <UndoButton consumptionId={entry.id} /> : null}
-            </div>
-          </li>
+          <TabEntryRow
+            key={`${entry.kind}-${entry.id}`}
+            entry={entry}
+            currencyCode={ctx.club.currencyCode}
+            locale={ctx.club.defaultLocale}
+          />
         ))}
         {tab.entries.length === 0 ? (
           <li className="text-muted-foreground p-4 text-center">{t('empty')}</li>

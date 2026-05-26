@@ -254,6 +254,15 @@
       "many": "From today's matches: {count}× beer",
       "reverseOne": "Reverse match",
       "reverseMany": "View matches"
+    },
+    "onBehalfReview": {
+      "heading": "Logged for you",
+      "one": "{logger} logged for you: {beer}",
+      "reject": "Reverse",
+      "keep": "Keep",
+      "toastRejected": "Reversed.",
+      "toastKept": "Kept.",
+      "toastError": "Couldn't do that. Try again."
     }
   },
   "account": {
@@ -300,7 +309,21 @@
     "left": "{count} left",
     "added": "🍺 + {name}",
     "outOfStock": "All out of that one",
-    "empty": "No beers in the fridge yet — ask whoever runs the stock to add some."
+    "empty": "No beers in the fridge yet — ask whoever runs the stock to add some.",
+    "onBehalf": {
+      "ctaLink": "Log for someone else",
+      "title": "Logging for…",
+      "memberHint": "Pick a member",
+      "noOtherMembers": "No other members in this club yet.",
+      "submitCta": "Log {beer} for {member}",
+      "submitting": "Logging…",
+      "toastLogged": "Logged: {beer} for {member}",
+      "toastError": "Couldn't log. Try again.",
+      "errors": {
+        "targetSelf": "Use the regular log button for yourself.",
+        "targetNotInClub": "That member isn't in this club."
+      }
+    }
   },
   "tab": {
     "title": "My tab",
@@ -308,7 +331,9 @@
     "sessionTotal": "This round",
     "voided": "scrapped",
     "empty": "Nothing yet — go log your first beer.",
-    "fromMatch": "from the match →"
+    "fromMatch": "from the match →",
+    "byOther": "by {logger}",
+    "fromBet": "lost bet: {logger} · {beer}"
   },
   "settle": {
     "title": "Settle up",

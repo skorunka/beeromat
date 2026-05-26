@@ -50,6 +50,13 @@
       "when": 1779728134975,
       "tag": "0006_friendly_tarot",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779807905392,
+      "tag": "0007_fair_bug",
+      "breakpoints": true
     }
   ]
 }

@@ -28,6 +28,11 @@ export const consumptions = pgTable(
     createdByUserId: uuid()
       .notNull()
       .references(() => users.id, { onDelete: 'restrict' }),
+    // Spec 019 — set when the consumer (member.user_id) has
+    // dismissed the home review banner for an on-behalf log.
+    // Null for self-logged rows and for unreviewed on-behalf
+    // rows. The home banner query filters by this column.
+    onBehalfReviewedAt: timestamp({ withTimezone: true }),
   },
   (t) => [
     index('idx_consumptions_session_member').on(t.drinkSessionId, t.memberId),

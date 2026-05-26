@@ -89,15 +89,14 @@ When one matures, run `/speckit-specify` and the item moves into
   that fits a club app. Schema: small new `users.avatar_key` or
   `members.avatar_key` (decide during spec).
 
-- **Refine language picker in the user-menu.** The CS/EN
-  switcher in the avatar dropdown currently uses two equal-sized
-  button-style tiles that feel out of place next to the menu's
-  text-row items. Pattern doesn't match the rest of the dropdown
-  (Account row + Sign out row are simple text links). Replace
-  with something more in line: e.g. a single row "Jazyk · cs |
-  en" with the inactive option as a small clickable text link,
-  or a tiny segmented control inline with the row. Same a11y +
-  same functionality, less visual weight.
+- ~~**Refine language picker in the user-menu.**~~ **— Shipped
+  2026-05-26.** The 2-tile CS/EN button grid was replaced with
+  native `DropdownMenuRadioGroup` rows — one per locale, with a
+  check mark on the active one. Labels use endonyms ("Čeština",
+  "English") so a member sees their language by name regardless
+  of current UI locale. Visual weight now matches the surrounding
+  Account / Sign out rows; the JAZYK uppercase header is gone
+  (the radio group implies "pick one").
 
 - **Money format without cents by default for compact UI.**
   The header balance badge (`<BalanceBadge />`, just shipped)
@@ -107,6 +106,17 @@ When one matures, run `/speckit-specify` and the item moves into
   all zero (or always). Saves space in headers and tight
   layouts. Verify it doesn't regress places that need cents
   (e.g. EUR amounts in the admin reconciliation view).
+
+- **Fancy beer animation on log.** When a member taps the one-tap
+  log button (or any beer in /log), give a small celebratory
+  micro-animation — beer pouring into a glass, foam rising,
+  a clinking sound, something playful. Reinforces the "it
+  worked" feedback beyond the current toast. Needs design
+  refinement: pick one effect, keep it short (<700ms), respect
+  `prefers-reduced-motion`, no sound by default (browser
+  autoplay blocks anyway). Probably a small Lottie or a
+  hand-rolled CSS keyframe on a glass SVG. Captured
+  2026-05-26 during the polish pass.
 
 - ~~**Refine the bottom nav.**~~ **— Shipped 2026-05-26.** Log
   and Tab dropped from the bottom nav. Bottom nav is now

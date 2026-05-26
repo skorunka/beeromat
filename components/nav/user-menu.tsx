@@ -12,9 +12,20 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+
+// Endonyms: each language is labelled in its own script ("Čeština",
+// "English"). Standard convention for language pickers (Wikipedia,
+// GitHub, etc.) — the absent-member persona (Standa, CS-only) sees
+// his language by name regardless of the current UI locale.
+const LOCALE_LABEL: Record<string, string> = {
+  cs: 'Čeština',
+  en: 'English',
+};
 
 // Top-right account menu: collapses what used to be the inline
 // LanguageSwitcher + SignOutButton into a single avatar trigger so
@@ -85,30 +96,22 @@ export function UserMenu({
           {t('nav.account')}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <div
-          className="text-muted-foreground px-2 py-1 text-xs font-normal uppercase tracking-wider"
-          aria-hidden
+        {/* Language picker — native dropdown radio rows (one per
+            locale) with a check mark on the active one. Matches the
+            visual weight of the surrounding text rows (Account, Sign
+            out); the previous 2-tile button grid was a visual outlier
+            in the dropdown. */}
+        <DropdownMenuRadioGroup
+          value={active}
+          onValueChange={switchTo}
+          aria-label={t('nav.language')}
         >
-          {t('nav.language')}
-        </div>
-        <div className="grid grid-cols-2 gap-1 px-1 pb-1" role="group" aria-label={t('nav.language')}>
           {routing.locales.map((loc) => (
-            <button
-              key={loc}
-              type="button"
-              onClick={() => switchTo(loc)}
-              disabled={isPending}
-              aria-current={loc === active ? 'true' : undefined}
-              className={`rounded-md px-2 py-1.5 text-sm font-medium transition-colors ${
-                loc === active
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-accent text-foreground'
-              }`}
-            >
-              {loc.toUpperCase()}
-            </button>
+            <DropdownMenuRadioItem key={loc} value={loc} disabled={isPending}>
+              {LOCALE_LABEL[loc] ?? loc.toUpperCase()}
+            </DropdownMenuRadioItem>
           ))}
-        </div>
+        </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={handleSignOut}

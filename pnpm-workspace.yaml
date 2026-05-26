@@ -8,5 +8,3 @@ allowBuilds:
   unrs-resolver: true
 minimumReleaseAgeExclude:
   - '@hookform/resolvers@5.4.0'
-patchedDependencies:
-  '@tailwindcss/node@4.3.0': patches/@tailwindcss__node@4.3.0.patch

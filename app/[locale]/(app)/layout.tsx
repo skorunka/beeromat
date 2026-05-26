@@ -7,7 +7,7 @@ import { currentSession, localeRedirect } from '@/lib/auth/session';
 import { deviceSessionState } from '@/lib/auth/device-session-state';
 import { memberBalance } from '@/lib/balance/calculate';
 import { getDisputedClaimsForMember } from '@/lib/db/queries/payments';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatMoneyCompact } from '@/lib/format';
 import { roleSatisfies } from '@/lib/permissions';
 import { PinGate } from '@/components/pin/pin-gate';
 import { DisputeBanner } from '@/components/dispute-banner';
@@ -44,13 +44,18 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
     memberBalance(ctx.member.id),
     getTranslations('home'),
   ]);
+  // Compact format for the header pill ("380 Kč" not "380,00 Kč").
+  // The aria-label uses the full sentence form for screen readers,
+  // built from the catalog with the precise amount.
   const balanceFormatted =
     balanceMinor > 0n
-      ? formatMoney(balanceMinor, ctx.club.currencyCode, ctx.club.defaultLocale)
+      ? formatMoneyCompact(balanceMinor, ctx.club.currencyCode, ctx.club.defaultLocale)
       : null;
   const balanceAriaLabel =
     balanceFormatted !== null
-      ? tHome('balanceOwed', { amount: balanceFormatted })
+      ? tHome('balanceOwed', {
+          amount: formatMoney(balanceMinor, ctx.club.currencyCode, ctx.club.defaultLocale),
+        })
       : tHome('balanceSquare');
 
   // Daily destinations for everyone, plus one role-gated operational

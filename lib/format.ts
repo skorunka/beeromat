@@ -13,3 +13,24 @@ export function formatMoney(
     currency: currencyCode,
   }).format(amountMajor);
 }
+
+/**
+ * Compact currency formatting for tight UI surfaces (the header
+ * balance badge, future bottom-nav chips, etc.). Drops fractional
+ * digits — "380 Kč" instead of "380,00 Kč" — to save horizontal
+ * space. Use `formatMoney` when precision matters (settle screens,
+ * admin reconciliation views).
+ */
+export function formatMoneyCompact(
+  amountMinor: bigint,
+  currencyCode: string,
+  locale: string,
+): string {
+  const amountMajor = Number(amountMinor) / 100;
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currencyCode,
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  }).format(amountMajor);
+}

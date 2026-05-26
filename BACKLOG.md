@@ -67,19 +67,17 @@ When one matures, run `/speckit-specify` and the item moves into
   per-row date stamp, or two date fields shown side-by-side from
   the same row.
 
-- **Pay-debt button on /tab.** Today the /tab page shows the
-  session-total but the only settle CTA lives on home (when
-  owing). Add a clear "Vyrovnat útratu" button at the top or
-  bottom of /tab that goes straight to /settle. Render only
-  when the member has an outstanding total. Small inline polish.
+- ~~**Pay-debt button on /tab.**~~ **— Shipped 2026-05-26.**
+  /tab renders a prominent "Vyrovnat útratu" button below the
+  session-total card when `memberBalance > 0`. Reads
+  `memberBalance(ctx.member.id)` in the same `Promise.all` as
+  the tab query.
 
-- **Header brand → home link.** Tapping the 🍺 BEEROMAT + club
-  name on the AppHeader should navigate to `/` (home). Today it
-  isn't a link; users expect "click the logo" to go home (web
-  convention). Wrap the BrandMark + club-name group in a `<Link
-  href="/">`. Small, one-line edit. Hidden cost: needs to play
-  well with the existing flex layout + the balance pill
-  alongside.
+- ~~**Header brand → home link.**~~ **— Shipped 2026-05-26.**
+  AppHeader wraps BrandMark + the · separator + club-name in
+  `<Link href="/">`. The right-side group (balance pill +
+  user-menu avatar) is outside the link so taps on those don't
+  navigate home.
 
 - **Fun avatar picker.** Today the user-menu shows the member's
   initials in a primary-tinted circle. Add an "Edit avatar"

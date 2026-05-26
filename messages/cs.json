@@ -233,7 +233,7 @@
     "outstandingBalance": "Tvoje útrata",
     "balanceOwed": "Tvoje útrata: {amount}",
     "balanceSquare": "Vyrovnáno",
-    "oneTapLog": "Zapiš {beer}",
+    "oneTapLog": "Zapiš {beer} · {price}",
     "oneTapLogGeneric": "Zapiš pivo",
     "oneTapLogUnavailable": "{beer} — nedostupné",
     "pickAnother": "Vyber jiné pivo →",

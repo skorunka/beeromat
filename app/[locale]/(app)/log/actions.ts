@@ -31,7 +31,12 @@ export async function logBeerAction(input: {
 }): Promise<LogBeerResult> {
   const ctx = await requireUnlocked();
 
-  return db.transaction(async (tx) => {
+  // memberBalance() must run AFTER the transaction commits — it uses the
+  // global db client (separate connection), so a read from inside the
+  // tx callback sees pre-insert state and the toast lies about the new
+  // balance. Bug reported 2026-05-27. Fix: tx returns only the
+  // identifiers; the balance is read on the next line, post-commit.
+  const txResult = await db.transaction(async (tx) => {
     // 1. Verify the beer type belongs to this club and is active.
     const beer = await tx.query.beerTypes.findFirst({
       where: and(
@@ -103,12 +108,17 @@ export async function logBeerAction(input: {
     revalidatePath('/');
 
     return {
-      ok: true,
+      ok: true as const,
       consumptionId: consumption.id,
       sessionId: openSession.id,
-      balanceAfterMinor: await memberBalance(ctx.member.id),
-    } as const;
+    };
   });
+
+  if (!txResult.ok) return txResult;
+  return {
+    ...txResult,
+    balanceAfterMinor: await memberBalance(ctx.member.id),
+  };
 }
 
 // Spec 019 — on-behalf log result. Success does NOT include the
@@ -284,7 +294,11 @@ export async function voidConsumptionAction(input: {
 }): Promise<VoidConsumptionResult> {
   const ctx = await requireMember();
 
-  return db.transaction(async (tx) => {
+  // memberBalance() reads via the global db client and would see
+  // pre-void state from inside the tx callback (same bug pattern as
+  // logBeerAction, fixed 2026-05-27). Return success identifiers from
+  // the tx; read the balance after commit on the next line.
+  const txResult = await db.transaction(async (tx) => {
     const consumption = await tx.query.consumptions.findFirst({
       where: and(eq(consumptions.id, input.consumptionId), eq(consumptions.clubId, ctx.club.id)),
     });
@@ -345,9 +359,12 @@ export async function voidConsumptionAction(input: {
     // revisit (v1.3 UX review F2).
     revalidatePath('/');
 
-    return {
-      ok: true,
-      balanceAfterMinor: await memberBalance(ctx.member.id),
-    } as const;
+    return { ok: true as const };
   });
+
+  if (!txResult.ok) return txResult;
+  return {
+    ok: true as const,
+    balanceAfterMinor: await memberBalance(ctx.member.id),
+  };
 }

@@ -10,7 +10,7 @@ import { logBeerAction } from '@/app/[locale]/(app)/log/actions';
 import { celebrateBeer } from '@/lib/celebrate';
 import { Link } from '@/lib/i18n/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatMoneyCompact } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 // Spec 017 — one-tap "log my last beer" button for the home screen.
@@ -27,6 +27,7 @@ export interface HomeOneTapLogBeer {
   name: string;
   currentStock: number;
   isArchived: boolean;
+  unitPriceMinor: bigint;
 }
 
 interface HomeOneTapLogProps {
@@ -112,7 +113,10 @@ export function HomeOneTapLog({ beer, currencyCode, locale }: HomeOneTapLogProps
         className="h-14 w-full gap-2 text-base"
       >
         <Beer className="h-5 w-5" aria-hidden />
-        {t('oneTapLog', { beer: beer.name })}
+        {t('oneTapLog', {
+          beer: beer.name,
+          price: formatMoneyCompact(beer.unitPriceMinor, currencyCode, locale),
+        })}
       </Button>
       <Link
         href="/log"

@@ -233,7 +233,7 @@
     "outstandingBalance": "Your tab",
     "balanceOwed": "Your tab: {amount}",
     "balanceSquare": "All square",
-    "oneTapLog": "Log a {beer}",
+    "oneTapLog": "Log a {beer} · {price}",
     "oneTapLogGeneric": "Log a beer",
     "oneTapLogUnavailable": "{beer} — out of stock",
     "pickAnother": "Pick a different beer →",

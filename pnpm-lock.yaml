@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@tailwindcss/node@4.3.0': e9acd357a0a3d7d34e5e5de1e5d09c8eee9f444fcdb8e716c0ac8bccc9abece9
+
 importers:
 
   .:
@@ -6458,7 +6461,7 @@ snapshots:
     dependencies:
       '@swc/counter': 0.1.3
 
-  '@tailwindcss/node@4.3.0':
+  '@tailwindcss/node@4.3.0(patch_hash=e9acd357a0a3d7d34e5e5de1e5d09c8eee9f444fcdb8e716c0ac8bccc9abece9)':
     dependencies:
       '@jridgewell/remapping': 2.3.5
       enhanced-resolve: 5.21.3
@@ -6522,7 +6525,7 @@ snapshots:
   '@tailwindcss/postcss@4.3.0':
     dependencies:
       '@alloc/quick-lru': 5.2.0
-      '@tailwindcss/node': 4.3.0
+      '@tailwindcss/node': 4.3.0(patch_hash=e9acd357a0a3d7d34e5e5de1e5d09c8eee9f444fcdb8e716c0ac8bccc9abece9)
       '@tailwindcss/oxide': 4.3.0
       postcss: 8.5.14
       tailwindcss: 4.3.0

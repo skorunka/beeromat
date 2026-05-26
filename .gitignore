@@ -23,6 +23,11 @@
 /blob-report
 *.log
 
+# playwright (spec 016 — single happy-path E2E)
+/playwright-report
+/test-results
+/playwright/.cache
+
 # next.js
 /.next/
 /out/

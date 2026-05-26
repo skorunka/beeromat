@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { Bricolage_Grotesque } from 'next/font/google';
 
 import { Toaster } from '@/components/ui/sonner';
+import { BeerCelebration } from '@/components/log/beer-celebration';
 import { routing } from '@/lib/i18n/routing';
 
 import '../globals.css';
@@ -47,6 +48,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider>
           {children}
           <Toaster />
+          <BeerCelebration />
         </NextIntlClientProvider>
       </body>
     </html>

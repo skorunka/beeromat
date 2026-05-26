@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Beer } from 'lucide-react';
 
 import { logBeerAction } from '@/app/[locale]/(app)/log/actions';
+import { celebrateBeer } from '@/lib/celebrate';
 import { Link } from '@/lib/i18n/navigation';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { formatMoney } from '@/lib/format';
@@ -87,6 +88,7 @@ export function HomeOneTapLog({ beer, currencyCode, locale }: HomeOneTapLogProps
     startTransition(async () => {
       const result = await logBeerAction({ beerTypeId: beer.id });
       if (result.ok) {
+        celebrateBeer();
         toast.success(
           t('toastLogged', {
             balance: formatMoney(result.balanceAfterMinor, currencyCode, locale),

@@ -60,12 +60,15 @@ When one matures, run `/speckit-specify` and the item moves into
   members are always reminded which club they're acting on (matters
   for the future multi-club case but useful now too).
 
-- **Date duplication on history list.** Each row in
-  `/history` (and possibly `/account/payments`) shows the date
-  twice. Audit the list-row components + the formatter helpers in
-  `lib/format/` and dedupe — likely a row header that also has a
-  per-row date stamp, or two date fields shown side-by-side from
-  the same row.
+- ~~**Date duplication on history list.**~~ **— Audited 2026-05-26,
+  no duplication present in current code.** Walked through
+  `/history`, `/history/[sessionId]`, `/account/payments`,
+  `/admin/pending`, `/admin/members`, `/admin/beer-types/[id]/history`
+  — each row renders the date once (or date + time together via one
+  Intl.DateTimeFormat). Session titles default to null with a
+  generic "Round / Kolo" fallback, no date is embedded there.
+  Probably fixed during unrelated polish in an earlier session.
+  Reopen if a screenshot surfaces.
 
 - ~~**Pay-debt button on /tab.**~~ **— Shipped 2026-05-26.**
   /tab renders a prominent "Vyrovnat útratu" button below the
@@ -107,16 +110,16 @@ When one matures, run `/speckit-specify` and the item moves into
   layouts. Verify it doesn't regress places that need cents
   (e.g. EUR amounts in the admin reconciliation view).
 
-- **Fancy beer animation on log.** When a member taps the one-tap
-  log button (or any beer in /log), give a small celebratory
-  micro-animation — beer pouring into a glass, foam rising,
-  a clinking sound, something playful. Reinforces the "it
-  worked" feedback beyond the current toast. Needs design
-  refinement: pick one effect, keep it short (<700ms), respect
-  `prefers-reduced-motion`, no sound by default (browser
-  autoplay blocks anyway). Probably a small Lottie or a
-  hand-rolled CSS keyframe on a glass SVG. Captured
-  2026-05-26 during the polish pass.
+- ~~**Fancy beer animation on log.**~~ **— Shipped 2026-05-26.**
+  Every successful log (one-tap, /log grid, /log/for) fires a
+  global 🍻 + 🍺-fountain overlay. Centerpiece 🍻 pops in
+  scaled, eight 🍺 mug particles fountain outward in a 90°
+  arc (~1.2s total). Dispatched via `celebrateBeer()` in
+  lib/celebrate.ts → `<BeerCelebration />` mounted in the
+  locale layout listens on a window CustomEvent and renders
+  the overlay. CSS-only animation; motion-reduce:hidden skips
+  the overlay entirely for users who've requested reduced
+  motion (the toast still confirms verbally).
 
 - ~~**Refine the bottom nav.**~~ **— Shipped 2026-05-26.** Log
   and Tab dropped from the bottom nav. Bottom nav is now

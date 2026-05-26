@@ -207,3 +207,68 @@ body {
     opacity: 0;
   }
 }
+
+/* ─── Beer-log celebration ───────────────────────────────────────────
+   Fires once per successful beer log (see lib/celebrate.ts and
+   components/log/beer-celebration.tsx). Central 🍻 pops, eight 🍺
+   particles fountain outward in an arc. The whole thing finishes in
+   ~1.2s; the React component unmounts the instance shortly after.
+   Reduced-motion users skip the overlay entirely via motion-reduce:
+   hidden on the wrapper — no keyframe reset needed here. */
+
+@keyframes beer-cheers-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(-20deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.5) rotate(10deg);
+  }
+  40% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1) rotate(-6deg);
+  }
+  65% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.3) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.5) rotate(0deg);
+  }
+}
+.animate-beer-cheers-pop {
+  animation: beer-cheers-pop 1.2s ease-out forwards;
+}
+
+/* Fountain arc: pops out fast, peaks high in the middle (Y -160px
+   at 45% — the highest point of the arc), then falls back down and
+   fades. --dx / --rot are per-particle, set via inline style. */
+@keyframes beer-mug-fountain {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(0, 0) rotate(0deg)
+      scale(0.4);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(-50%, -50%)
+      translate(calc(var(--dx) * 0.18), -40px)
+      rotate(calc(var(--rot) * 0.18)) scale(1);
+  }
+  45% {
+    opacity: 1;
+    transform: translate(-50%, -50%)
+      translate(calc(var(--dx) * 0.6), -160px)
+      rotate(calc(var(--rot) * 0.55)) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(var(--dx), -30px)
+      rotate(var(--rot)) scale(0.8);
+  }
+}
+.animate-beer-mug-fountain {
+  animation: beer-mug-fountain 1.2s ease-out forwards;
+}

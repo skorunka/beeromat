@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { logBeerAction } from '@/app/[locale]/(app)/log/actions';
+import { celebrateBeer } from '@/lib/celebrate';
 import { formatMoney } from '@/lib/format';
 
 interface BeerTile {
@@ -34,6 +35,7 @@ export function BeerGrid({ beers, currencyCode, locale }: BeerGridProps) {
     startTransition(async () => {
       const result = await logBeerAction({ beerTypeId: beer.id });
       if (result.ok) {
+        celebrateBeer();
         toast.success(t('log.added', { name: beer.name }));
       } else if (result.code === 'OUT_OF_STOCK') {
         toast.error(t('log.outOfStock'));

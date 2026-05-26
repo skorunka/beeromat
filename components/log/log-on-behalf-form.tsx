@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
 import { logBeerOnBehalfAction } from '@/app/[locale]/(app)/log/actions';
+import { celebrateBeer } from '@/lib/celebrate';
 import { Button } from '@/components/ui/button';
 
 // Spec 019 — single-screen on-behalf log form. Member select on
@@ -52,6 +53,7 @@ export function LogOnBehalfForm({
         else toast.error(t('toastError'));
         return;
       }
+      celebrateBeer();
       toast.success(t('toastLogged', { beer: beer.name, member: member.displayName }));
       router.push('/' as unknown as Parameters<typeof router.push>[0]);
       router.refresh();

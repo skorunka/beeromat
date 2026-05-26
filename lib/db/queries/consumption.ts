@@ -217,6 +217,119 @@ export async function getMyTabForSession(args: {
   return { session: args.session, entries, totalMinor };
 }
 
+/**
+ * Treasurer-side counterpart to `getMyTabForSession`. Same row shape
+ * (and so the same `<TabEntryRow />` component renders it) but scoped
+ * to ANY member of the club — no `userId` argument because the admin
+ * never has undo affordance from this view. `canUndo` is always false.
+ *
+ * Returns entries from the currently open drink session only; older
+ * sessions live in the per-member history navigation. Matches the
+ * `/tab` semantics so the admin sees what the member sees.
+ */
+export async function getMemberTabForAdmin(args: {
+  memberId: string;
+  session: DrinkSession | null;
+}): Promise<MemberTab> {
+  if (!args.session) {
+    return { session: null, entries: [], totalMinor: 0n };
+  }
+
+  const [consumptionRows, transferRows] = await Promise.all([
+    db
+      .select({
+        consumptionId: consumptions.id,
+        beerTypeName: beerTypes.name,
+        unitPriceMinor: consumptions.unitPriceMinorSnapshot,
+        createdAt: consumptions.createdAt,
+        loggerDisplayName: users.name,
+        consumerMemberUserId: members.userId,
+        createdByUserId: consumptions.createdByUserId,
+        voidId: consumptionVoids.id,
+        sourceMatchId: matchBetTransfers.matchId,
+        betTransferVoidId: betTransferVoids.id,
+      })
+      .from(consumptions)
+      .innerJoin(beerTypes, eq(beerTypes.id, consumptions.beerTypeId))
+      .innerJoin(members, eq(members.id, consumptions.memberId))
+      .innerJoin(users, eq(users.id, consumptions.createdByUserId))
+      .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
+      .leftJoin(betTransfers, eq(betTransfers.sourceConsumptionId, consumptions.id))
+      .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
+      .leftJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
+      .where(
+        and(
+          eq(consumptions.memberId, args.memberId),
+          eq(consumptions.drinkSessionId, args.session.id),
+        ),
+      )
+      .orderBy(desc(consumptions.createdAt)),
+    db
+      .select({
+        transferId: betTransfers.id,
+        beerTypeName: beerTypes.name,
+        unitPriceMinor: consumptions.unitPriceMinorSnapshot,
+        createdAt: betTransfers.createdAt,
+        fromMemberDisplayName: members.displayName,
+        sourceMatchId: matchBetTransfers.matchId,
+        voidId: betTransferVoids.id,
+      })
+      .from(betTransfers)
+      .innerJoin(consumptions, eq(consumptions.id, betTransfers.sourceConsumptionId))
+      .innerJoin(beerTypes, eq(beerTypes.id, consumptions.beerTypeId))
+      .innerJoin(members, eq(members.id, betTransfers.fromMemberId))
+      .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
+      .leftJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
+      .where(
+        and(
+          eq(betTransfers.toMemberId, args.memberId),
+          eq(consumptions.drinkSessionId, args.session.id),
+        ),
+      )
+      .orderBy(desc(betTransfers.createdAt)),
+  ]);
+
+  const consumptionEntries: MemberTabEntry[] = consumptionRows.map((r) => {
+    const voided = r.voidId !== null;
+    const isOnBehalf = r.createdByUserId !== r.consumerMemberUserId;
+    return {
+      id: r.consumptionId,
+      kind: 'consumption' as const,
+      beerTypeName: r.beerTypeName,
+      unitPriceMinor: r.unitPriceMinor,
+      createdAt: r.createdAt,
+      voided,
+      canUndo: false,
+      sourceMatchId: r.betTransferVoidId === null ? r.sourceMatchId : null,
+      loggerDisplayName: isOnBehalf ? r.loggerDisplayName : null,
+    };
+  });
+
+  const transferEntries: MemberTabEntry[] = transferRows
+    .filter((r) => r.voidId === null)
+    .map((r) => ({
+      id: r.transferId,
+      kind: 'transfer_in' as const,
+      beerTypeName: r.beerTypeName,
+      unitPriceMinor: r.unitPriceMinor,
+      createdAt: r.createdAt,
+      voided: false,
+      canUndo: false,
+      sourceMatchId: r.sourceMatchId,
+      loggerDisplayName: r.fromMemberDisplayName,
+    }));
+
+  const entries = [...consumptionEntries, ...transferEntries].sort(
+    (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+  );
+  const totalMinor = entries.reduce(
+    (acc, e) => (e.voided ? acc : acc + e.unitPriceMinor),
+    0n,
+  );
+
+  return { session: args.session, entries, totalMinor };
+}
+
 export interface SessionHistoryItem {
   id: string;
   title: string | null;

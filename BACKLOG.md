@@ -43,15 +43,15 @@ When one matures, run `/speckit-specify` and the item moves into
   voidConsumptionAction authz extended so the consumer can reject
   their own on-behalf logs.
 
-- **Spec 019 follow-up — admin balance view origin-type distinction.**
-  FR-007 of spec 019 says EVERY consumption-listing screen
-  surfaces the 4 origin types. Spec 019 MVP ships the
-  distinction on `/tab` only; `/admin/balances/[memberId]` is
-  left for a small follow-up. Should reuse the extended
-  `getMyTabForSession` shape (or a sibling helper for the
-  treasurer's all-sessions view) — the row rendering component
-  (`<TabEntryRow />` from spec 019) drops in directly. ~30min
-  once the spec 019 components land.
+- ~~**Spec 019 follow-up — admin balance view origin-type distinction.**~~
+  **— Shipped 2026-05-26.** `/admin/balances/[memberId]` now
+  renders the same 4 origin types `<TabEntryRow />` already
+  shows on /tab. New sibling query `getMemberTabForAdmin` in
+  `lib/db/queries/consumption.ts` (treasurer-shape — no `userId`
+  arg because admin has no undo affordance, `canUndo` always
+  false). Scoped to the current open session (older entries live
+  in the member's /history); fetched alongside the balance +
+  pending payments in the same `Promise.all`.
 
 - **Club name visible in the AppHeader.** Currently the global
   header on every authenticated page shows BrandMark (🍺 BEEROMAT)

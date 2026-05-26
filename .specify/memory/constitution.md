@@ -1,6 +1,42 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.9.0 → 1.10.0
+Bump rationale: MINOR. Principle VIII split — what v1.9 called
+"Unit (Vitest + PGlite)" was actually two layers: pure-function
+unit tests (no DB) and DB-coupled integration tests (PGlite).
+v1.10 separates them by folder, config, and script — "clean
+separation of concerns following the test pyramid", user
+direction 2026-05-26. New layer doesn't add coverage, it just
+honestly labels what was already there.
+
+Modified principles:
+  - VIII. Testing Pyramid — three layers → four layers:
+      1. Unit (pure functions, no DB) — `tests/unit/`
+      2. Integration (PGlite-backed, DB code) — `tests/integration/` ← NEW
+      3. Component (Vitest + RTL + jsdom) — `tests/component/`
+      4. True E2E (Playwright) — `tests/e2e/`
+    Each layer is its own folder + config + script;
+    "MUST NOT be mixed in a shared config or include glob".
+
+Modified sections:
+  - "Verification Gates" — added gate 4 `pnpm test:integration`,
+    renumbered downstream gates. Total: 8 always-on + 1
+    conditional (was 7 + 1).
+  - Plan template "Test layer declaration" sub-section — added
+    Integration row alongside Unit / Component / E2E.
+
+Templates requiring updates:
+  - ✅ .specify/templates/plan-template.md — Integration row added.
+  - ⚠  .specify/templates/spec-template.md — no change needed.
+  - ⚠  .specify/templates/tasks-template.md — no change needed.
+
+Prior amendment 1.8.0 → 1.9.0 (2026-05-26, MINOR): Rewrote
+Principle VIII to require tests for every change and move
+test-layer choice into plan.md.
+
+----- Prior amendment history (pre-1.9) -----
+
 Version change: 1.8.0 → 1.9.0
 Bump rationale: MINOR. Principle VIII (Testing Pyramid) is
 materially rewritten and strengthened — not a new principle, but
@@ -299,28 +335,45 @@ the same justification + follow-up task discipline as any other
 gate skip.
 
 **Use the cheapest layer that verifies the behaviour.** beeromat
-recognises three layers, fastest first:
+recognises four layers, fastest first. Each layer is its own
+folder, its own Vitest/Playwright config, and its own `pnpm test:*`
+script — they MUST NOT be mixed in a shared config or include glob
+("clean separation of concerns following the test pyramid",
+2026-05-26).
 
-1. **Unit** — Vitest + PGlite. Pure functions, server-action
-   transactions, Zod schemas, queries, business logic. Sub-second
-   per test. No webserver, no browser. **Default home for most
-   tests.** Run: `pnpm test:unit`.
+1. **Unit** — Vitest, node env. Pure functions only: Zod schemas,
+   authz predicates, format helpers, lint scripts. **No DB, no
+   filesystem, no network, no mocks of any of them either** —
+   if you'd need to mock infrastructure, the test belongs in
+   layer 2. Sub-second total. **Default home for most tests.**
+   Location: `tests/unit/`. Config: `vitest.unit.config.ts`.
+   Run: `pnpm test:unit`.
 
-2. **Component** — Vitest + React Testing Library (jsdom).
+2. **Integration** — Vitest, node env + PGlite (in-memory
+   Postgres). Code that IS the data layer: Drizzle transactions,
+   SQL queries, stateful DB rules (the bootstrap state machine).
+   PGlite ships ~16 MB of WASM + data files that cold-load in
+   10–15s on Windows when the OS cache is cold; the config
+   bumps `hookTimeout` to 30s for the first-beforeEach-per-fork
+   warmup. Location: `tests/integration/`. Config:
+   `vitest.integration.config.ts`. Run: `pnpm test:integration`.
+
+3. **Component** — Vitest, jsdom env + React Testing Library.
    Components rendered in isolation with mocked data; no
    webserver, no DB. Use for presentational behaviour, form
    interactions, empty/loading states, locale rendering, a11y.
    Mock server actions with `vi.mock()` — do not stand up a real
-   webserver. Run: `pnpm test:component`.
+   webserver. Location: `tests/component/`. Config:
+   `vitest.component.config.ts`. Run: `pnpm test:component`.
 
-3. **True E2E** — Playwright + production-mode webserver + real
+4. **True E2E** — Playwright + production-mode webserver + real
    Postgres. RESERVED for **happy-path user journeys** that touch
    real auth, real persistence, and the production code path
    end-to-end. Use sparingly: a small suite of well-chosen
-   journeys beats a sprawl of micro-scenarios. (As of 2026-05-26
-   the Playwright infrastructure is not in the repo; the next
-   spec that declares an E2E happy-path test brings it back,
-   scoped to that one journey.)
+   journeys beats a sprawl of micro-scenarios. Location:
+   `tests/e2e/`. Config: `playwright.config.ts`. Run:
+   `pnpm test:e2e`. First spec landed under this layer: 016
+   (onboarding happy path).
 
 **Test-layer decision is part of story preparation, not an
 afterthought.** Each feature's `plan.md` MUST declare which test
@@ -349,8 +402,9 @@ no E2E test is warranted and explain why.
 lowest layer at which this behaviour is verifiable?* — and put it
 there.
 
-- "calculateBalance() returns 0 for a member with no consumptions"
-  → unit.
+- "Zod schema rejects an invalid IBAN" → unit (pure function).
+- "calculateBalance() returns 0 against a member with no
+  consumptions" → integration (touches Drizzle + real SQL).
 - "The dispute banner renders the right Czech copy" → component.
 - "Form X rejects empty input with message Y" → component (mock
   the action with `vi.mock()` and assert the rendered error).
@@ -525,40 +579,45 @@ and silently drops.
 
 Every feature commit (and every commit that adds or changes
 user-facing behaviour) MUST pass the following gates before being
-pushed to `main`. Gates 1–7 are always required; gate 8 is
+pushed to `main`. Gates 1–8 are always required; gate 9 is
 conditional on the spec's plan.md declaring E2E coverage (see
 Principle VIII).
 
 1. **`pnpm typecheck`** — `tsc --noEmit` returns zero errors.
 2. **`pnpm lint`** — ESLint (with the project's flat config) returns
    zero errors.
-3. **`pnpm test:unit`** — every Vitest unit and integration test
-   currently in the suite passes. Tests that exercise the database
-   layer use PGlite, not a live Neon connection.
-4. **`pnpm test:component`** — every Vitest + React Testing Library
+3. **`pnpm test:unit`** — pure-function Vitest suite (Zod schemas,
+   authz predicates, format helpers, lint scripts). No DB, no
+   filesystem, no network. Sub-second total. Powers Principle VIII
+   layer 1.
+4. **`pnpm test:integration`** — Vitest + PGlite suite for
+   DB-coupled code (Drizzle transactions, SQL queries, stateful DB
+   rules). In-memory Postgres, no live Neon connection. Powers
+   Principle VIII layer 2.
+5. **`pnpm test:component`** — every Vitest + React Testing Library
    (jsdom) component test passes. Components rendered in isolation
    with mocked data; no DB writes, no production webserver. Server
    actions are stubbed with `vi.mock()`. Powers Principle VIII
-   layer 2.
-5. **`pnpm build`** — `next build` succeeds, including TypeScript's
+   layer 3.
+6. **`pnpm build`** — `next build` succeeds, including TypeScript's
    second pass and route metadata collection. (For builds run without
    real secrets, `SKIP_ENV_VALIDATION=1` is the documented escape
    hatch.)
-6. **`pnpm i18n:check`** — every user-facing string resolves through
+7. **`pnpm i18n:check`** — every user-facing string resolves through
    the `next-intl` catalog (no literal English in JSX/TSX outside
    `messages/`), and the `cs` and `en` catalogs have identical key
    sets. Added v1.4.0: the v1 UI shipped entirely untranslated while
    the earlier gates stayed green, because no gate could observe a
    hardcoded string. A gate that cannot be skipped beats a task line
    that can.
-7. **`pnpm forms:check`** — no form delegates input handling to the
+8. **`pnpm forms:check`** — no form delegates input handling to the
    browser: the scan rejects a native date/time input
    (`type="date"|"time"|"datetime-local"`) and the native `required`
    / `pattern` validation attributes anywhere in `app/**` or
    `components/**`. Added v1.6.0 with the v1.2 forms migration, it
    makes the "User Input & Forms" standard enforced rather than only
    reviewed.
-8. **`pnpm test:e2e`** *(conditional — required when the spec's
+9. **`pnpm test:e2e`** *(conditional — required when the spec's
    plan.md declares E2E coverage; see Principle VIII)* — Playwright
    runs the declared happy-path user-journey test(s) against the
    production-mode app (`pnpm build && pnpm start`) on an isolated
@@ -567,13 +626,12 @@ Principle VIII).
    over SMTP to a local Mailpit container so no real mail is sent,
    and with Cloudflare Turnstile's documented test site keys. The
    journey under test is the one named in `plan.md`'s
-   test-layer-declaration; per-part unit + component coverage stays
-   the dominant share. As of 2026-05-26 the Playwright stack itself
-   is not in the repo — the first spec that declares an E2E
-   happy-path test brings it back, scoped to that one journey.
+   test-layer-declaration; per-part unit + integration + component
+   coverage stays the dominant share. First spec landed under this
+   layer: 016 (onboarding happy path).
 
-Gates 1–7 are non-negotiable for non-trivial changes. Skipping any
-gate (including the conditional gate 8 when it applies) requires
+Gates 1–8 are non-negotiable for non-trivial changes. Skipping any
+gate (including the conditional gate 9 when it applies) requires
 the same justification discipline as a Constitution Check
 violation: noted in the commit message as a `Skipped-Gate: <gate>`
 trailer with a follow-up task referenced.
@@ -667,4 +725,4 @@ a review acknowledging the version-bump rationale.
 Constitution Check gate; principle violations must be justified or fixed,
 not waived informally.
 
-**Version**: 1.9.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-26
+**Version**: 1.10.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-26

@@ -1,27 +1,39 @@
 <!-- SPECKIT START -->
-Testing strategy (post spec 015 reversal — 2026-05-26):
-Playwright E2E was removed and is being reintroduced one
-journey at a time per Constitution Principle VIII (v1.9.0).
-What we run today:
+Testing strategy (Constitution v1.10.0 — four-layer pyramid,
+clean separation, no glob bleed between layers):
 
-  - **Unit** — Vitest + PGlite (`pnpm test:unit`). Server actions,
-    Zod schemas, business logic, transactions, queries.
-  - **Component** — Vitest + React Testing Library, jsdom env
-    (`pnpm test:component`). Renders components in isolation with
-    mocked data; no webserver, no real DB. Add tests here for any
-    new presentational behaviour.
+  - **Unit** — Vitest, node env (`pnpm test:unit`). PURE FUNCTIONS
+    ONLY: Zod schemas, authz predicates, format helpers, lint
+    scripts. No DB, no filesystem, no network. Sub-second total.
+    Location: `tests/unit/`. Config: `vitest.unit.config.ts`.
+  - **Integration** — Vitest + PGlite (`pnpm test:integration`).
+    DB-coupled code: Drizzle transactions, SQL queries, stateful
+    DB rules. In-memory Postgres, no live Neon. Cold WASM warmup
+    is ~10s on Windows (hookTimeout bumped to 30s).
+    Location: `tests/integration/`. Config: `vitest.integration.config.ts`.
+  - **Component** — Vitest + RTL + jsdom (`pnpm test:component`).
+    Components in isolation with mocked data; server actions
+    stubbed via `vi.mock()`. No webserver, no DB.
+    Location: `tests/component/`. Config: `vitest.component.config.ts`.
   - **E2E (happy path only)** — Playwright (`pnpm test:e2e`).
     One spec so far (`tests/e2e/onboarding-happy-path.spec.ts`,
-    spec 016 — fresh-install onboarding). Cold build + run in
-    ~1 minute. Each future critical journey gets its own spec
-    that brings its test along — no journey-less E2E gets added.
-  - `pnpm test` = unit + component + i18n:check + forms:check.
-    `pnpm test:e2e` is run separately because it requires Docker
-    (postgres on :15432) and a cold next build.
+    spec 016). Each future critical journey gets its own spec
+    that brings its test along; no journey-less E2E gets added.
 
-Future crucial journeys still pending: log a beer, settle, treasurer
-confirm, bet transfer, match agreement. Each goes through its own
-spec dir with a Test layer declaration in its plan.md.
+`pnpm test` = unit + integration + component + i18n:check +
+forms:check. `pnpm test:e2e` runs separately (needs Docker
+postgres on :15432 and a cold `next build`).
+
+When deciding where a new test belongs, default to the lowest
+layer that can verify the behaviour. If you'd have to mock the
+DB to keep a test in `tests/unit/`, it belongs in
+`tests/integration/` instead. Don't mix layers in a shared
+config or include glob.
+
+Future crucial journeys still pending: log a beer, settle,
+treasurer confirm, bet transfer, match agreement. Each goes
+through its own spec dir with a Test layer declaration in its
+plan.md.
 
 Earlier shipped features live at `specs/001-beer-consumption-ledger/`
 through `specs/013-matches-doubles-prematch/` — their `plan.md`,

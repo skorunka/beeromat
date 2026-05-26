@@ -37,7 +37,7 @@ export function AppHeader({
           balance pill takes a chunk of the right side. */}
       <Link
         href={'/' as Route}
-        className="hover:text-foreground flex min-w-0 flex-col"
+        className="hover:text-foreground flex min-w-0 flex-col gap-1"
       >
         <BrandMark />
         <span className="text-muted-foreground truncate text-sm font-medium leading-tight">

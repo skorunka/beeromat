@@ -1,9 +1,11 @@
 import type { Route } from 'next';
 import { headers } from 'next/headers';
+import { getTranslations } from 'next-intl/server';
 
 import { auth } from '@/lib/auth/better-auth';
 import { currentSession, localeRedirect } from '@/lib/auth/session';
 import { deviceSessionState } from '@/lib/auth/device-session-state';
+import { memberBalance } from '@/lib/balance/calculate';
 import { getDisputedClaimsForMember } from '@/lib/db/queries/payments';
 import { formatMoney } from '@/lib/format';
 import { roleSatisfies } from '@/lib/permissions';
@@ -37,7 +39,19 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
   if (state === 'no-session') return <PinGate mode="setup" />;
   if (state !== 'unlocked') return <PinGate mode="unlock" />;
 
-  const disputed = await getDisputedClaimsForMember(ctx.member.id);
+  const [disputed, balanceMinor, tHome] = await Promise.all([
+    getDisputedClaimsForMember(ctx.member.id),
+    memberBalance(ctx.member.id),
+    getTranslations('home'),
+  ]);
+  const balanceFormatted =
+    balanceMinor > 0n
+      ? formatMoney(balanceMinor, ctx.club.currencyCode, ctx.club.defaultLocale)
+      : null;
+  const balanceAriaLabel =
+    balanceFormatted !== null
+      ? tHome('balanceOwed', { amount: balanceFormatted })
+      : tHome('balanceSquare');
 
   // Daily destinations for everyone, plus one role-gated operational
   // entry (highest role wins) — computed server-side so the client nav
@@ -72,6 +86,8 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
         clubName={ctx.club.name}
         displayName={ctx.member.displayName}
         email={ctx.user.email}
+        balanceFormatted={balanceFormatted}
+        balanceAriaLabel={balanceAriaLabel}
       />
       {/* Bottom padding clears the fixed nav so it never occludes content. */}
       <div className="pb-20">{children}</div>

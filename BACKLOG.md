@@ -8,12 +8,12 @@ When one matures, run `/speckit-specify` and the item moves into
 
 ## UX
 
-- **Persistent "I owe X to the club" badge on every page.** Currently
-  the user's outstanding tab appears only on `/` (home) and `/tab`.
-  Make it ambient — small chip in the AppHeader (spec 013 added the
-  header to every authenticated page) showing `Tvoje útrata: 380 Kč`
-  or `Vyrovnáno`. Tappable → jumps to `/tab`. Hidden when balance =
-  0 to avoid visual noise.
+- ~~**Persistent "I owe X to the club" badge on every page.**~~
+  **— Shipped 2026-05-26.** AppHeader now renders a small amber
+  `<BalanceBadge />` pill between the club name and the user-menu
+  avatar when `balanceMinor > 0`. Tappable → `/tab`. Hidden when
+  square. Reuses `memberBalance()` in `(app)/layout.tsx` (one extra
+  query per render; small cost on this app's scale).
 
 - ~~**One-tap "log a beer" on app open**~~ **— Shipped 2026-05-26 as
   spec 017** (`specs/017-home-onetap-log/`). Option 2 "same as last

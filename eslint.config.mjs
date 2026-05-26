@@ -12,17 +12,12 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'coverage/**',
-    'playwright-report/**',
-    'playwright/.cache/**',
-    'test-results/**',
     'next-env.d.ts',
     'drizzle/**',
   ]),
   {
-    // Test files are not React. The react-hooks plugin false-positives
-    // on Playwright's `use()` fixture callback (mistaking it for the
-    // React `use` hook) and on Vitest helpers — disable those rules
-    // for test code only.
+    // Vitest fixture/helper callbacks trip react-hooks/rules-of-hooks
+    // false-positives (the plugin mistakes Vitest's `use()` for React's).
     files: ['tests/**/*.{ts,tsx}'],
     rules: {
       'react-hooks/rules-of-hooks': 'off',

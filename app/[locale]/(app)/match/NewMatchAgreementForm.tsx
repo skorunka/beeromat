@@ -3,7 +3,7 @@
 import { useTransition } from 'react';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
-import { useForm, useWatch, Controller } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
@@ -287,7 +287,7 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
 
         {/* Pairing — doubles only, EXPLICIT pick (FR-006 / Q4 — no default) */}
         {format === 'doubles' ? (
-          <Controller
+          <FormField
             control={form.control}
             name="pairingKind"
             render={({ field, fieldState }) => (

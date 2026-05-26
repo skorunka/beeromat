@@ -2,7 +2,7 @@
 
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm, useWatch, Controller } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
@@ -286,7 +286,7 @@ export function EditAgreementForm({ agreementId, members, initial }: EditAgreeme
         />
 
         {format === 'doubles' ? (
-          <Controller
+          <FormField
             control={form.control}
             name="pairingKind"
             render={({ field, fieldState }) => (

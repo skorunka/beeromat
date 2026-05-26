@@ -55,5 +55,10 @@ next-env.d.ts
 
 # playwright
 playwright/.auth/
+playwright/.cache/
 playwright-report/
 test-results/
+
+# spec 014/015 perf test logs (not for commit)
+tests-output.log
+timing-*.log

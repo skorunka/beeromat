@@ -104,36 +104,106 @@ body {
   font-family: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* ─── Custom keyframes ───────────────────────────────────────────────
-   Periodic "hey, look at me" attention wiggle used by the BalanceBadge
-   coin icon. ~6s cycle: sits still for ~5s, then a quick playful
-   wobble — eye-catching but not constantly distracting. Disabled
-   entirely under prefers-reduced-motion. */
-@keyframes balance-wiggle {
-  0%, 85%, 100% {
-    transform: rotate(0deg) translateY(0);
+/* ─── BalanceBadge motion ────────────────────────────────────────────
+   The "you owe N Kč" pill in the header has three layered animations,
+   all CSS-only so prefers-reduced-motion can switch them off in one
+   place at the bottom. */
+
+/* 1. A soft amber halo behind the pill that breathes — gentle but
+      ambient, gives the badge a glow. */
+@keyframes balance-halo {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.95);
   }
-  87% {
-    transform: rotate(-14deg) translateY(-1px);
-  }
-  90% {
-    transform: rotate(12deg) translateY(-2px);
-  }
-  93% {
-    transform: rotate(-8deg) translateY(-1px);
-  }
-  96% {
-    transform: rotate(4deg) translateY(0);
+  50% {
+    opacity: 0.65;
+    transform: scale(1.18);
   }
 }
+.animate-balance-halo {
+  animation: balance-halo 2.4s ease-in-out infinite;
+}
 
-.animate-balance-wiggle {
-  animation: balance-wiggle 6s ease-in-out infinite;
+/* 2. The Coins icon constantly bounces + spins — never sits still.
+      User explicitly wants this annoying enough that the response is
+      "settle so it goes away." 1.6s cycle, two little hops per full
+      rotation. */
+@keyframes balance-coin-bounce {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-4px) rotate(90deg);
+  }
+  50% {
+    transform: translateY(0) rotate(180deg);
+  }
+  75% {
+    transform: translateY(-4px) rotate(270deg);
+  }
+  100% {
+    transform: translateY(0) rotate(360deg);
+  }
+}
+.animate-balance-coin-bounce {
+  animation: balance-coin-bounce 1.6s linear infinite;
   transform-origin: center;
 }
 
+/* 3. Money-with-wings 💸 particles fly up out of the pill and fade
+      away. Two particles offset by half a cycle so something is
+      always in flight — the "flying money" effect. */
+@keyframes balance-money-fly {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5) rotate(-10deg);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(2px, -6px) scale(0.85) rotate(0deg);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(10px, -32px) scale(1) rotate(28deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(16px, -48px) scale(0.5) rotate(45deg);
+  }
+}
+/* Three particles offset by thirds of the cycle so the trail is
+   continuous — there's always money in flight. Faster cycle (3s)
+   for more density. */
+.animate-balance-money-fly {
+  animation: balance-money-fly 3s ease-out infinite;
+}
+.animate-balance-money-fly-mid {
+  animation: balance-money-fly 3s ease-out infinite;
+  animation-delay: 1s;
+  transform-origin: center;
+  /* mirror horizontally so the trails diverge */
+  scale: -1 1;
+}
+.animate-balance-money-fly-late {
+  animation: balance-money-fly 3s ease-out infinite;
+  animation-delay: 2s;
+  transform-origin: center;
+  /* third particle goes straight up — squish the X drift */
+  transform: scaleX(0.3);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-balance-wiggle {
+  .animate-balance-halo,
+  .animate-balance-coin-bounce,
+  .animate-balance-money-fly,
+  .animate-balance-money-fly-mid,
+  .animate-balance-money-fly-late {
     animation: none;
+  }
+  .animate-balance-money-fly,
+  .animate-balance-money-fly-mid,
+  .animate-balance-money-fly-late {
+    opacity: 0;
   }
 }

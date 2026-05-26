@@ -2,7 +2,7 @@
 
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
@@ -89,7 +89,9 @@ export function EditAgreementForm({ agreementId, members, initial }: EditAgreeme
       pairingKind: initial.pairingKind ?? '',
     },
   });
-  const format = form.watch('format');
+  // Use `useWatch` instead of `form.watch()` — the latter trips the
+  // react-hooks/incompatible-library lint rule.
+  const format = useWatch({ control: form.control, name: 'format' });
 
   function onSave(values: FormValues) {
     if (values.format === 'doubles' && !values.pairingKind) {

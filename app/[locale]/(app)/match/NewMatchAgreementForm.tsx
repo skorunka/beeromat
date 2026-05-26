@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useTransition } from 'react';
 import type { Route } from 'next';
 import { useRouter } from 'next/navigation';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 
@@ -78,8 +77,11 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
       pairingKind: '', // FR-006 + Q4: no implicit default
     },
   });
-  const format = form.watch('format');
-  const pairingKind = form.watch('pairingKind');
+  // Use `useWatch` (subscription-based) instead of `form.watch()` —
+  // the latter trips the react-hooks/incompatible-library lint rule
+  // because its returned values can't be memoised safely.
+  const format = useWatch({ control: form.control, name: 'format' });
+  const pairingKind = useWatch({ control: form.control, name: 'pairingKind' });
 
   function onSubmit(values: FormValues) {
     // Client-side validation: pairing required for doubles (Q4 — no default).

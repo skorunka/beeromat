@@ -21,10 +21,12 @@ import {
 // Endonyms: each language is labelled in its own script ("Čeština",
 // "English"). Standard convention for language pickers (Wikipedia,
 // GitHub, etc.) — the absent-member persona (Standa, CS-only) sees
-// his language by name regardless of the current UI locale.
-const LOCALE_LABEL: Record<string, string> = {
-  cs: 'Čeština',
-  en: 'English',
+// his language by name regardless of the current UI locale. Flag
+// renders before the name for instant visual scan (the icon catches
+// the eye even before the word does).
+const LOCALE_META: Record<string, { flag: string; label: string }> = {
+  cs: { flag: '🇨🇿', label: 'Čeština' },
+  en: { flag: '🇬🇧', label: 'English' },
 };
 
 // Top-right account menu: collapses what used to be the inline
@@ -106,11 +108,23 @@ export function UserMenu({
           onValueChange={switchTo}
           aria-label={t('nav.language')}
         >
-          {routing.locales.map((loc) => (
-            <DropdownMenuRadioItem key={loc} value={loc} disabled={isPending}>
-              {LOCALE_LABEL[loc] ?? loc.toUpperCase()}
-            </DropdownMenuRadioItem>
-          ))}
+          {routing.locales.map((loc) => {
+            const meta = LOCALE_META[loc];
+            return (
+              <DropdownMenuRadioItem key={loc} value={loc} disabled={isPending}>
+                {meta ? (
+                  <>
+                    <span aria-hidden className="text-base leading-none">
+                      {meta.flag}
+                    </span>
+                    {meta.label}
+                  </>
+                ) : (
+                  loc.toUpperCase()
+                )}
+              </DropdownMenuRadioItem>
+            );
+          })}
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem

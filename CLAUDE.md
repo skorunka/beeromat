@@ -1,4 +1,15 @@
 <!-- SPECKIT START -->
+Active spec: `specs/017-home-onetap-log/plan.md` — home redesign +
+one-tap log-a-beer (Constitution v1.10.0). Companion artifacts:
+`spec.md`, `research.md`, `data-model.md`, `quickstart.md`,
+`contracts/home-page.md`, `checklists/requirements.md`.
+
+Recently shipped spec: 016 (onboarding happy-path E2E). Earlier
+shipped features live at `specs/001-…/` through
+`specs/015-…/` — their plan.md / data-model.md / contracts/ remain
+the source of truth for the data model + server-action contracts +
+prior decisions.
+
 Testing strategy (Constitution v1.10.0 — four-layer pyramid,
 clean separation, no glob bleed between layers):
 

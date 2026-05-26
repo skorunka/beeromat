@@ -1,17 +1,18 @@
+import type { Route } from 'next';
 import { Link } from '@/lib/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { Receipt } from 'lucide-react';
 
 import { buttonVariants } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { HomeOneTapLog } from '@/components/home/home-one-tap-log';
 import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
+import { lastBeerForMember } from '@/lib/db/queries/consumption';
 import { formatMoney } from '@/lib/format';
-import { cn } from '@/lib/utils';
 
-// Home of the authenticated app — the dashboard. Daily destinations
-// live in the persistent bottom nav (US7); home gives the outstanding
-// balance the whole stage and offers the one balance-dependent action.
+// Spec 017 — home as the single action surface for the daily core
+// loop. Primary CTA = one-tap log of the member's last beer. Balance
+// rendered as a friendly sentence (no nag tone). Settle CTA stays
+// secondary, visible only when owing.
 export default async function AppHomePage({
   params,
 }: {
@@ -22,50 +23,51 @@ export default async function AppHomePage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('home');
-  const balanceMinor = await memberBalance(ctx.member.id);
+  const [balanceMinor, lastBeer] = await Promise.all([
+    memberBalance(ctx.member.id),
+    lastBeerForMember(ctx.member.id, ctx.club.id),
+  ]);
   const owes = balanceMinor > 0n;
+  const balanceFormatted = formatMoney(
+    balanceMinor,
+    ctx.club.currencyCode,
+    ctx.club.defaultLocale,
+  );
 
   return (
-    <main className="mx-auto max-w-md p-5">
-      <header className="mb-7 flex flex-col gap-1">
+    <main className="mx-auto flex max-w-md flex-col gap-6 p-5">
+      <header className="flex flex-col gap-1">
         <Link
           href="/account"
           className="text-foreground hover:text-primary inline-flex min-h-11 items-center text-base font-medium transition-colors"
         >
           {t('greeting', { name: ctx.member.displayName })}
         </Link>
-        <h1 className="text-2xl font-bold leading-tight">{ctx.club.name}</h1>
+        <p
+          className={
+            owes
+              ? 'text-primary text-xl font-bold tabular-nums leading-relaxed'
+              : 'text-foreground text-xl font-medium leading-relaxed'
+          }
+        >
+          {owes ? t('balanceOwed', { amount: balanceFormatted }) : t('balanceSquare')}
+        </p>
       </header>
 
-      {/* The outstanding balance — the focal point of the home screen.
-          A non-zero tab is drawn in the brand amber to pull the eye. */}
-      <Card className="items-center gap-3 py-10 text-center">
-        <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-          {t('outstandingBalance')}
-        </span>
-        <span
-          className={cn(
-            'text-5xl font-extrabold tabular-nums',
-            owes ? 'text-primary' : 'text-foreground',
-          )}
+      <HomeOneTapLog
+        beer={lastBeer}
+        currencyCode={ctx.club.currencyCode}
+        locale={ctx.club.defaultLocale}
+      />
+
+      {owes ? (
+        <Link
+          href={'/settle' as Route}
+          className={buttonVariants({ variant: 'outline', size: 'default', className: 'self-center' })}
         >
-          {formatMoney(balanceMinor, ctx.club.currencyCode, ctx.club.defaultLocale)}
-        </span>
-        {owes ? (
-          <Link
-            href="/settle"
-            className={cn(
-              buttonVariants({ size: 'lg' }),
-              'mt-3 h-14 w-[calc(100%-2.5rem)] gap-2 text-base',
-            )}
-          >
-            <Receipt className="h-5 w-5" aria-hidden />
-            {t('settleUp')}
-          </Link>
-        ) : (
-          <span className="text-muted-foreground mt-1 text-sm">{t('allSquare')}</span>
-        )}
-      </Card>
+          {t('settleCta')}
+        </Link>
+      ) : null}
     </main>
   );
 }

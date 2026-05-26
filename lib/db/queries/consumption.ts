@@ -1,5 +1,5 @@
 import 'server-only';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, isNull } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { effectiveConsumptionTotal } from '@/lib/balance/calculate';
@@ -7,6 +7,54 @@ import { beerTypes } from '@/lib/db/schema/catalog';
 import { consumptionVoids, consumptions } from '@/lib/db/schema/consumption';
 import { drinkSessions, type DrinkSession } from '@/lib/db/schema/sessions';
 import { getBetTransfersForSession, type BetTransferRow } from './bets';
+
+/**
+ * Spec 017 — predictive-default lookup for home's one-tap log button.
+ * Returns the beer type of the member's most recent non-voided
+ * consumption in the active club, or null if the member has never
+ * logged anything in this club. Single round-trip; LEFT JOIN on
+ * `consumption_voids` filters voided rows out without a subquery.
+ *
+ * The caller decides the UI variant from `isArchived` + `currentStock`:
+ *   isArchived = true              → generic "Zapiš pivo" link
+ *   currentStock <= 0              → disabled "{name} — nedostupné"
+ *   otherwise                      → enabled "Zapiš {name}"
+ */
+export interface LastBeerForMember {
+  id: string;
+  name: string;
+  currentStock: number;
+  isArchived: boolean;
+  unitPriceMinor: bigint;
+}
+
+export async function lastBeerForMember(
+  memberId: string,
+  clubId: string,
+): Promise<LastBeerForMember | null> {
+  const [row] = await db
+    .select({
+      id: beerTypes.id,
+      name: beerTypes.name,
+      currentStock: beerTypes.currentStock,
+      isArchived: beerTypes.isArchived,
+      unitPriceMinor: beerTypes.unitPriceMinor,
+    })
+    .from(consumptions)
+    .innerJoin(beerTypes, eq(beerTypes.id, consumptions.beerTypeId))
+    .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
+    .where(
+      and(
+        eq(consumptions.memberId, memberId),
+        eq(consumptions.clubId, clubId),
+        isNull(consumptionVoids.consumptionId),
+      ),
+    )
+    .orderBy(desc(consumptions.createdAt))
+    .limit(1);
+
+  return row ?? null;
+}
 
 /** Shape of a single entry rendered on the my-tab screen. */
 export interface MemberTabEntry {

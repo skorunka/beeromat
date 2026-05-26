@@ -15,22 +15,11 @@ When one matures, run `/speckit-specify` and the item moves into
   or `Vyrovnáno`. Tappable → jumps to `/tab`. Hidden when balance =
   0 to avoid visual noise.
 
-- **One-tap "log a beer" on app open** *(expanded)*. The most common
-  action is to log a beer. Make it a single tap from `/`. Concrete
-  question to resolve: *how does the user pick the beer type?*
-  Options:
-    1. **Big primary "Log a beer" button on `/` that opens an inline
-       beer-picker modal** — one tap to open picker, second tap to
-       pick beer = 2 taps total. Beats today's 3-screen flow.
-    2. **"Same as last time" memory** — if the user logged Pilsner
-       last, the home button is "🍺 Log a Pilsner (last one)". One
-       tap. A small "different beer" link opens the picker for the
-       exception case.
-    3. **Multiple beer buttons on home** (one per active beer type)
-       if the club has ≤4 beers. One tap, no picker. Hurts when the
-       catalog grows past ~5 beers.
-  Recommended: start with (2) — predictive, single tap for the 80%
-  case, falls back to (1) for the rest.
+- ~~**One-tap "log a beer" on app open**~~ **— Shipped 2026-05-26 as
+  spec 017** (`specs/017-home-onetap-log/`). Option 2 "same as last
+  time" landed with the predictive-default button + fallback link
+  to the full picker; archived + out-of-stock fall through gracefully.
+  Home is now the action surface, not just an info display.
 
 - **Log a beer on behalf of another member.** When someone forgets
   their phone, a mate logs the beer for them. Today there's no UI

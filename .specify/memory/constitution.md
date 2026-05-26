@@ -1,54 +1,77 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.7.0 → 1.8.0
-Bump rationale: MINOR. New principle added (Core Principle VIII —
-Testing Pyramid). Spec 015 surfaced that the project's 100%-E2E
-test stack collapsed under its own weight: cold webserver builds
-dominated every run, a `globalSetup` vs `webServer` race condition
-surfaced as flaky "relation X does not exist" timeouts, and the
-per-test sign-in cost (partially addressed in spec 014) was a
-symptom of the deeper architecture mismatch. This amendment
-codifies the four-layer pyramid — Unit, Component, API-mocked E2E,
-True E2E — as the project's testing architecture and adds an 8th
-verification gate (`pnpm test:component`).
+Version change: 1.8.0 → 1.9.0
+Bump rationale: MINOR. Principle VIII (Testing Pyramid) is
+materially rewritten and strengthened — not a new principle, but
+a substantive revision that changes obligations.
+
+What drove it: on 2026-05-26 the Playwright E2E stack was removed
+from the repo after weeks of storageState-contamination and
+globalSetup-vs-webServer race fights. The spec-015 four-layer
+hierarchy (Unit / Component / Mocked-E2E / True-E2E) outlived its
+usefulness — two of the four layers (Mocked-E2E, Playwright CT)
+were essentially aspirational and the True-E2E layer was the very
+thing being torn out. But the underlying pyramid insight — "use
+the cheapest layer that verifies the behaviour" — remains
+correct; what was missing was a clear "every change has tests"
+obligation and a planning-phase decision on which layers a given
+feature needs. v1.9.0 puts both in writing.
 
 Modified principles:
-  (none renamed or redefined)
-
-Added sections:
-  - "VIII. Testing Pyramid" in Core Principles, with:
-      * Four-layer hierarchy (Unit / Component / Mocked-E2E /
-        True-E2E) and the "lowest layer that can verify the
-        behaviour" decision rule.
-      * Layer responsibility table — what each can/cannot assert,
-        what infrastructure each requires.
-      * Updated Verification Gates list (7 → 8) with the new
-        `pnpm test:component` gate at position 4.
+  - VIII. Testing Pyramid — rewritten. Now three layers (Unit /
+    Component / True E2E). Two new normative clauses:
+      * "Every change that introduces or modifies behaviour MUST
+        land with tests that exercise the new behaviour."
+      * "Each feature's plan.md MUST declare which test layers the
+        feature uses. For features with a meaningful user-facing
+        flow, the default is one happy-path Playwright test for
+        the journey as a whole, on top of unit + component
+        coverage for the parts."
+    Dropped the Mocked-E2E and Playwright-CT sub-layers — both
+    were removed with the Playwright stack and never re-justified.
 
 Modified sections:
-  - "Verification Gates" in Development Workflow & Quality Gates:
-    bumped 7-gate list to 8 gates; added `pnpm test:component` as
-    gate 4; renumbered downstream gates; gate 6 (was 5) updated to
-    mention the `db.setup` Playwright project instead of the
-    legacy `globalSetup` option.
+  - "Verification Gates" — list shortened from 8 to 7 always-on
+    gates plus 1 conditional gate. `pnpm test:component:visual`
+    (Playwright CT) is removed; `pnpm test:e2e` is now conditional
+    on the spec's plan.md declaring E2E coverage. Renumbered so
+    the always-on gates run 1 through 7 in fastest-first order.
+
+Added sections:
+  (none — the new obligations live inside the rewritten Principle
+  VIII and Verification Gates sections.)
 
 Removed sections:
-  (none)
+  - The four-layer Mocked-E2E and Playwright-CT descriptions from
+    Principle VIII (collapsed back to the three layers actually in
+    use).
+  - Gate "pnpm test:component:visual" (Playwright CT removed).
 
 Templates requiring updates:
   - ⚠  .specify/templates/plan-template.md — Constitution Check
-       reminder block: bump "v1.7.0" reference to "v1.8.0".
+       reminder block: bump "v1.8.0" reference to "v1.9.0"; add
+       a "Test layer declaration" sub-section to the Constitution
+       Check (the plan must name which layers — unit, component,
+       E2E — the feature will use, and justify each).
   - ⚠  .specify/templates/spec-template.md — no change needed.
   - ⚠  .specify/templates/tasks-template.md — no change needed
-       (verifiable-tasks rule already accommodates per-layer gates).
+       (verifiable-tasks rule already accommodates the gate that
+       enforces this).
 
 Follow-up TODOs:
-  (none — spec 015 task list handles the migration; spec 014's
-  storageState work + spec 015's `db.setup.ts` project together
-  satisfy the new Principle.)
+  - The Playwright stack itself is not in the repo as of 2026-05-26.
+    The first spec that declares an E2E happy-path test brings it
+    back, scoped to that one journey. Until then `pnpm test:e2e`
+    is undefined and gate 8 is dormant.
 
 No principle removed or fundamentally redefined → MINOR, not MAJOR.
+
+Prior amendment 1.7.0 → 1.8.0 (2026-05-25, MINOR): Added Principle
+VIII (Testing Pyramid) as a four-layer split — Unit / Component /
+Mocked-E2E / True-E2E — with `pnpm test:component` as an 8th
+verification gate. Superseded by v1.9.0 above after the four-layer
+split collapsed under its own infrastructure weight.
 
 Prior amendment 1.6.0 → 1.7.0 (2026-05-22, MINOR): Added Principle
 VII — Fresh Code Hygiene. The v1.6 polish session surfaced that
@@ -264,72 +287,105 @@ drifted from 5.9 to the constitution's pinned 6.0.x without anyone
 noticing for two minor cycles, the kind of silent divergence this
 principle prevents.
 
-### VIII. Testing Pyramid
+### VIII. Testing Pyramid (every change covered, cheapest layer that verifies)
 
-Tests MUST be authored at the **lowest test layer that can verify
-the behaviour they assert**. The project recognises four layers,
-fastest first:
+**Tests are a hard requirement, not a nice-to-have.** Every change
+that introduces or modifies behaviour MUST land with tests that
+exercise the new behaviour. Documentation-only commits, pure
+refactors that preserve behaviour, and dependency bumps are
+exempt; everything else is not. A feature commit without tests is
+a Skipped-Gate condition (see Verification Gates) and MUST carry
+the same justification + follow-up task discipline as any other
+gate skip.
 
-1. **Unit** — Vitest + PGlite. Pure business logic, server-action
-   transactions, Zod schemas, query helpers. Sub-second per test.
-   No webserver, no browser. Run: `pnpm test:unit`.
+**Use the cheapest layer that verifies the behaviour.** beeromat
+recognises three layers, fastest first:
 
-2. **Component** — Vitest + React Testing Library (jsdom) by
-   default, OR Playwright Component Testing (real CSS) for tests
-   that assert computed visual properties (colour, contrast, font,
-   touch-target size). Components rendered in isolation; no
-   webserver, no DB. Run: `pnpm test:component` (RTL branch) +
-   `pnpm test:component:visual` (Playwright CT branch).
+1. **Unit** — Vitest + PGlite. Pure functions, server-action
+   transactions, Zod schemas, queries, business logic. Sub-second
+   per test. No webserver, no browser. **Default home for most
+   tests.** Run: `pnpm test:unit`.
 
-3. **API-mocked E2E** — Playwright with `page.route()` intercepting
-   Server Action endpoints. Webserver up, but no DB writes
-   permitted. Form validation, error toasts, UI-feedback state
-   machines. Auth state loaded from the shared `storageState`.
-   Run: `pnpm test:e2e-mock` (or via the `pnpm test:e2e`
-   orchestrator).
+2. **Component** — Vitest + React Testing Library (jsdom).
+   Components rendered in isolation with mocked data; no
+   webserver, no DB. Use for presentational behaviour, form
+   interactions, empty/loading states, locale rendering, a11y.
+   Mock server actions with `vi.mock()` — do not stand up a real
+   webserver. Run: `pnpm test:component`.
 
-4. **True E2E** — Playwright + real Postgres + production
-   webserver. RESERVED for critical user-journey verification
-   (~10-12 spec files, not more). Uses spec-014's `authedTest`
-   fixture for storage-state-reuse. Schema migration owned by a
-   `db.setup` Playwright project (NOT `globalSetup` — the
-   `globalSetup` ordering racing the `webServer` URL probe was
-   what surfaced this whole pyramid rework; see Microsoft
-   Playwright issue #19571). Run: `pnpm test:e2e` (orchestrator)
-   or `pnpm test:e2e-full` (true-E2E project only).
+3. **True E2E** — Playwright + production-mode webserver + real
+   Postgres. RESERVED for **happy-path user journeys** that touch
+   real auth, real persistence, and the production code path
+   end-to-end. Use sparingly: a small suite of well-chosen
+   journeys beats a sprawl of micro-scenarios. (As of 2026-05-26
+   the Playwright infrastructure is not in the repo; the next
+   spec that declares an E2E happy-path test brings it back,
+   scoped to that one journey.)
 
-**The decision rule.** Before adding a new test, ask: *what is the
-lowest layer at which I can verify this?* — and put it there.
+**Test-layer decision is part of story preparation, not an
+afterthought.** Each feature's `plan.md` MUST declare which test
+layers the feature uses and justify each — recorded in the
+Constitution Check section. For features with a meaningful
+user-facing flow (sign in, log a beer, settle a payment, run a
+match, complete onboarding), the **default** is:
 
-- "The submit button is 44px tall" → component (Playwright CT for
-  real CSS).
-- "The dispute banner renders the right copy" → component (RTL
-  with a fixture).
-- "Form X rejects empty input with message Y" → API-mocked E2E
-  (intercept the action; assert the rendered error).
+- Unit tests for the business logic / transactions / queries.
+- Component tests for the screens / forms / state machines.
+- **Plus one happy-path Playwright E2E test for the user journey
+  as a whole.**
+
+Per-part unit + component coverage is necessary but not
+sufficient — a user-journey feature without an end-to-end
+happy-path test is a spec without a verified spine, because the
+seams between the parts (auth context, server-action wiring,
+data round-trip) are exactly where integration bugs live.
+
+For features that are *only* business logic (a calculation, a
+schema change, a transaction) OR *only* presentational (a copy
+tweak, a layout change, a colour fix), the plan SHOULD note that
+no E2E test is warranted and explain why.
+
+**The decision rule for any single test.** Ask: *what is the
+lowest layer at which this behaviour is verifiable?* — and put it
+there.
+
+- "calculateBalance() returns 0 for a member with no consumptions"
+  → unit.
+- "The dispute banner renders the right Czech copy" → component.
+- "Form X rejects empty input with message Y" → component (mock
+  the action with `vi.mock()` and assert the rendered error).
 - "A member can log a beer → see it on their tab → undo it" →
-  true E2E (this is a critical journey).
+  E2E happy-path (this is the user journey, not a part).
+- "A treasurer can confirm a pending payment → balance drops" →
+  E2E happy-path.
 
-A test that COULD run at a lower layer but is authored at a higher
-one is a layer violation. PR reviewers MUST push back.
+A test that could run at a lower layer but is authored at a
+higher one is a layer violation. Catch it in story preparation,
+not after the suite slowed down.
 
-**Verification.** Each layer has its own gate (see the updated
-Verification Gates list, now 8 gates). The `pnpm test`
-orchestrator runs all four layers in fastest-first order and
-fails fast.
+**Verification.** The unit + component gates are always required
+(see Verification Gates 3 and 4). The E2E gate (8) runs only when
+a spec's plan.md has declared E2E coverage, AND when its declared
+journey-level happy-path test exists. A spec that declares E2E
+coverage but ships without the Playwright test is a gate
+violation, not a deferred task.
 
-**Rationale.** Spec 014's E2E-perf attempt showed that 100%-E2E
-suites collapse under their own weight — cold webserver builds
-dominate, the `globalSetup` race surfaces as flaky "relation X
-does not exist" timeouts, and per-test sign-in costs serialise
-the whole run even with storageState reuse. Test pyramids exist
-because each layer is fundamentally cheaper than the one above
-(unit: ms; component: tens of ms; mocked-E2E: seconds; true-E2E:
-tens of seconds + webserver boot tax). Ignoring the pyramid is
-perf debt that compounds with every new test.
+**Rationale.** This project has now hit both failure modes of the
+pyramid: spec 015 attempted a 100%-E2E architecture that
+collapsed under build/migration/race overhead (the whole stack
+was removed on 2026-05-26), and the immediate aftermath was
+0%-E2E coverage which would lose the safety net for journeys
+whose value is only visible end-to-end. The middle path — most
+behaviour verified cheaply in Vitest, journey spines verified in
+Playwright — is the discipline this principle encodes. Deciding
+the layer mix during planning, not during code review or
+emergency debugging, is what keeps the discipline cheap.
 
-Added v1.8.0 from the spec-014 retrospective. Spec 015 owns the
-migration from 100%-E2E to the four-layer split.
+Revised v1.9.0 from the 2026-05-26 E2E removal retrospective:
+dropped the API-mocked and Playwright-CT sub-layers (both removed
+with the Playwright stack), strengthened "tests required for
+every change" to a hard rule, and made layer choice a
+planning-phase decision recorded in `plan.md`.
 
 ## Tech Stack & Constraints
 
@@ -468,8 +524,10 @@ and silently drops.
 ### Verification Gates
 
 Every feature commit (and every commit that adds or changes
-user-facing behaviour) MUST pass all of the following gates before
-being pushed to `main`:
+user-facing behaviour) MUST pass the following gates before being
+pushed to `main`. Gates 1–7 are always required; gate 8 is
+conditional on the spec's plan.md declaring E2E coverage (see
+Principle VIII).
 
 1. **`pnpm typecheck`** — `tsc --noEmit` returns zero errors.
 2. **`pnpm lint`** — ESLint (with the project's flat config) returns
@@ -477,49 +535,48 @@ being pushed to `main`:
 3. **`pnpm test:unit`** — every Vitest unit and integration test
    currently in the suite passes. Tests that exercise the database
    layer use PGlite, not a live Neon connection.
-4. **`pnpm test:component`** *(added v1.8.0)* — every component-layer
-   test passes. The Vitest+RTL branch runs first (sub-second; jsdom);
-   the Playwright CT branch runs second for the visual subset (real
-   Chromium + real Tailwind). Components rendered in isolation; no DB
-   writes, no production webserver. Powers Principle VIII.
+4. **`pnpm test:component`** — every Vitest + React Testing Library
+   (jsdom) component test passes. Components rendered in isolation
+   with mocked data; no DB writes, no production webserver. Server
+   actions are stubbed with `vi.mock()`. Powers Principle VIII
+   layer 2.
 5. **`pnpm build`** — `next build` succeeds, including TypeScript's
    second pass and route metadata collection. (For builds run without
    real secrets, `SKIP_ENV_VALIDATION=1` is the documented escape
    hatch.)
-6. **`pnpm test:e2e`** — Playwright runs the mocked-E2E +
-   true-E2E projects against the production-mode app (`pnpm build
-   && pnpm start`) on an isolated test port, connected to an
-   **isolated test database** (created by the `db.setup` Playwright
-   project; destroyed per run; never a shared dev or prod DB —
-   replaces the legacy `globalSetup` config option as of v1.8.0,
-   which fixes the `globalSetup`-vs-`webServer` race), with email
-   delivered over SMTP to a local Mailpit container so no real
-   mail is sent, with Cloudflare Turnstile's documented test site
-   keys, and with the test DB seeded into the precise state each
-   test scenario requires. Every Acceptance Scenario from the
-   corresponding User Story in `spec.md` MUST have a matching
-   Playwright assertion at the appropriate layer. A scenario
-   without a test is a spec without verification, not a feature
-   without a problem.
-7. **`pnpm i18n:check`** — every user-facing string resolves through
+6. **`pnpm i18n:check`** — every user-facing string resolves through
    the `next-intl` catalog (no literal English in JSX/TSX outside
    `messages/`), and the `cs` and `en` catalogs have identical key
    sets. Added v1.4.0: the v1 UI shipped entirely untranslated while
-   gates 1-5 stayed green, because no gate could observe a hardcoded
-   string. A gate that cannot be skipped beats a task line that can.
-8. **`pnpm forms:check`** — no form delegates input handling to the
+   the earlier gates stayed green, because no gate could observe a
+   hardcoded string. A gate that cannot be skipped beats a task line
+   that can.
+7. **`pnpm forms:check`** — no form delegates input handling to the
    browser: the scan rejects a native date/time input
    (`type="date"|"time"|"datetime-local"`) and the native `required`
    / `pattern` validation attributes anywhere in `app/**` or
    `components/**`. Added v1.6.0 with the v1.2 forms migration, it
    makes the "User Input & Forms" standard enforced rather than only
    reviewed.
+8. **`pnpm test:e2e`** *(conditional — required when the spec's
+   plan.md declares E2E coverage; see Principle VIII)* — Playwright
+   runs the declared happy-path user-journey test(s) against the
+   production-mode app (`pnpm build && pnpm start`) on an isolated
+   test port, connected to an **isolated test database** (destroyed
+   per run; never a shared dev or prod DB), with email delivered
+   over SMTP to a local Mailpit container so no real mail is sent,
+   and with Cloudflare Turnstile's documented test site keys. The
+   journey under test is the one named in `plan.md`'s
+   test-layer-declaration; per-part unit + component coverage stays
+   the dominant share. As of 2026-05-26 the Playwright stack itself
+   is not in the repo — the first spec that declares an E2E
+   happy-path test brings it back, scoped to that one journey.
 
-The eight gates are non-negotiable for non-trivial changes. Skipping a
-gate (e.g. shipping ahead of an E2E backfill) requires the same
-justification discipline as a Constitution Check violation: noted in
-the commit message as a `Skipped-Gate: <gate>` trailer with a
-follow-up task referenced.
+Gates 1–7 are non-negotiable for non-trivial changes. Skipping any
+gate (including the conditional gate 8 when it applies) requires
+the same justification discipline as a Constitution Check
+violation: noted in the commit message as a `Skipped-Gate: <gate>`
+trailer with a follow-up task referenced.
 
 When building or modifying multi-piece infrastructure (the E2E rig,
 deployment pipelines, CI workflows), each piece in the chain MUST be
@@ -610,4 +667,4 @@ a review acknowledging the version-bump rationale.
 Constitution Check gate; principle violations must be justified or fixed,
 not waived informally.
 
-**Version**: 1.8.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-25
+**Version**: 1.9.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-26

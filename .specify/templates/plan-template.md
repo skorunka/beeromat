@@ -42,6 +42,18 @@
 
 [Gates determined based on constitution file]
 
+### Test layer declaration
+
+*Required by Principle VIII. Name which test layers this feature
+uses and justify each. Default for a user-journey feature: unit +
+component for the parts, plus one happy-path Playwright E2E for the
+journey as a whole. For business-logic-only or copy-only changes,
+explain why E2E is not warranted.*
+
+- **Unit (`pnpm test:unit`)** — [what gets tested here / N/A + why]
+- **Component (`pnpm test:component`)** — [what gets tested here / N/A + why]
+- **E2E (`pnpm test:e2e`)** — [the journey under test / N/A + why]
+
 ## Project Structure
 
 ### Documentation (this feature)

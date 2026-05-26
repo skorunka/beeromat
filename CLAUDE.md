@@ -1,14 +1,17 @@
 <!-- SPECKIT START -->
-Active spec: `specs/017-home-onetap-log/plan.md` — home redesign +
-one-tap log-a-beer (Constitution v1.10.0). Companion artifacts:
-`spec.md`, `research.md`, `data-model.md`, `quickstart.md`,
-`contracts/home-page.md`, `checklists/requirements.md`.
+No spec currently in flight. Most recent shipped specs: 018
+(match-bet → home awareness, MVP), 017 (home redesign + one-tap
+log), 016 (onboarding happy-path E2E). Each spec dir under
+`specs/NNN-…/` carries its plan.md / data-model.md / contracts/
+as the source of truth for the data model + server-action
+contracts + decisions.
 
-Recently shipped spec: 016 (onboarding happy-path E2E). Earlier
-shipped features live at `specs/001-…/` through
-`specs/015-…/` — their plan.md / data-model.md / contracts/ remain
-the source of truth for the data model + server-action contracts +
-prior decisions.
+Spec-018 deferred follow-ups (small UI work that didn't make
+the MVP cut): (a) optional beer-picker UI in `RecordResultForm`
+— backend override path via `betBeerOverrideId` is already
+wired through Zod schema + action + transaction; only the
+client-side picker remains. (b) `/tab` + admin "ze zápasu →"
+visual distinction for bet-linked consumption rows.
 
 Testing strategy (Constitution v1.10.0 — four-layer pyramid,
 clean separation, no glob bleed between layers):

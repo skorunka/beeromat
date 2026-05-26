@@ -118,6 +118,7 @@ export type RecordResultResult =
       matchRowIds: string[];
       transferredCount: number;
       requestedCount: number;
+      betBeerTypeId: string | null;
     }
   | { ok: false; code: 'NOT_FOUND' }
   | { ok: false; code: 'NOT_AUTHORIZED' }
@@ -127,7 +128,8 @@ export type RecordResultResult =
       recordedAt: Date;
       recordedByUserId: string | null;
     }
-  | { ok: false; code: 'CANCELLED' };
+  | { ok: false; code: 'CANCELLED' }
+  | { ok: false; code: 'NO_BEER_IN_STOCK' };
 
 export async function recordResultAction(rawInput: unknown): Promise<RecordResultResult> {
   const parsed = recordResultSchema.safeParse(rawInput);
@@ -146,6 +148,7 @@ export async function recordResultAction(rawInput: unknown): Promise<RecordResul
     clubId: ctx.club.id,
     recordedByUserId: ctx.user.id,
     winningSide: parsed.data.winningSide,
+    betBeerOverrideId: parsed.data.betBeerOverrideId,
   });
   if (result.ok) {
     revalidatePath('/', 'layout');

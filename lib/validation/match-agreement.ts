@@ -98,6 +98,10 @@ export type CancelAgreementInput = z.infer<typeof cancelAgreementSchema>;
 export const recordResultSchema = z.object({
   agreementId: z.string().uuid({ error: 'match.errors.agreementIdRequired' }),
   winningSide: winningSideSchema,
+  // Spec 018 — optional beer-type override for the auto-created
+  // winner consumption. When omitted, the action picks the
+  // winner's last-beer (or cheapest in-stock fallback).
+  betBeerOverrideId: z.string().uuid().optional(),
 });
 
 export type RecordResultInput = z.infer<typeof recordResultSchema>;

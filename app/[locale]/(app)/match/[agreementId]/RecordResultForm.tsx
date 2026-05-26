@@ -40,6 +40,7 @@ export function RecordResultForm({ agreementId, sideALabel, sideBLabel }: Record
         if (result.code === 'NOT_AUTHORIZED') toast.error(t('errors.notAuthorized'));
         else if (result.code === 'ALREADY_RECORDED') toast.error(t('errors.alreadyRecorded'));
         else if (result.code === 'CANCELLED') toast.error(t('errors.cancelled'));
+        else if (result.code === 'NO_BEER_IN_STOCK') toast.error(t('errors.noBeerInStock'));
         else toast.error(t('errors.generic'));
         router.refresh();
         return;

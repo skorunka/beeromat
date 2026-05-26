@@ -4,9 +4,11 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { buttonVariants } from '@/components/ui/button';
 import { HomeOneTapLog } from '@/components/home/home-one-tap-log';
+import { MatchBetModule } from '@/components/home/match-bet-module';
 import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
 import { lastBeerForMember } from '@/lib/db/queries/consumption';
+import { matchBetSummaryForMember } from '@/lib/db/queries/match-bet-summary';
 import { formatMoney } from '@/lib/format';
 
 // Spec 017 — home as the single action surface for the daily core
@@ -23,9 +25,10 @@ export default async function AppHomePage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('home');
-  const [balanceMinor, lastBeer] = await Promise.all([
+  const [balanceMinor, lastBeer, betSummary] = await Promise.all([
     memberBalance(ctx.member.id),
     lastBeerForMember(ctx.member.id, ctx.club.id),
+    matchBetSummaryForMember(ctx.member.id, ctx.club.id),
   ]);
   const owes = balanceMinor > 0n;
   const balanceFormatted = formatMoney(
@@ -53,6 +56,11 @@ export default async function AppHomePage({
           {owes ? t('balanceOwed', { amount: balanceFormatted }) : t('balanceSquare')}
         </p>
       </header>
+
+      <MatchBetModule
+        betCount={betSummary.betCount}
+        sourceMatchIds={betSummary.sourceMatchIds}
+      />
 
       <HomeOneTapLog
         beer={lastBeer}

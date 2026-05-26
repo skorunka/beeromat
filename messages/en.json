@@ -154,7 +154,14 @@
       "notEditable": "Recorded matches can't be edited — undo first.",
       "notCancellable": "This match can't be cancelled.",
       "notRecorded": "No result to undo yet.",
+      "noBeerInStock": "Restock the club before recording a for-beer match.",
       "generic": "That didn't work — give it another go."
+    },
+    "betPicker": {
+      "label": "Beer the winner drinks",
+      "defaultHint": "Default: their last beer (or cheapest in stock)",
+      "override": "Change beer",
+      "submitHint": "Selected: {beer}"
     }
   },
   "onboarding": {
@@ -241,7 +248,13 @@
     "pendingPayments": "To confirm",
     "memberBalances": "Everyone's tabs",
     "stockSection": "Stock",
-    "beerTypesStock": "Beers & stock"
+    "beerTypesStock": "Beers & stock",
+    "matchBet": {
+      "one": "From today's match: {count}× beer",
+      "many": "From today's matches: {count}× beer",
+      "reverseOne": "Reverse match",
+      "reverseMany": "View matches"
+    }
   },
   "account": {
     "title": "Your account",

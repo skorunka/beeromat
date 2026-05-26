@@ -1,8 +1,10 @@
 import 'server-only';
-import { and, asc, desc, eq, isNull, notExists } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull, notExists, sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { betTransferVoids, betTransfers } from '@/lib/db/schema/bets';
+import { beerTypes, stockChanges } from '@/lib/db/schema/catalog';
+import { clubs } from '@/lib/db/schema/clubs';
 import { consumptionVoids, consumptions } from '@/lib/db/schema/consumption';
 import {
   matchAgreementSides,
@@ -12,6 +14,14 @@ import {
 } from '@/lib/db/schema/matches';
 import { members } from '@/lib/db/schema/members';
 import { drinkSessions } from '@/lib/db/schema/sessions';
+
+// Spec 018 — match-bet → home awareness. settleOnePair rewritten
+// to auto-create the winner's consumption + bet_transfer (rather
+// than passively searching for an existing consumption). Helpers
+// imported below.
+import { splitBeerCountAcrossPairs } from '@/lib/match/split-beer-count';
+import { pickBetBeer, NoBeerInStockError, type BetBeerCandidate } from '@/lib/match/default-bet-beer';
+import { lastBeerForMember } from '@/lib/db/queries/consumption';
 
 // Spec 013 — match-agreement transaction helpers.
 //
@@ -169,74 +179,71 @@ function computePairs(
 // linked through match_bet_transfers. Mirrors the 012 logMatchTx pipeline,
 // inlined here so 013 doesn't depend on its survival once US2 removes the
 // legacy 012 quick-log path.
+// Spec 018 — auto-create winner consumption + bet_transfer + link.
+// Replaces the spec-013 "find an existing winner consumption and
+// transfer it" path. Always settles exactly `beerCount` beers per
+// call; the caller has pre-resolved the beer + price + session.
 async function settleOnePair(
   tx: typeof db,
   args: {
     clubId: string;
     matchId: string;
+    sessionId: string;
     winnerMemberId: string;
     loserMemberId: string;
     createdByUserId: string;
     beerCount: number;
+    beerTypeId: string;
+    beerUnitPriceMinor: bigint;
   },
 ): Promise<{ transferredCount: number; requestedCount: number }> {
-  const [session] = await tx
-    .select({ id: drinkSessions.id })
-    .from(drinkSessions)
-    .where(and(eq(drinkSessions.clubId, args.clubId), isNull(drinkSessions.endedAt)))
-    .limit(1);
-  if (!session) return { transferredCount: 0, requestedCount: args.beerCount };
-
-  const eligible = await tx
-    .select({ id: consumptions.id })
-    .from(consumptions)
-    .where(
-      and(
-        eq(consumptions.drinkSessionId, session.id),
-        eq(consumptions.memberId, args.winnerMemberId),
-        notExists(
-          tx
-            .select()
-            .from(consumptionVoids)
-            .where(eq(consumptionVoids.consumptionId, consumptions.id)),
-        ),
-        notExists(
-          tx
-            .select()
-            .from(betTransfers)
-            .where(
-              and(
-                eq(betTransfers.sourceConsumptionId, consumptions.id),
-                notExists(
-                  tx
-                    .select()
-                    .from(betTransferVoids)
-                    .where(eq(betTransferVoids.betTransferId, betTransfers.id)),
-                ),
-              ),
-            ),
-        ),
-      ),
-    )
-    .orderBy(desc(consumptions.createdAt))
-    .limit(args.beerCount);
-
   let transferredCount = 0;
-  for (const c of eligible) {
+  for (let j = 0; j < args.beerCount; j += 1) {
+    // 1. Insert the winner's consumption row.
+    const [consumption] = await tx
+      .insert(consumptions)
+      .values({
+        clubId: args.clubId,
+        drinkSessionId: args.sessionId,
+        memberId: args.winnerMemberId,
+        beerTypeId: args.beerTypeId,
+        unitPriceMinorSnapshot: args.beerUnitPriceMinor,
+        createdByUserId: args.createdByUserId,
+      })
+      .returning();
+    if (!consumption) throw new Error('settleOnePair: insert consumption failed');
+
+    // 2. Decrement stock + audit row (same path logBeer uses).
+    await tx
+      .update(beerTypes)
+      .set({ currentStock: sql`${beerTypes.currentStock} - 1` })
+      .where(eq(beerTypes.id, args.beerTypeId));
+    await tx.insert(stockChanges).values({
+      clubId: args.clubId,
+      beerTypeId: args.beerTypeId,
+      delta: -1,
+      kind: 'consumption_decrement',
+      createdByUserId: args.createdByUserId,
+    });
+
+    // 3. Bet transfer (winner → loser).
     const [transfer] = await tx
       .insert(betTransfers)
       .values({
         clubId: args.clubId,
-        sourceConsumptionId: c.id,
+        sourceConsumptionId: consumption.id,
         fromMemberId: args.winnerMemberId,
         toMemberId: args.loserMemberId,
         createdByUserId: args.createdByUserId,
       })
       .returning();
-    if (!transfer) continue;
+    if (!transfer) throw new Error('settleOnePair: insert bet_transfer failed');
+
+    // 4. Match link.
     await tx
       .insert(matchBetTransfers)
       .values({ matchId: args.matchId, betTransferId: transfer.id });
+
     transferredCount += 1;
   }
 
@@ -248,6 +255,11 @@ export interface RecordResultArgs {
   clubId: string;
   recordedByUserId: string;
   winningSide: Side;
+  // Spec 018 — optional override beer for the auto-created winner
+  // consumption(s). When omitted, the resolver picks the
+  // recording-pair's winner's last-beer (or cheapest in-stock as
+  // fallback). Validated by the caller before reaching here.
+  betBeerOverrideId?: string;
 }
 
 export type RecordResultResult =
@@ -256,6 +268,9 @@ export type RecordResultResult =
       matchRowIds: string[];
       transferredCount: number;
       requestedCount: number;
+      // Spec 018 — which beer type backed the bet (null when the
+      // agreement is not for-beer; otherwise the resolved choice).
+      betBeerTypeId: string | null;
     }
   | { ok: false; code: 'NOT_FOUND' }
   | {
@@ -264,98 +279,180 @@ export type RecordResultResult =
       recordedAt: Date;
       recordedByUserId: string | null;
     }
-  | { ok: false; code: 'CANCELLED' };
+  | { ok: false; code: 'CANCELLED' }
+  | { ok: false; code: 'NO_BEER_IN_STOCK' };
 
 export async function recordResultTx(args: RecordResultArgs): Promise<RecordResultResult> {
-  return db.transaction(async (tx) => {
-    const agreement = await tx.query.matchAgreements.findFirst({
-      where: and(eq(matchAgreements.id, args.agreementId), eq(matchAgreements.clubId, args.clubId)),
-    });
-    if (!agreement) return { ok: false, code: 'NOT_FOUND' };
-    if (agreement.cancelledAt) return { ok: false, code: 'CANCELLED' };
-    if (agreement.resultRecordedAt) {
-      return {
-        ok: false,
-        code: 'ALREADY_RECORDED',
-        recordedAt: agreement.resultRecordedAt,
-        recordedByUserId: agreement.resultRecordedByUserId,
-      };
-    }
+  try {
+    return await db.transaction(async (tx) => {
+      const agreement = await tx.query.matchAgreements.findFirst({
+        where: and(eq(matchAgreements.id, args.agreementId), eq(matchAgreements.clubId, args.clubId)),
+      });
+      if (!agreement) return { ok: false, code: 'NOT_FOUND' as const };
+      if (agreement.cancelledAt) return { ok: false, code: 'CANCELLED' as const };
+      if (agreement.resultRecordedAt) {
+        return {
+          ok: false,
+          code: 'ALREADY_RECORDED' as const,
+          recordedAt: agreement.resultRecordedAt,
+          recordedByUserId: agreement.resultRecordedByUserId,
+        };
+      }
 
-    const sideRows = await tx
-      .select({
-        side: matchAgreementSides.side,
-        seat: matchAgreementSides.seat,
-        memberId: matchAgreementSides.memberId,
-      })
-      .from(matchAgreementSides)
-      .where(eq(matchAgreementSides.agreementId, args.agreementId));
-
-    const pairs = computePairs(
-      agreement.format,
-      agreement.pairingKind as PairingKind | null,
-      args.winningSide,
-      sideRows.map((r) => ({ side: r.side as Side, seat: r.seat as Seat, memberId: r.memberId })),
-    );
-    const beerCount = 1; // Stakes are structural — 1 beer per pairing.
-
-    const matchRowIds: string[] = [];
-    let transferredCount = 0;
-    let requestedCount = 0;
-
-    for (const pair of pairs) {
-      const [matchRow] = await tx
-        .insert(matches)
-        .values({
-          clubId: args.clubId,
-          winnerMemberId: pair.winnerMemberId,
-          loserMemberId: pair.loserMemberId,
-          agreementId: args.agreementId,
-          createdByUserId: args.recordedByUserId,
+      const sideRows = await tx
+        .select({
+          side: matchAgreementSides.side,
+          seat: matchAgreementSides.seat,
+          memberId: matchAgreementSides.memberId,
         })
-        .returning();
-      if (!matchRow) throw new Error('recordResultTx: insert matches failed');
-      matchRowIds.push(matchRow.id);
+        .from(matchAgreementSides)
+        .where(eq(matchAgreementSides.agreementId, args.agreementId));
+
+      const pairs = computePairs(
+        agreement.format,
+        agreement.pairingKind as PairingKind | null,
+        args.winningSide,
+        sideRows.map((r) => ({ side: r.side as Side, seat: r.seat as Seat, memberId: r.memberId })),
+      );
+
+      // Spec 018 — for-beer matches need the doubles-split + beer
+      // resolution computed once for the whole transaction.
+      let perPairBeerCount: number[] = pairs.map(() => 0);
+      let resolvedBeer: BetBeerCandidate | null = null;
+      let sessionId: string | null = null;
 
       if (agreement.forBeer) {
-        const settled = await settleOnePair(tx as typeof db, {
-          clubId: args.clubId,
-          matchId: matchRow.id,
-          winnerMemberId: pair.winnerMemberId,
-          loserMemberId: pair.loserMemberId,
-          createdByUserId: args.recordedByUserId,
-          beerCount,
+        // 1. Load club config (matchLoserBeerCount). Today this is
+        //    default 1 in the schema; spec 018 turns it from a dead
+        //    column into the source of truth.
+        const club = await tx.query.clubs.findFirst({
+          where: eq(clubs.id, args.clubId),
         });
-        transferredCount += settled.transferredCount;
-        requestedCount += settled.requestedCount;
+        if (!club) throw new Error('recordResultTx: club not found');
+
+        // 2. Split the per-side total across the pairs.
+        perPairBeerCount = splitBeerCountAcrossPairs(club.matchLoserBeerCount, pairs.length);
+
+        // 3. Resolve the default beer ONCE for the whole match.
+        //    Use the first pair's winner as the "winner" for the
+        //    last-beer lookup. (Doubles can have two different
+        //    winners across pairs — picking the first is arbitrary but
+        //    deterministic; the override can correct it.)
+        const firstWinner = pairs[0]?.winnerMemberId;
+        if (!firstWinner) throw new Error('recordResultTx: no pairs to settle');
+
+        const lastBeer = await lastBeerForMember(firstWinner, args.clubId, tx as typeof db);
+        const catalog = await tx
+          .select({
+            id: beerTypes.id,
+            name: beerTypes.name,
+            currentStock: beerTypes.currentStock,
+            isArchived: beerTypes.isArchived,
+            unitPriceMinor: beerTypes.unitPriceMinor,
+          })
+          .from(beerTypes)
+          .where(eq(beerTypes.clubId, args.clubId));
+
+        resolvedBeer = pickBetBeer({
+          override: args.betBeerOverrideId,
+          lastBeer,
+          catalog,
+        });
+
+        // 4. Find-or-auto-open the drink session.
+        const [openSession] = await tx
+          .select({ id: drinkSessions.id })
+          .from(drinkSessions)
+          .where(and(eq(drinkSessions.clubId, args.clubId), isNull(drinkSessions.endedAt)))
+          .limit(1);
+        if (openSession) {
+          sessionId = openSession.id;
+        } else {
+          const [created] = await tx
+            .insert(drinkSessions)
+            .values({
+              clubId: args.clubId,
+              openedByUserId: args.recordedByUserId,
+              startedAt: new Date(),
+            })
+            .returning();
+          if (!created) throw new Error('recordResultTx: failed to auto-open session');
+          sessionId = created.id;
+        }
       }
-    }
 
-    // Optimistic-concurrency stamp: only succeeds if the agreement is
-    // still in OPEN state (per research R8).
-    const updated = await tx
-      .update(matchAgreements)
-      .set({
-        winningSide: args.winningSide,
-        resultRecordedAt: new Date(),
-        resultRecordedByUserId: args.recordedByUserId,
-      })
-      .where(
-        and(
-          eq(matchAgreements.id, args.agreementId),
-          isNull(matchAgreements.resultRecordedAt),
-          isNull(matchAgreements.cancelledAt),
-        ),
-      )
-      .returning({ id: matchAgreements.id });
-    if (updated.length === 0) {
-      // Lost the race — rollback by throwing, the outer transaction will
-      // discard the inserted matches + transfers.
-      throw new Error('recordResultTx: lost concurrency race');
-    }
+      const matchRowIds: string[] = [];
+      let transferredCount = 0;
+      let requestedCount = 0;
 
-    return { ok: true, matchRowIds, transferredCount, requestedCount };
-  });
+      for (let i = 0; i < pairs.length; i += 1) {
+        const pair = pairs[i]!;
+        const [matchRow] = await tx
+          .insert(matches)
+          .values({
+            clubId: args.clubId,
+            winnerMemberId: pair.winnerMemberId,
+            loserMemberId: pair.loserMemberId,
+            agreementId: args.agreementId,
+            createdByUserId: args.recordedByUserId,
+          })
+          .returning();
+        if (!matchRow) throw new Error('recordResultTx: insert matches failed');
+        matchRowIds.push(matchRow.id);
+
+        const beerCountForPair = perPairBeerCount[i] ?? 0;
+        if (agreement.forBeer && beerCountForPair > 0 && resolvedBeer && sessionId) {
+          const settled = await settleOnePair(tx as typeof db, {
+            clubId: args.clubId,
+            matchId: matchRow.id,
+            sessionId,
+            winnerMemberId: pair.winnerMemberId,
+            loserMemberId: pair.loserMemberId,
+            createdByUserId: args.recordedByUserId,
+            beerCount: beerCountForPair,
+            beerTypeId: resolvedBeer.id,
+            beerUnitPriceMinor: resolvedBeer.unitPriceMinor,
+          });
+          transferredCount += settled.transferredCount;
+          requestedCount += settled.requestedCount;
+        }
+      }
+
+      // Optimistic-concurrency stamp: only succeeds if the agreement
+      // is still in OPEN state.
+      const updated = await tx
+        .update(matchAgreements)
+        .set({
+          winningSide: args.winningSide,
+          resultRecordedAt: new Date(),
+          resultRecordedByUserId: args.recordedByUserId,
+        })
+        .where(
+          and(
+            eq(matchAgreements.id, args.agreementId),
+            isNull(matchAgreements.resultRecordedAt),
+            isNull(matchAgreements.cancelledAt),
+          ),
+        )
+        .returning({ id: matchAgreements.id });
+      if (updated.length === 0) {
+        throw new Error('recordResultTx: lost concurrency race');
+      }
+
+      return {
+        ok: true as const,
+        matchRowIds,
+        transferredCount,
+        requestedCount,
+        betBeerTypeId: resolvedBeer?.id ?? null,
+      };
+    });
+  } catch (e) {
+    if (e instanceof NoBeerInStockError) {
+      return { ok: false, code: 'NO_BEER_IN_STOCK' };
+    }
+    throw e;
+  }
 }
 
 export interface ReverseResultArgs {
@@ -401,10 +498,18 @@ export async function reverseResultTx(args: ReverseResultArgs): Promise<ReverseR
         })
         .where(eq(matches.id, m.id));
 
+      // Spec 018 — pull both the transfer id AND its source
+      // consumption so the cascade can void both atomically and
+      // restore the winner's stock.
       const links = await tx
-        .select({ id: betTransfers.id })
+        .select({
+          transferId: betTransfers.id,
+          sourceConsumptionId: betTransfers.sourceConsumptionId,
+          beerTypeId: consumptions.beerTypeId,
+        })
         .from(matchBetTransfers)
         .innerJoin(betTransfers, eq(betTransfers.id, matchBetTransfers.betTransferId))
+        .innerJoin(consumptions, eq(consumptions.id, betTransfers.sourceConsumptionId))
         .where(
           and(
             eq(matchBetTransfers.matchId, m.id),
@@ -417,13 +522,41 @@ export async function reverseResultTx(args: ReverseResultArgs): Promise<ReverseR
           ),
         );
       for (const link of links) {
+        // 1. Void the transfer.
         await tx.insert(betTransferVoids).values({
           clubId: args.clubId,
-          betTransferId: link.id,
+          betTransferId: link.transferId,
           voidedByUserId: args.reversedByUserId,
           reason: 'agreement reversal',
         });
         voidedTransferCount += 1;
+
+        // 2. Spec 018 cascade: void the source consumption (which
+        //    this spec auto-created during settlement). Skip if
+        //    already voided directly by a member's undo path.
+        const existingConsumptionVoid = await tx.query.consumptionVoids.findFirst({
+          where: eq(consumptionVoids.consumptionId, link.sourceConsumptionId),
+        });
+        if (!existingConsumptionVoid) {
+          await tx.insert(consumptionVoids).values({
+            clubId: args.clubId,
+            consumptionId: link.sourceConsumptionId,
+            voidedByUserId: args.reversedByUserId,
+            reason: 'agreement reversal',
+          });
+          // 3. Restore stock + audit row (mirrors voidConsumptionAction).
+          await tx
+            .update(beerTypes)
+            .set({ currentStock: sql`${beerTypes.currentStock} + 1` })
+            .where(eq(beerTypes.id, link.beerTypeId));
+          await tx.insert(stockChanges).values({
+            clubId: args.clubId,
+            beerTypeId: link.beerTypeId,
+            delta: 1,
+            kind: 'consumption_void_increment',
+            createdByUserId: args.reversedByUserId,
+          });
+        }
       }
     }
 

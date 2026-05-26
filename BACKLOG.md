@@ -21,6 +21,16 @@ When one matures, run `/speckit-specify` and the item moves into
   to the full picker; archived + out-of-stock fall through gracefully.
   Home is now the action surface, not just an info display.
 
+- ~~**Match-bet awareness on home**~~ **— Shipped 2026-05-26 as
+  spec 018 MVP** (`specs/018-match-bet-home-awareness/`). Auto-create
+  on settlement (Option A): match-settle transaction writes the
+  winner's consumption + loser's bet_transfer atomically; loser
+  sees "Útrata z dnešního zápasu: N× pivo" on home with a "Vrátit
+  zápas" link. Match-void cascades to consumption + stock restore.
+  Deferred follow-ups: (a) optional beer-picker UI in the
+  match-result form (data-side ready via `betBeerOverrideId`),
+  (b) /tab + admin "ze zápasu →" visual distinction.
+
 - **Log a beer on behalf of another member.** When someone forgets
   their phone, a mate logs the beer for them. Today there's no UI
   for this — every consumption is implicitly for the signed-in user.

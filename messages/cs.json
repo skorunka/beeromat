@@ -154,7 +154,14 @@
       "notEditable": "Zapsané zápasy nelze upravit — nejdřív zruš výsledek.",
       "notCancellable": "Tento zápas nelze zrušit.",
       "notRecorded": "Není co rušit.",
+      "noBeerInStock": "Klub nemá na skladě žádné pivo — naskladněte před záznamem zápasu.",
       "generic": "Nepovedlo se to — zkus to prosím znovu."
+    },
+    "betPicker": {
+      "label": "Pivo, které vyhrávající vypije",
+      "defaultHint": "Standardně poslední pivo (nebo nejlevnější na skladě)",
+      "override": "Změnit pivo",
+      "submitHint": "Vybráno: {beer}"
     }
   },
   "onboarding": {
@@ -241,7 +248,13 @@
     "pendingPayments": "K potvrzení",
     "memberBalances": "Útraty všech",
     "stockSection": "Sklad",
-    "beerTypesStock": "Piva a sklad"
+    "beerTypesStock": "Piva a sklad",
+    "matchBet": {
+      "one": "Útrata z dnešního zápasu: {count}× pivo",
+      "many": "Útrata z dnešních zápasů: {count}× pivo",
+      "reverseOne": "Vrátit zápas",
+      "reverseMany": "Zobrazit zápasy"
+    }
   },
   "account": {
     "title": "Tvůj účet",

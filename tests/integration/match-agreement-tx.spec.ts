@@ -234,9 +234,17 @@ describe('recordResultTx — spec 013', () => {
 
   it('doubles for-beer = yes produces 2 matches rows + 2 paired transfers (straight)', async () => {
     const { club, user, memberA, memberB, memberC, memberD } = await seedFourMembers();
-    // Open session + winners (side B) have eligible consumptions each.
+    // Spec 018 — matchLoserBeerCount is per-side; default 1 would
+    // split [1, 0] across the two pairs. Bump to 2 so doubles
+    // produces one transfer per pair (the original test's intent).
+    await testDb
+      .update(clubs)
+      .set({ matchLoserBeerCount: 2 })
+      .where(eq(clubs.id, club.id));
+    // Open session + a non-archived beer for the winners. Spec 018
+    // auto-creates the winner's consumption from the catalog, so
+    // we no longer need to pre-seed winner drinks.
     await seedBeerForMember(club.id, memberC.id, user.id, 1);
-    await seedBeerForMember(club.id, memberD.id, user.id, 1);
 
     const created = await createAgreementTx({
       clubId: club.id,
@@ -422,8 +430,13 @@ describe('reverseResultTx — spec 013', () => {
 
   it('voids all linked matches + transfers + sets reversed_at + nulls result_recorded_at', async () => {
     const { club, user, memberA, memberB, memberC, memberD } = await seedFourMembers();
+    // Spec 018 — bump matchLoserBeerCount to 2 so doubles still
+    // produces one transfer per pair (test's original intent).
+    await testDb
+      .update(clubs)
+      .set({ matchLoserBeerCount: 2 })
+      .where(eq(clubs.id, club.id));
     await seedBeerForMember(club.id, memberC.id, user.id, 1);
-    await seedBeerForMember(club.id, memberD.id, user.id, 1);
 
     const created = await createAgreementTx({
       clubId: club.id,

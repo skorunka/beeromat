@@ -31,8 +31,12 @@ export interface LastBeerForMember {
 export async function lastBeerForMember(
   memberId: string,
   clubId: string,
+  // Spec 018 — optional tx so this can be called from inside
+  // another transaction (e.g. recordResultTx) without deadlocking
+  // PGlite. Defaults to the outer `db` for read-only callers.
+  txOrDb: typeof db = db,
 ): Promise<LastBeerForMember | null> {
-  const [row] = await db
+  const [row] = await txOrDb
     .select({
       id: beerTypes.id,
       name: beerTypes.name,

@@ -63,16 +63,17 @@ export async function logBeerAction(input: {
       where: and(eq(drinkSessions.clubId, ctx.club.id), isNull(drinkSessions.endedAt)),
     });
     if (!openSession) {
-      const todayLabel = new Intl.DateTimeFormat(ctx.club.defaultLocale, {
-        dateStyle: 'long',
-      }).format(new Date());
+      // Auto-opened sessions get no title — startedAt already carries
+      // the date, and the history list renders it via Intl.* on read.
+      // The title field stays available for explicit human labels
+      // (e.g. a future "Friday match" feature) — null here makes the
+      // history fallback ("Round" / "Pivo") kick in.
       const [created] = await tx
         .insert(drinkSessions)
         .values({
           clubId: ctx.club.id,
           openedByUserId: ctx.user.id,
           startedAt: new Date(),
-          title: todayLabel,
         })
         .returning();
       if (!created) throw new Error('Failed to auto-open drink session');

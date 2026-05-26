@@ -56,10 +56,15 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
   // Daily destinations for everyone, plus one role-gated operational
   // entry (highest role wins) — computed server-side so the client nav
   // never sees the session (US7, FR-013).
+  //
+  // Spec 017/018/balance-badge follow-up — Log + Tab dropped from
+  // bottom nav. Home covers both surfaces now (one-tap log button
+  // and the friendly balance sentence) and the balance pill in
+  // AppHeader provides the secondary route to /tab. /log + /tab
+  // remain reachable as deep links and via the "Vyber jiné pivo →"
+  // home link.
   const navItems: NavItem[] = [
     { key: 'home', href: '/' as Route },
-    { key: 'log', href: '/log' as Route },
-    { key: 'tab', href: '/tab' as Route },
     { key: 'bet', href: '/bet' as Route },
     { key: 'history', href: '/history' as Route },
   ];

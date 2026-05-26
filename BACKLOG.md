@@ -66,20 +66,14 @@ When one matures, run `/speckit-specify` and the item moves into
   per-row date stamp, or two date fields shown side-by-side from
   the same row.
 
-- **Refine the bottom nav.** After spec 017 made home the action
-  surface (balance sentence + one-tap log) and spec 018 surfaced
-  match-bets on home too, several bottom-nav entries duplicate
-  what home already covers:
-    - "Log" is reachable via the one-tap button + the "Vyber jiné
-      pivo →" link from home → consider dropping.
-    - "Tab" detail screen could be reached by tapping the balance
-      sentence on home → consider dropping the nav entry.
-    - "Bet" — separate flow, probably stays.
-    - "History" — past view, stays.
-    - Match — when present, stays.
-  Open question: is the simplification "drop Log + Tab from nav"
-  too aggressive (loses muscle memory for users still warming up
-  to the home redesign)? Possible middle path: keep them, but
-  make them smaller / secondary. Decide via small UX iteration.
-  Probably not worth a full /speckit cycle — inline polish.
+- ~~**Refine the bottom nav.**~~ **— Shipped 2026-05-26.** Log
+  and Tab dropped from the bottom nav. Bottom nav is now
+  Home / Bet / History (+ role-gated). Rationale: home
+  (spec 017+018) is the action surface for log + balance + bet
+  awareness + settle; the AppHeader balance pill (shipped today)
+  provides the secondary route to /tab; the "Vyber jiné pivo →"
+  link on home keeps /log reachable. Both pages remain functional
+  as deep links — only the nav entry is gone. If the simplification
+  proves too aggressive (muscle memory complaints), the entries
+  re-add in one line of layout.tsx.
 

@@ -307,7 +307,8 @@
     "noOpenSession": "Nothing on the go",
     "sessionTotal": "This round",
     "voided": "scrapped",
-    "empty": "Nothing yet — go log your first beer."
+    "empty": "Nothing yet — go log your first beer.",
+    "fromMatch": "from the match →"
   },
   "settle": {
     "title": "Settle up",

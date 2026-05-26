@@ -3,8 +3,10 @@ import { and, desc, eq, isNull } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { effectiveConsumptionTotal } from '@/lib/balance/calculate';
+import { betTransfers, betTransferVoids } from '@/lib/db/schema/bets';
 import { beerTypes } from '@/lib/db/schema/catalog';
 import { consumptionVoids, consumptions } from '@/lib/db/schema/consumption';
+import { matchBetTransfers } from '@/lib/db/schema/matches';
 import { drinkSessions, type DrinkSession } from '@/lib/db/schema/sessions';
 import { getBetTransfersForSession, type BetTransferRow } from './bets';
 
@@ -69,6 +71,10 @@ export interface MemberTabEntry {
   createdAt: Date;
   voided: boolean;
   canUndo: boolean;
+  // Spec 018 — when this consumption is the source of an active
+  // (non-voided) bet_transfer, sourceMatchId links to that match
+  // so the UI can render "ze zápasu →" / "from the match →".
+  sourceMatchId: string | null;
 }
 
 export interface MemberTab {
@@ -100,10 +106,19 @@ export async function getMyTabForSession(args: {
       createdAt: consumptions.createdAt,
       createdByUserId: consumptions.createdByUserId,
       voidId: consumptionVoids.id,
+      // Spec 018 — if this consumption sources an unvoided bet
+      // transfer, the matchBetTransfers link tells us which match.
+      sourceMatchId: matchBetTransfers.matchId,
+      betTransferVoidId: betTransferVoids.id,
     })
     .from(consumptions)
     .innerJoin(beerTypes, eq(beerTypes.id, consumptions.beerTypeId))
     .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
+    // Bet transfer chain: only count it when both the transfer and
+    // its link are present AND the transfer isn't voided.
+    .leftJoin(betTransfers, eq(betTransfers.sourceConsumptionId, consumptions.id))
+    .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
+    .leftJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
     .where(
       and(
         eq(consumptions.memberId, args.memberId),
@@ -126,6 +141,11 @@ export async function getMyTabForSession(args: {
       createdAt: r.createdAt,
       voided,
       canUndo: !voided && isLogger && inWindow,
+      // Surface match-link only when the linked bet transfer is
+      // still alive (not voided). If a match has been reversed
+      // the transfer is voided and the "ze zápasu" subtitle goes
+      // away.
+      sourceMatchId: r.betTransferVoidId === null ? r.sourceMatchId : null,
     };
   });
 

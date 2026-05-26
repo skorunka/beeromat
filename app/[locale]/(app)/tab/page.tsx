@@ -1,5 +1,7 @@
+import type { Route } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
+import { Link } from '@/lib/i18n/navigation';
 import { UndoButton } from '@/components/log/undo-button';
 import { Card } from '@/components/ui/card';
 import { requireUnlocked } from '@/lib/auth/session';
@@ -49,7 +51,7 @@ export default async function TabPage({
             key={entry.id}
             className={`flex items-center justify-between rounded-md border p-3 ${entry.voided ? 'opacity-50' : ''}`}
           >
-            <div>
+            <div className="min-w-0">
               <div className="font-medium">{entry.beerTypeName}</div>
               <div className="text-muted-foreground text-xs">
                 {new Intl.DateTimeFormat(ctx.club.defaultLocale, {
@@ -57,6 +59,14 @@ export default async function TabPage({
                 }).format(entry.createdAt)}
                 {entry.voided ? ` · ${t('voided')}` : null}
               </div>
+              {entry.sourceMatchId ? (
+                <Link
+                  href={`/match/${entry.sourceMatchId}` as Route}
+                  className="text-muted-foreground hover:text-foreground mt-0.5 inline-flex text-xs underline-offset-2 hover:underline"
+                >
+                  {t('fromMatch')}
+                </Link>
+              ) : null}
             </div>
             <div className="flex items-center gap-3">
               <div className="font-mono text-sm">

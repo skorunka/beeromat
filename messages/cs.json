@@ -307,7 +307,8 @@
     "noOpenSession": "Žádné kolo neběží",
     "sessionTotal": "Tohle kolo",
     "voided": "zrušeno",
-    "empty": "Zatím nic — zapiš si první pivo."
+    "empty": "Zatím nic — zapiš si první pivo.",
+    "fromMatch": "ze zápasu →"
   },
   "settle": {
     "title": "Vyrovnat útratu",

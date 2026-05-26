@@ -1,10 +1,13 @@
 import { notFound } from 'next/navigation';
+import { and, eq, gt } from 'drizzle-orm';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Link } from '@/lib/i18n/navigation';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { requireUnlocked } from '@/lib/auth/session';
+import { db } from '@/lib/db/client';
+import { beerTypes } from '@/lib/db/schema/catalog';
 import {
   getAgreement,
   listActiveClubMembers,
@@ -43,6 +46,25 @@ export default async function AgreementDetailPage({
   const isCancelled = !!agreement.cancelledAt;
 
   const members = isOpen ? await listActiveClubMembers(ctx.club.id) : [];
+
+  // Spec 018 follow-up — for an open for-beer agreement, expose
+  // the in-stock catalog as an optional override the recorder can
+  // pick from before submitting the result. The action falls back
+  // to winner's last-beer if nothing is picked.
+  const betBeerOptions =
+    isOpen && agreement.forBeer && viewerCanRecord
+      ? await db
+          .select({ id: beerTypes.id, name: beerTypes.name })
+          .from(beerTypes)
+          .where(
+            and(
+              eq(beerTypes.clubId, ctx.club.id),
+              eq(beerTypes.isArchived, false),
+              gt(beerTypes.currentStock, 0),
+            ),
+          )
+          .orderBy(beerTypes.displayOrder)
+      : [];
 
   function pickSeat(side: 'A' | 'B', seat: 1 | 2): string | null {
     const found = agreement!.sides[side].find((s) => s.seat === seat);
@@ -109,6 +131,7 @@ export default async function AgreementDetailPage({
           agreementId={agreement.id}
           sideALabel={sideAName}
           sideBLabel={sideBName}
+          betBeerOptions={agreement.forBeer ? betBeerOptions : undefined}
         />
       ) : isOpen ? (
         <Card className="text-muted-foreground p-4 text-sm">{t('viewerCannotRecord')}</Card>

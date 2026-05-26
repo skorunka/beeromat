@@ -16,6 +16,11 @@ interface RecordResultFormProps {
   agreementId: string;
   sideALabel: string;
   sideBLabel: string;
+  // Spec 018 follow-up — when present (i.e. agreement.forBeer ===
+  // true), renders an optional beer-picker. Auto-default = winner's
+  // last beer (resolved server-side). Setting an override sends it
+  // as `betBeerOverrideId` in the action payload.
+  betBeerOptions?: Array<{ id: string; name: string }>;
 }
 
 interface RecentRecord {
@@ -26,16 +31,28 @@ interface RecentRecord {
 
 const UNDO_WINDOW_MS = 5 * 60 * 1000;
 
-export function RecordResultForm({ agreementId, sideALabel, sideBLabel }: RecordResultFormProps) {
+export function RecordResultForm({
+  agreementId,
+  sideALabel,
+  sideBLabel,
+  betBeerOptions,
+}: RecordResultFormProps) {
   const t = useTranslations('match');
   const router = useRouter();
   const [isRecording, startRecord] = useTransition();
   const [isReversing, startReverse] = useTransition();
   const [recent, setRecent] = useState<RecentRecord | null>(null);
+  // Spec 018 follow-up — optional beer override the recorder picks
+  // before submitting. Empty string = use the auto-default.
+  const [betBeerOverrideId, setBetBeerOverrideId] = useState<string>('');
 
   function record(side: 'A' | 'B') {
     startRecord(async () => {
-      const result = await recordResultAction({ agreementId, winningSide: side });
+      const result = await recordResultAction({
+        agreementId,
+        winningSide: side,
+        ...(betBeerOverrideId ? { betBeerOverrideId } : {}),
+      });
       if (!result.ok) {
         if (result.code === 'NOT_AUTHORIZED') toast.error(t('errors.notAuthorized'));
         else if (result.code === 'ALREADY_RECORDED') toast.error(t('errors.alreadyRecorded'));
@@ -101,6 +118,32 @@ export function RecordResultForm({ agreementId, sideALabel, sideBLabel }: Record
 
   return (
     <div className="flex flex-col gap-3">
+      {betBeerOptions && betBeerOptions.length > 0 ? (
+        <details className="border-border rounded-md border p-3">
+          <summary className="text-muted-foreground cursor-pointer text-xs">
+            {t('betPicker.override')}
+          </summary>
+          <div className="mt-3 flex flex-col gap-2">
+            <label className="text-xs font-medium" htmlFor="betBeer">
+              {t('betPicker.label')}
+            </label>
+            <select
+              id="betBeer"
+              value={betBeerOverrideId}
+              onChange={(e) => setBetBeerOverrideId(e.target.value)}
+              className="border-input bg-background h-10 rounded-md border px-2 text-sm"
+            >
+              <option value="">{t('betPicker.defaultHint')}</option>
+              {betBeerOptions.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </details>
+      ) : null}
+
       <p className="text-muted-foreground text-sm">{t('whoWon')}</p>
       <div className="grid grid-cols-1 gap-2">
         <Button

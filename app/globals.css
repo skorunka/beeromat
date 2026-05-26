@@ -103,3 +103,37 @@ body {
   color: var(--foreground);
   font-family: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
 }
+
+/* ─── Custom keyframes ───────────────────────────────────────────────
+   Periodic "hey, look at me" attention wiggle used by the BalanceBadge
+   coin icon. ~6s cycle: sits still for ~5s, then a quick playful
+   wobble — eye-catching but not constantly distracting. Disabled
+   entirely under prefers-reduced-motion. */
+@keyframes balance-wiggle {
+  0%, 85%, 100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  87% {
+    transform: rotate(-14deg) translateY(-1px);
+  }
+  90% {
+    transform: rotate(12deg) translateY(-2px);
+  }
+  93% {
+    transform: rotate(-8deg) translateY(-1px);
+  }
+  96% {
+    transform: rotate(4deg) translateY(0);
+  }
+}
+
+.animate-balance-wiggle {
+  animation: balance-wiggle 6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-balance-wiggle {
+    animation: none;
+  }
+}

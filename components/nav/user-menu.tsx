@@ -8,6 +8,7 @@ import { Link, usePathname, useRouter } from '@/lib/i18n/navigation';
 import { setLocaleCookie } from '@/lib/i18n/actions';
 import { routing } from '@/lib/i18n/routing';
 import { signOutDeviceAction } from '@/lib/auth/actions';
+import { FlagIcon } from '@/components/ui/flag-icon';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,10 +24,11 @@ import {
 // GitHub, etc.) — the absent-member persona (Standa, CS-only) sees
 // his language by name regardless of the current UI locale. Flag
 // renders before the name for instant visual scan (the icon catches
-// the eye even before the word does).
-const LOCALE_META: Record<string, { flag: string; label: string }> = {
-  cs: { flag: '🇨🇿', label: 'Čeština' },
-  en: { flag: '🇬🇧', label: 'English' },
+// the eye even before the word does). FlagIcon uses inline SVG
+// because Windows ships no flag-emoji glyphs.
+const LOCALE_LABEL: Record<string, string> = {
+  cs: 'Čeština',
+  en: 'English',
 };
 
 // Top-right account menu: collapses what used to be the inline
@@ -108,23 +110,12 @@ export function UserMenu({
           onValueChange={switchTo}
           aria-label={t('nav.language')}
         >
-          {routing.locales.map((loc) => {
-            const meta = LOCALE_META[loc];
-            return (
-              <DropdownMenuRadioItem key={loc} value={loc} disabled={isPending}>
-                {meta ? (
-                  <>
-                    <span aria-hidden className="text-base leading-none">
-                      {meta.flag}
-                    </span>
-                    {meta.label}
-                  </>
-                ) : (
-                  loc.toUpperCase()
-                )}
-              </DropdownMenuRadioItem>
-            );
-          })}
+          {routing.locales.map((loc) => (
+            <DropdownMenuRadioItem key={loc} value={loc} disabled={isPending}>
+              <FlagIcon code={loc} />
+              {LOCALE_LABEL[loc] ?? loc.toUpperCase()}
+            </DropdownMenuRadioItem>
+          ))}
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem

@@ -26,7 +26,9 @@
     "history": "Historie",
     "treasurer": "Pokladník",
     "stock": "Sklad",
-    "admin": "Správa"
+    "admin": "Správa",
+    "account": "Účet",
+    "userMenu": "Otevřít uživatelské menu"
   },
   "auth": {
     "signIn": {

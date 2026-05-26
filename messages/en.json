@@ -26,7 +26,9 @@
     "history": "History",
     "treasurer": "Treasurer",
     "stock": "Stock",
-    "admin": "Admin"
+    "admin": "Admin",
+    "account": "Account",
+    "userMenu": "Open user menu"
   },
   "auth": {
     "signIn": {

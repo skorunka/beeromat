@@ -68,7 +68,11 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
           }))}
         />
       ) : null}
-      <AppHeader />
+      <AppHeader
+        clubName={ctx.club.name}
+        displayName={ctx.member.displayName}
+        email={ctx.user.email}
+      />
       {/* Bottom padding clears the fixed nav so it never occludes content. */}
       <div className="pb-20">{children}</div>
       <BottomNav items={navItems} />

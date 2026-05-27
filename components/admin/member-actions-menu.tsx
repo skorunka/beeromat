@@ -15,7 +15,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
@@ -92,10 +91,13 @@ export function MemberActionsMenu({
         <MoreVertical className="h-4 w-4" aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={4} className="min-w-48">
-        <DropdownMenuLabel className="flex items-center gap-1.5">
-          <Shield aria-hidden className="text-muted-foreground" />
+        {/* Plain div — NOT DropdownMenuLabel (that one is a
+            GroupLabel and errors when rendered outside a Group
+            context). */}
+        <div className="text-muted-foreground flex items-center gap-1.5 px-1.5 py-1 text-xs font-medium">
+          <Shield aria-hidden />
           {t('changeRole')}
-        </DropdownMenuLabel>
+        </div>
         <DropdownMenuRadioGroup
           value={optimisticRole}
           onValueChange={(v) => handleRoleChange(v as Role)}

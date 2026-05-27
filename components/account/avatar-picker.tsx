@@ -122,7 +122,25 @@ export function AvatarPicker({
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-sm font-medium">{t('sectionTitle')}</h2>
+      {/* Section header: title on the left, Remove-photo button
+          top-right (when stored bytes exist). Top-right placement
+          saves a row vs the previous below-grid position. */}
+      <header className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-medium">{t('sectionTitle')}</h2>
+        {hasStoredBytes ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleRemoveUpload}
+            disabled={isPending}
+            isPending={isPending}
+          >
+            <Trash2 aria-hidden />
+            {tUpload('removeCta')}
+          </Button>
+        ) : null}
+      </header>
 
       {/* Hidden file input owned by the picker. The Upload tile
           programmatically clicks it; the file change handler opens
@@ -183,24 +201,6 @@ export function AvatarPicker({
           onClick={handleUploadTileTap}
         />
       </div>
-
-      {/* Remove-photo button — only path that deletes stored bytes.
-          Right-aligned so it sits beneath the Upload tile (which is
-          the last column in the 5-wide grid). */}
-      {hasStoredBytes ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleRemoveUpload}
-          disabled={isPending}
-          isPending={isPending}
-          className="self-end"
-        >
-          <Trash2 aria-hidden />
-          {tUpload('removeCta')}
-        </Button>
-      ) : null}
 
       {/* Crop UI appears as soon as a file is picked. The form
           handles read → crop → resize → upload internally. */}

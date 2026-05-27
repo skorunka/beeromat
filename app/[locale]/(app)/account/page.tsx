@@ -67,19 +67,15 @@ export default async function AccountPage({
         </Card>
       </section>
 
-      {/* PIN change + sign-out-everywhere. Both rows own their
-          internal closed/open layouts (the ChangePinForm and
-          SignOutAllButton components). */}
+      {/* PIN change + sign-out-everywhere. Both components own
+          their full closed/open layouts internally (label + button
+          when closed, title + form when open). */}
       <section className="mb-6">
         <Card className="flex flex-col divide-y p-0">
           <div className="px-4 py-3">
             <ChangePinForm />
           </div>
-          <div className="flex min-h-12 items-center justify-between gap-3 px-4 py-3">
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">{t('signOutAllLabel')}</span>
-              <span className="text-muted-foreground text-xs">{t('signOutAllHint')}</span>
-            </div>
+          <div className="px-4 py-3">
             <SignOutAllButton />
           </div>
         </Card>

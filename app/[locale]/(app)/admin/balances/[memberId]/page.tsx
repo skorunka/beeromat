@@ -46,18 +46,20 @@ export default async function MemberBalanceDetailPage({
 
   return (
     <main className="mx-auto max-w-md p-5">
-      <Link href={'/admin/balances' as Route} className="text-primary text-sm underline">
-        ← {t('balancesTitle')}
-      </Link>
-      <div className="mt-2 mb-4 flex items-center gap-3">
-        <MemberAvatar
-          avatarKey={member.avatarKey}
-          displayName={member.displayName}
-          uploadUrl={avatarUploadUrl(member.id, member.avatarUploadAt)}
-          className="h-12 w-12"
-        />
-        <h1 className="text-2xl font-bold">{member.displayName}</h1>
-      </div>
+      <header className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <MemberAvatar
+            avatarKey={member.avatarKey}
+            displayName={member.displayName}
+            uploadUrl={avatarUploadUrl(member.id, member.avatarUploadAt)}
+            className="h-12 w-12"
+          />
+          <h1 className="text-2xl font-bold">{member.displayName}</h1>
+        </div>
+        <Link href={'/admin/balances' as Route} className="text-primary text-sm underline">
+          ← {t('balancesTitle')}
+        </Link>
+      </header>
 
       <Card className="mb-6 p-6">
         <div className="text-muted-foreground text-sm">{tHome('outstandingBalance')}</div>

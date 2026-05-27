@@ -35,11 +35,13 @@ export default async function SessionDetailPage({
 
   return (
     <main className="mx-auto max-w-md p-5">
-      <Link href={'/history' as Route} className="text-primary text-sm underline">
-        ← {t('title')}
-      </Link>
-      <header className="mt-2 mb-4">
-        <h1 className="text-2xl font-bold">{detail.session.title ?? t('drinkSession')}</h1>
+      <header className="mb-4">
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-2xl font-bold">{detail.session.title ?? t('drinkSession')}</h1>
+          <Link href={'/history' as Route} className="text-primary shrink-0 text-sm underline">
+            ← {t('title')}
+          </Link>
+        </div>
         <p className="text-muted-foreground text-sm">
           {dateFmt.format(detail.session.startedAt)}
           {detail.session.endedAt ? '' : ` · ${t('stillOpen')}`}

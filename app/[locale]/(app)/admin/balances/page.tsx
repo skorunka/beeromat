@@ -27,18 +27,20 @@ export default async function BalancesPage({
 
   return (
     <main className="mx-auto max-w-md p-5">
-      <Link
-        href={'/admin' as Route}
-        className="text-muted-foreground hover:text-foreground mb-4 inline-block text-sm underline"
-      >
-        ← {tCommon('back')}
-      </Link>
-      <div className="mb-4 flex items-center justify-between">
+      <header className="mb-4 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">{t('balancesTitle')}</h1>
-        <Link href={'/admin/pending' as Route} className="text-primary text-sm underline">
-          {t('pendingTitle')}
-        </Link>
-      </div>
+        <div className="flex items-center gap-3">
+          <Link href={'/admin/pending' as Route} className="text-primary text-sm underline">
+            {t('pendingTitle')}
+          </Link>
+          <Link
+            href={'/admin' as Route}
+            className="text-muted-foreground hover:text-foreground text-sm underline"
+          >
+            ← {tCommon('back')}
+          </Link>
+        </div>
+      </header>
 
       <ul className="flex flex-col gap-2">
         {balances.map((b) => (

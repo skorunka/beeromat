@@ -41,15 +41,17 @@ export default async function StockHistoryPage({
 
   return (
     <main className="mx-auto max-w-md p-5">
-      <Link
-        href={'/admin/beer-types' as Route}
-        className="text-primary text-sm underline"
-      >
-        ← {t('beerTypesBack')}
-      </Link>
-      <h1 className="mt-2 mb-4 text-2xl font-bold">
-        {t('stockHistoryTitle', { name: beer.name })}
-      </h1>
+      <header className="mb-4 flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold">
+          {t('stockHistoryTitle', { name: beer.name })}
+        </h1>
+        <Link
+          href={'/admin/beer-types' as Route}
+          className="text-primary shrink-0 text-sm underline"
+        >
+          ← {t('beerTypesBack')}
+        </Link>
+      </header>
 
       <ul className="flex flex-col gap-2">
         {history.map((row) => (

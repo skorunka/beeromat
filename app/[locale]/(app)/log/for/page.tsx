@@ -54,14 +54,14 @@ export default async function LogOnBehalfPage({
 
   return (
     <main className="mx-auto flex max-w-md flex-col gap-6 p-5">
-      <header className="flex flex-col gap-1">
+      <header className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold leading-tight">{t('title')}</h1>
         <Link
           href="/log"
           className="text-muted-foreground text-sm underline-offset-4 hover:underline"
         >
           ← {t('title')}
         </Link>
-        <h1 className="text-2xl font-bold leading-tight">{t('title')}</h1>
       </header>
 
       {otherMembers.length === 0 ? (

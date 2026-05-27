@@ -88,6 +88,21 @@ export function BankingForm({ initial }: BankingFormProps) {
             </FormItem>
           )}
         />
+        {/* QR message follows IBAN — it's the default message embedded
+            in the IBAN-based QR payment code, not a generic note. */}
+        <FormField
+          control={form.control}
+          name="defaultQrMessage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('qrMessageLabel')}</FormLabel>
+              <FormControl>
+                <Input placeholder={t('qrMessagePlaceholder')} maxLength={60} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="accountHolderName"
@@ -109,19 +124,6 @@ export function BankingForm({ initial }: BankingFormProps) {
               <FormLabel>{t('revolutLabel')}</FormLabel>
               <FormControl>
                 <Input placeholder={t('revolutPlaceholder')} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="defaultQrMessage"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('qrMessageLabel')}</FormLabel>
-              <FormControl>
-                <Input placeholder={t('qrMessagePlaceholder')} maxLength={60} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

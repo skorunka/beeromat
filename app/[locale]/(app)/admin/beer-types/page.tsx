@@ -45,13 +45,15 @@ export default async function BeerTypesAdminPage({
 
   return (
     <main className="mx-auto max-w-md p-5">
-      <Link
-        href={'/admin' as Route}
-        className="text-muted-foreground hover:text-foreground mb-4 inline-block text-sm underline"
-      >
-        ← {tCommon('back')}
-      </Link>
-      <h1 className="mb-4 text-2xl font-bold">{t('beerTypesTitle')}</h1>
+      <header className="mb-4 flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold">{t('beerTypesTitle')}</h1>
+        <Link
+          href={'/admin' as Route}
+          className="text-muted-foreground hover:text-foreground text-sm underline"
+        >
+          ← {tCommon('back')}
+        </Link>
+      </header>
       {/* Spec 011 — club margin summary. */}
       <Card className="mb-4 p-4">
         <div className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">

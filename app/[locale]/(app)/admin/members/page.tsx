@@ -36,13 +36,15 @@ export default async function AdminMembersPage({
 
   return (
     <main className="mx-auto max-w-md p-5">
-      <Link
-        href={'/admin' as Route}
-        className="text-muted-foreground hover:text-foreground mb-4 inline-block text-sm underline"
-      >
-        ← {tCommon('back')}
-      </Link>
-      <h1 className="mb-6 text-2xl font-bold">{t('membersTitle')}</h1>
+      <header className="mb-6 flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold">{t('membersTitle')}</h1>
+        <Link
+          href={'/admin' as Route}
+          className="text-muted-foreground hover:text-foreground text-sm underline"
+        >
+          ← {tCommon('back')}
+        </Link>
+      </header>
 
       <Card className="mb-6 p-4">
         <h2 className="mb-3 text-lg font-semibold">{t('inviteHeading')}</h2>

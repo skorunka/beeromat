@@ -26,11 +26,28 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { updateClubConfigAction } from '@/app/[locale]/(app)/admin/config/actions';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { FlagIcon } from '@/components/ui/flag-icon';
+import { ChevronDown } from 'lucide-react';
 import { routing } from '@/lib/i18n/routing';
 import {
   clubConfigSchema,
   type ClubConfigInput,
 } from '@/lib/validation/admin-config';
+
+// Locale endonyms — each language labelled in its own script.
+// Same map the user-menu uses; consistency keeps the picker reading
+// the same way wherever it appears.
+const LOCALE_LABEL: Record<string, string> = {
+  cs: 'Čeština',
+  en: 'English',
+};
 
 // Spec 008 — ClubConfigForm.
 //
@@ -161,16 +178,39 @@ export function ClubConfigForm({ defaults }: ClubConfigFormProps) {
               <FormItem>
                 <FormLabel>{t('defaultLocaleLabel')}</FormLabel>
                 <FormControl>
-                  <select
-                    {...field}
-                    className="border-input bg-background hover:bg-accent inline-flex h-11 w-full items-center rounded-md border px-3 text-sm"
-                  >
-                    {routing.locales.map((locale) => (
-                      <option key={locale} value={locale}>
-                        {locale}
-                      </option>
-                    ))}
-                  </select>
+                  {/* DropdownMenu instead of a native select element
+                      so we can put flag SVGs (which a native option
+                      element does not support) next to the endonym
+                      labels. Same pattern as the user-menu locale
+                      switcher. */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      className="border-input bg-background hover:bg-accent flex h-11 w-full items-center justify-between gap-2 rounded-md border px-3 text-sm"
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <FlagIcon code={field.value} />
+                        {LOCALE_LABEL[field.value] ?? field.value.toUpperCase()}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-60" aria-hidden />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="start"
+                      sideOffset={4}
+                      className="min-w-(--anchor-width)"
+                    >
+                      <DropdownMenuRadioGroup
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        {routing.locales.map((locale) => (
+                          <DropdownMenuRadioItem key={locale} value={locale}>
+                            <FlagIcon code={locale} />
+                            {LOCALE_LABEL[locale] ?? locale.toUpperCase()}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -49,18 +49,20 @@ export default async function PendingPaymentsPage({
 
   return (
     <main className="mx-auto max-w-md p-5">
-      <Link
-        href={'/admin' as Route}
-        className="text-muted-foreground hover:text-foreground mb-4 inline-block text-sm underline"
-      >
-        ← {tCommon('back')}
-      </Link>
-      <div className="mb-4 flex items-center justify-between">
+      <header className="mb-4 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">{t('pendingTitle')}</h1>
-        <Link href={'/admin/balances' as Route} className="text-primary text-sm underline">
-          {t('allBalances')}
-        </Link>
-      </div>
+        <div className="flex items-center gap-3">
+          <Link href={'/admin/balances' as Route} className="text-primary text-sm underline">
+            {t('allBalances')}
+          </Link>
+          <Link
+            href={'/admin' as Route}
+            className="text-muted-foreground hover:text-foreground text-sm underline"
+          >
+            ← {tCommon('back')}
+          </Link>
+        </div>
+      </header>
 
       {view.length === 0 ? (
         <Card className="p-6 text-center">

@@ -39,14 +39,16 @@ export default async function AdminConfigPage({
 
   return (
     <main className="mx-auto max-w-md p-5">
-      <Link
-        href={'/admin' as Route}
-        className="text-muted-foreground hover:text-foreground mb-4 inline-block text-sm underline"
-      >
-        ← {tCommon('back')}
-      </Link>
       <header className="mb-4">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <Link
+            href={'/admin' as Route}
+            className="text-muted-foreground hover:text-foreground text-sm underline"
+          >
+            ← {tCommon('back')}
+          </Link>
+        </div>
         <p className="text-muted-foreground text-sm">{t('subtitle')}</p>
       </header>
 

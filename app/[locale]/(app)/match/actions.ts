@@ -67,6 +67,7 @@ export type EditAgreementResult =
   | { ok: true }
   | { ok: false; code: 'VALIDATION_FAILED'; fieldErrors: Record<string, string[]> }
   | { ok: false; code: 'NOT_FOUND' }
+  | { ok: false; code: 'NOT_AUTHORIZED' }
   | { ok: false; code: 'NOT_EDITABLE' }
   | { ok: false; code: 'DUPLICATE_MEMBER' }
   | { ok: false; code: 'MEMBER_NOT_IN_CLUB' };
@@ -82,6 +83,14 @@ export async function editAgreementAction(rawInput: unknown): Promise<EditAgreem
     return { ok: false, code: 'VALIDATION_FAILED', fieldErrors };
   }
   const ctx = await requireUnlocked();
+  // Spec 027 — same authz gap that was closed on cancel: edit also
+  // needs the participant-or-treasurer+ gate per spec 013 FR-007.
+  // Without this, any club member could edit any open agreement.
+  const agreement = await getAgreement(parsed.data.agreementId, ctx.club.id);
+  if (!agreement) return { ok: false, code: 'NOT_FOUND' };
+  if (!canRecordMatchResult(ctx.member.id, ctx.member.role, agreement.participantMemberIds)) {
+    return { ok: false, code: 'NOT_AUTHORIZED' };
+  }
   const result = await editAgreementTx({
     agreementId: parsed.data.agreementId,
     clubId: ctx.club.id,

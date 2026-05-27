@@ -25,6 +25,7 @@ export function SignOutButton() {
       type="button"
       variant="ghost"
       disabled={isPending}
+      isPending={isPending}
       onClick={handleSignOut}
       className="h-auto min-h-12 w-full justify-start rounded-none px-4 py-3 text-sm font-medium"
     >

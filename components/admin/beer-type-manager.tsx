@@ -236,7 +236,7 @@ function BeerForm({
           )}
         />
         <FormRootError />
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} isPending={isPending}>
           {isPending ? tCommon('saving') : tCommon('save')}
         </Button>
       </form>
@@ -551,6 +551,7 @@ export function BeerTypeManager({
                         type="button"
                         className="flex-1"
                         disabled={isPending}
+                        isPending={isPending}
                         onClick={() => handleArchiveToggle(beer)}
                       >
                         {t('archive')}
@@ -563,6 +564,7 @@ export function BeerTypeManager({
                     variant="ghost"
                     type="button"
                     disabled={isPending}
+                    isPending={isPending}
                     onClick={() => handleArchiveToggle(beer)}
                   >
                     {t('unarchive')}

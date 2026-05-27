@@ -98,7 +98,7 @@ export function InviteForm() {
               </FormItem>
             )}
           />
-          <Button type="submit" className="h-11 sm:mt-7" disabled={isPending}>
+          <Button type="submit" className="h-11 sm:mt-7" disabled={isPending} isPending={isPending}>
             {isPending ? t('sending') : t('sendInvitation')}
           </Button>
         </div>

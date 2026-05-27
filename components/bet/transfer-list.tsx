@@ -103,6 +103,7 @@ export function TransferList({
                     type="button"
                     className="h-11"
                     disabled={isPending}
+                    isPending={isPending}
                     onClick={() => handleTransfer(c.consumptionId)}
                   >
                     {t('transferToMe')}
@@ -140,6 +141,7 @@ export function TransferList({
                       variant="ghost"
                       className="h-11"
                       disabled={isPending}
+                      isPending={isPending}
                       onClick={() => handleVoid(tr.id)}
                     >
                       {t('undo')}

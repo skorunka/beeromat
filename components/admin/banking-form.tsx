@@ -128,7 +128,7 @@ export function BankingForm({ initial }: BankingFormProps) {
           )}
         />
         <FormRootError />
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} isPending={isPending}>
           {isPending ? tCommon('saving') : t('saveBanking')}
         </Button>
       </form>

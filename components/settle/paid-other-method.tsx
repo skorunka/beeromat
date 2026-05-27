@@ -123,7 +123,7 @@ export function PaidOtherMethod({ defaultAmountMinor, currencyCode }: PaidOtherM
             )}
           />
           <FormRootError />
-          <Button type="submit" disabled={isPending}>
+          <Button type="submit" disabled={isPending} isPending={isPending}>
             {isPending ? tCommon('saving') : t('recordPayment')}
           </Button>
         </form>

@@ -60,6 +60,7 @@ export function QrDisplay({ qrSvg, amountDisplay, variableSymbol }: QrDisplayPro
         type="button"
         className="mt-4 w-full"
         disabled={isPending}
+        isPending={isPending}
         onClick={handlePaid}
       >
         {isPending ? tCommon('saving') : t('iPaid')}

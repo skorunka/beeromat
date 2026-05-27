@@ -91,7 +91,7 @@ export function PendingList({ claims }: { claims: PendingClaimView[] }) {
   return (
     <div className="flex flex-col gap-3">
       {selected.size > 0 ? (
-        <Button type="button" disabled={isPending} onClick={handleConfirmSelected}>
+        <Button type="button" disabled={isPending} isPending={isPending} onClick={handleConfirmSelected}>
           {t('confirmSelected', { count: selected.size })}
         </Button>
       ) : null}
@@ -123,6 +123,7 @@ export function PendingList({ claims }: { claims: PendingClaimView[] }) {
                   type="button"
                   className="h-11 flex-1"
                   disabled={isPending}
+                  isPending={isPending}
                   onClick={() => handleConfirm(claim.paymentId)}
                 >
                   {t('confirmReceived')}
@@ -132,6 +133,7 @@ export function PendingList({ claims }: { claims: PendingClaimView[] }) {
                   variant="ghost"
                   className="h-11"
                   disabled={isPending}
+                  isPending={isPending}
                   onClick={() => setDisputeTarget(claim)}
                 >
                   {t('dispute')}

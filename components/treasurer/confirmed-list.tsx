@@ -74,6 +74,7 @@ export function ConfirmedList({ payments }: { payments: ConfirmedPaymentView[] }
                 variant="outline"
                 className="h-11"
                 disabled={isPending}
+                isPending={isPending}
                 onClick={() => setUndoTarget(p)}
               >
                 {t('undoConfirmation')}

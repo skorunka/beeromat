@@ -110,7 +110,7 @@ export function ManualPaymentForm({ memberId, currencyCode }: ManualPaymentFormP
           )}
         />
         <FormRootError />
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} isPending={isPending}>
           {isPending ? tCommon('saving') : tSettle('recordPayment')}
         </Button>
       </form>

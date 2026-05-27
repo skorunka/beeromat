@@ -34,7 +34,7 @@ export default async function LogPage({
   const hasOtherMembers = (otherMembersCountResult[0]?.n ?? 0) > 0;
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-4 p-5">
+    <main className="mx-auto flex max-w-md flex-col gap-4 p-5">
       <h1 className="text-2xl font-bold">{t('title')}</h1>
       <BeerGrid
         beers={beers}

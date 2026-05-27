@@ -35,7 +35,7 @@ export default async function AdminMembersPage({
   const dateFmt = new Intl.DateTimeFormat(ctx.club.defaultLocale, { dateStyle: 'medium' });
 
   return (
-    <main className="mx-auto max-w-3xl p-5">
+    <main className="mx-auto max-w-md p-5">
       <Link
         href={'/admin' as Route}
         className="text-muted-foreground hover:text-foreground mb-4 inline-block text-sm underline"

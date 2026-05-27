@@ -34,7 +34,7 @@ export default async function SessionDetailPage({
   const dateFmt = new Intl.DateTimeFormat(defaultLocale, { dateStyle: 'medium' });
 
   return (
-    <main className="mx-auto max-w-2xl p-5">
+    <main className="mx-auto max-w-md p-5">
       <Link href={'/history' as Route} className="text-primary text-sm underline">
         ← {t('title')}
       </Link>

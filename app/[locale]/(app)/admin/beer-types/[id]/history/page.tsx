@@ -40,7 +40,7 @@ export default async function StockHistoryPage({
   });
 
   return (
-    <main className="mx-auto max-w-2xl p-5">
+    <main className="mx-auto max-w-md p-5">
       <Link
         href={'/admin/beer-types' as Route}
         className="text-primary text-sm underline"

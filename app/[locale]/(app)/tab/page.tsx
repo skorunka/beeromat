@@ -35,7 +35,7 @@ export default async function TabPage({
   const owes = outstandingBalanceMinor > 0n;
 
   return (
-    <main className="mx-auto max-w-2xl p-5">
+    <main className="mx-auto max-w-md p-5">
       <header className="mb-4">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         {tab.session ? (

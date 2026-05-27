@@ -102,14 +102,13 @@ When one matures, run `/speckit-specify` and the item moves into
   Account / Sign out rows; the JAZYK uppercase header is gone
   (the radio group implies "pick one").
 
-- **Money format without cents by default for compact UI.**
-  The header balance badge (`<BalanceBadge />`, just shipped)
-  uses `formatMoney()` which renders fractional units; for CZK
-  that's "380,00 Kč" — wide for a pill. Update `formatMoney` or
-  add a compact variant that drops the decimals when they are
-  all zero (or always). Saves space in headers and tight
-  layouts. Verify it doesn't regress places that need cents
-  (e.g. EUR amounts in the admin reconciliation view).
+- ~~**Money format without cents by default for compact UI.**~~
+  **— Shipped 2026-05-26.** `formatMoneyCompact()` helper in
+  `lib/format.ts` drops fractional units (`380 Kč` instead of
+  `380,00 Kč`). Used by the AppHeader balance badge + the home
+  one-tap log button. `formatMoney` unchanged everywhere else
+  so amounts that need cents (EUR admin reconciliation, payment
+  history) still get them.
 
 - ~~**Fancy beer animation on log.**~~ **— Shipped 2026-05-26.**
   Every successful log (one-tap, /log grid, /log/for) fires a

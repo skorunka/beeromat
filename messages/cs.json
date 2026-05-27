@@ -494,7 +494,7 @@
     "bankingTitle": "Bankovní údaje",
     "bankingSubtitle": "Slouží k vytvoření platebních QR kódů pro členy.",
     "ibanLabel": "IBAN",
-    "ibanHint": "Nutné pro platby QR kódem. Když ho smažeš, členové si nemůžou zaplatit sami.",
+    "ibanHint": "Nutné pro vygenerování QR kódu.",
     "ibanPlaceholder": "CZ65 0800 0000 1920 0014 5399",
     "accountHolderLabel": "Majitel účtu",
     "revolutLabel": "Revolut handle",

@@ -26,7 +26,7 @@ export default async function BalancesPage({
   const { currencyCode, defaultLocale } = ctx.club;
 
   return (
-    <main className="mx-auto max-w-2xl p-5">
+    <main className="mx-auto max-w-md p-5">
       <Link
         href={'/admin' as Route}
         className="text-muted-foreground hover:text-foreground mb-4 inline-block text-sm underline"

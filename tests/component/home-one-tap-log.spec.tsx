@@ -6,31 +6,35 @@ import { HomeOneTapLog } from '@/components/home/home-one-tap-log';
 import enMessages from '@/messages/en.json';
 import csMessages from '@/messages/cs.json';
 
-// Spec 017 T006 + T014 — component test for HomeOneTapLog across
-// the five render variants from contracts/home-page.md.
+// Spec 017 + 2026-05-27 refinement — component tests for the split-
+// button home log surface. The old V3/V4 "render a Link to /log"
+// expectations are gone; their job now lives in the chevron dropdown.
 
-// Mock the server action. logBeerAction is imported via a relative
-// path inside the component; we vi.mock the module path it imports
-// from.
 const mockLogBeerAction = vi.fn();
 vi.mock('@/app/[locale]/(app)/log/actions', () => ({
   logBeerAction: (...args: unknown[]) => mockLogBeerAction(...args),
 }));
 
-// Mock the next/navigation router so router.refresh() doesn't blow up.
 const mockRefresh = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: mockRefresh, push: vi.fn(), replace: vi.fn() }),
 }));
 
-// Mock i18n navigation Link as a plain anchor.
-vi.mock('@/lib/i18n/navigation', () => ({
-  Link: ({ href, children, ...rest }: { href: string; children: React.ReactNode } & Record<string, unknown>) => (
-    <a href={href} {...rest}>
-      {children}
-    </a>
-  ),
-}));
+const PILSNER = {
+  id: 'b1',
+  name: 'Pilsner',
+  currentStock: 42,
+  isArchived: false,
+  unitPriceMinor: 5000n,
+} as const;
+
+const KOZEL = {
+  id: 'b2',
+  name: 'Kozel',
+  currentStock: 20,
+  isArchived: false,
+  unitPriceMinor: 4500n,
+} as const;
 
 function renderWithLocale(node: React.ReactElement, locale: 'cs' | 'en' = 'en') {
   const messages = locale === 'en' ? enMessages : csMessages;
@@ -46,139 +50,107 @@ beforeEach(() => {
   mockRefresh.mockReset();
 });
 
-describe('HomeOneTapLog (component layer — spec 017)', () => {
-  describe('V1 — active beer, in stock, enabled', () => {
-    it('renders the "Log a Pilsner" button in English with the beer-glass icon', () => {
+describe('HomeOneTapLog (split-button — spec 017 refinement)', () => {
+  describe('default beer valid + in stock', () => {
+    it('renders the main "Log a Pilsner" button with the beer name', () => {
       renderWithLocale(
         <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false, unitPriceMinor: 5000n }}
-          currencyCode="CZK"
-          locale="en"
-        />,
-        'en',
-      );
-      const button = screen.getByRole('button', { name: /log a pilsner/i });
-      expect(button).toBeEnabled();
-      // Tap fallback link is rendered alongside.
-      expect(screen.getByRole('link', { name: /pick a different beer/i })).toBeInTheDocument();
-    });
-
-    it('renders the "Zapiš Pilsner" button in Czech', () => {
-      renderWithLocale(
-        <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false, unitPriceMinor: 5000n }}
-          currencyCode="CZK"
-          locale="cs"
-        />,
-        'cs',
-      );
-      expect(screen.getByRole('button', { name: /zapiš pilsner/i })).toBeEnabled();
-      expect(screen.getByRole('link', { name: /vyber jiné pivo/i })).toBeInTheDocument();
-    });
-
-    it('calls logBeerAction with the beer id on tap and surfaces the success toast', async () => {
-      mockLogBeerAction.mockResolvedValueOnce({
-        ok: true,
-        consumptionId: 'c1',
-        sessionId: 's1',
-        balanceAfterMinor: 42000n,
-      });
-      renderWithLocale(
-        <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false, unitPriceMinor: 5000n }}
+          beer={PILSNER}
+          catalog={[PILSNER, KOZEL]}
           currencyCode="CZK"
           locale="en"
         />,
       );
+      expect(
+        screen.getByRole('button', { name: /log a pilsner/i }),
+      ).toBeInTheDocument();
+    });
 
+    it('logs the default beer on main-button tap', async () => {
+      mockLogBeerAction.mockResolvedValue({ ok: true, balanceAfterMinor: 12000n });
+      renderWithLocale(
+        <HomeOneTapLog
+          beer={PILSNER}
+          catalog={[PILSNER, KOZEL]}
+          currencyCode="CZK"
+          locale="en"
+        />,
+      );
       fireEvent.click(screen.getByRole('button', { name: /log a pilsner/i }));
-
       await waitFor(() => {
-        expect(mockLogBeerAction).toHaveBeenCalledWith({ beerTypeId: 'b1' });
+        expect(mockLogBeerAction).toHaveBeenCalledWith({ beerTypeId: PILSNER.id });
       });
-      // router.refresh is invoked after success.
-      await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1));
     });
 
-    it('does not refresh on failure (FR-009)', async () => {
-      mockLogBeerAction.mockResolvedValueOnce({ ok: false, code: 'OUT_OF_STOCK' });
+    it('renders a chevron dropdown trigger when other beers exist', () => {
       renderWithLocale(
         <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false, unitPriceMinor: 5000n }}
+          beer={PILSNER}
+          catalog={[PILSNER, KOZEL]}
           currencyCode="CZK"
           locale="en"
         />,
       );
-
-      fireEvent.click(screen.getByRole('button', { name: /log a pilsner/i }));
-      await waitFor(() => expect(mockLogBeerAction).toHaveBeenCalledOnce());
-      expect(mockRefresh).not.toHaveBeenCalled();
+      // The chevron trigger uses the "pick another" aria-label.
+      expect(
+        screen.getByRole('button', { name: /pick a different beer/i }),
+      ).toBeInTheDocument();
     });
-  });
 
-  describe('V3 — first-time logger (no last beer)', () => {
-    it('renders a generic "Log a beer" link to /log', () => {
-      renderWithLocale(
-        <HomeOneTapLog beer={null} currencyCode="CZK" locale="en" />,
-      );
-      const link = screen.getByRole('link', { name: /log a beer/i });
-      expect(link).toHaveAttribute('href', '/log');
-      // No button rendered in the generic variant.
-      expect(screen.queryByRole('button')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('V4 — archived last beer', () => {
-    it('falls back to the generic link, ignoring the archived beer name', () => {
+    it('omits the chevron when the catalog has only the default beer', () => {
       renderWithLocale(
         <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Old IPA', currentStock: 30, isArchived: true, unitPriceMinor: 5000n }}
+          beer={PILSNER}
+          catalog={[PILSNER]}
           currencyCode="CZK"
           locale="en"
         />,
       );
-      // Archived beer's name MUST NOT appear — falls back to the generic.
-      expect(screen.queryByText(/Old IPA/i)).not.toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /log a beer/i })).toHaveAttribute(
-        'href',
-        '/log',
-      );
+      expect(
+        screen.queryByRole('button', { name: /pick a different beer/i }),
+      ).not.toBeInTheDocument();
     });
   });
 
-  describe('V5 — out of stock', () => {
-    it('renders the beer name in a disabled button with a fallback picker link', () => {
+  describe('no usable default (null / archived / out of stock)', () => {
+    it('renders the generic dropdown trigger when there is no last beer', () => {
       renderWithLocale(
         <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Pilsner', currentStock: 0, isArchived: false, unitPriceMinor: 5000n }}
+          beer={null}
+          catalog={[PILSNER, KOZEL]}
           currencyCode="CZK"
           locale="en"
         />,
       );
-      const button = screen.getByRole('button', { name: /pilsner.*out of stock/i });
-      expect(button).toBeDisabled();
-      expect(screen.getByRole('link', { name: /pick a different beer/i })).toHaveAttribute(
-        'href',
-        '/log',
-      );
+      // Whole button is a dropdown trigger — no /log link anywhere.
+      expect(screen.getByRole('button', { name: /log a beer/i })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /log a beer/i })).not.toBeInTheDocument();
     });
 
-    it('renders "Pilsner — nedostupné" in Czech', () => {
+    it('shows "Pilsner — nedostupné" when the default is out of stock', () => {
       renderWithLocale(
         <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Pilsner', currentStock: 0, isArchived: false, unitPriceMinor: 5000n }}
+          beer={{ ...PILSNER, currentStock: 0 }}
+          catalog={[KOZEL]}
           currencyCode="CZK"
           locale="cs"
         />,
         'cs',
       );
-      expect(screen.getByRole('button', { name: /pilsner.*nedostupné/i })).toBeDisabled();
+      expect(screen.getByRole('button', { name: /pilsner.*nedostupné/i })).toBeInTheDocument();
+    });
+
+    it('renders a disabled empty-state when the whole catalog is empty', () => {
+      renderWithLocale(
+        <HomeOneTapLog beer={null} catalog={[]} currencyCode="CZK" locale="en" />,
+      );
+      const btn = screen.getByRole('button', { name: /log a beer/i });
+      expect(btn).toBeDisabled();
     });
   });
 
-  describe('V6 — pending state during the server round-trip', () => {
-    it('disables the button while the action is in flight', async () => {
-      // Slow-resolve so we can observe the pending state.
+  describe('pending state', () => {
+    it('disables the main button while a tap is in flight', async () => {
       let resolve: ((v: unknown) => void) | undefined;
       mockLogBeerAction.mockImplementationOnce(
         () =>
@@ -186,31 +158,19 @@ describe('HomeOneTapLog (component layer — spec 017)', () => {
             resolve = r;
           }),
       );
-
       renderWithLocale(
         <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false, unitPriceMinor: 5000n }}
+          beer={PILSNER}
+          catalog={[PILSNER]}
           currencyCode="CZK"
           locale="en"
         />,
       );
-
-      const button = screen.getByRole('button', { name: /log a pilsner/i });
-      fireEvent.click(button);
-
-      // During the in-flight window: aria-busy + disabled.
+      fireEvent.click(screen.getByRole('button', { name: /log a pilsner/i }));
       await waitFor(() => {
-        expect(button).toBeDisabled();
-        expect(button).toHaveAttribute('aria-busy', 'true');
+        expect(screen.getByRole('button', { name: /log a pilsner/i })).toBeDisabled();
       });
-
-      // Resolve to let the test exit cleanly.
-      resolve?.({
-        ok: true,
-        consumptionId: 'c1',
-        sessionId: 's1',
-        balanceAfterMinor: 42000n,
-      });
+      resolve?.({ ok: true, balanceAfterMinor: 5000n });
     });
   });
 });

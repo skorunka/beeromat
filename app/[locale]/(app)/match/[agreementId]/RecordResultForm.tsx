@@ -11,6 +11,7 @@ import {
   reverseResultAction,
 } from '@/app/[locale]/(app)/match/actions';
 import { Button } from '@/components/ui/button';
+import { BeerTile } from '@/components/log/beer-tile';
 
 interface RecordResultFormProps {
   agreementId: string;
@@ -147,24 +148,14 @@ export function RecordResultForm({
           >
             <span className="truncate">{autoLabel}</span>
           </button>
-          {betBeerOptions.map((b) => {
-            const isSelected = betBeerOverrideId === b.id;
-            return (
-              <button
-                key={b.id}
-                type="button"
-                aria-pressed={isSelected}
-                onClick={() => setBetBeerOverrideId(b.id)}
-                className={`flex h-16 items-center justify-center rounded-md border px-3 text-base font-medium transition-colors ${
-                  isSelected
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'border-input bg-background hover:bg-accent'
-                }`}
-              >
-                <span className="truncate">{b.name}</span>
-              </button>
-            );
-          })}
+          {betBeerOptions.map((b) => (
+            <BeerTile
+              key={b.id}
+              beer={b}
+              selected={betBeerOverrideId === b.id}
+              onClick={() => setBetBeerOverrideId(b.id)}
+            />
+          ))}
         </div>
       ) : null}
 

@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { logBeerOnBehalfAction } from '@/app/[locale]/(app)/log/actions';
 import { celebrateBeer } from '@/lib/celebrate';
 import { Button } from '@/components/ui/button';
+import { BeerTile } from '@/components/log/beer-tile';
 import { MemberPickerGrid } from '@/components/picker/member-picker-grid';
 import type { MemberOption } from '@/components/picker/types';
 
@@ -73,25 +74,15 @@ export function LogOnBehalfForm({
 
       <section className="flex flex-col gap-2">
         <div className="grid grid-cols-2 gap-2">
-          {beers.map((b) => {
-            const isSelected = beerId === b.id;
-            const disabled = b.currentStock <= 0;
-            return (
-              <button
-                key={b.id}
-                type="button"
-                disabled={disabled}
-                onClick={() => setBeerId(b.id)}
-                className={`flex h-16 items-center justify-center rounded-md border px-3 text-base font-medium transition-colors ${
-                  isSelected
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'border-input bg-background hover:bg-accent'
-                } ${disabled ? 'opacity-50' : ''}`}
-              >
-                {b.name}
-              </button>
-            );
-          })}
+          {beers.map((b) => (
+            <BeerTile
+              key={b.id}
+              beer={b}
+              selected={beerId === b.id}
+              onClick={() => setBeerId(b.id)}
+              disabled={b.currentStock <= 0}
+            />
+          ))}
         </div>
       </section>
 

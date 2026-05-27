@@ -81,7 +81,7 @@ description: "Task list — Bet-Beer Tile Picker (spec 025)"
 - [X] T011 Manual walkthrough per `quickstart.md` — confirm US1 + US2 + US3 + the edge cases (no-last-beer fallback, not-for-beer hides picker, reverse window still works).
 - [X] T012 Mark `spec.md` status `Shipped (2026-05-27)`.
 - [X] T013 Update `CLAUDE.md` SPECKIT marker — move spec 025 from "in flight" to "most recent shipped".
-- [ ] T014 Commit + push to `origin/main` per `feedback-no-prs-trunk-based`.
+- [X] T014 Commit + push to `origin/main` per `feedback-no-prs-trunk-based`.
 
 ---
 

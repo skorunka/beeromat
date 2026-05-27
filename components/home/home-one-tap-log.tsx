@@ -127,6 +127,18 @@ export function HomeOneTapLog({
         {otherBeers.length > 0 ? (
           <>
             <span aria-hidden className="bg-primary-foreground/25 w-px shrink-0" />
+            {/*
+              Spec 026 — INTENTIONAL design choice: the home one-tap
+              "pick another" affordance is a DropdownMenu (not a
+              beer-tile grid like /log or /log/for). Home is
+              vertically constrained — between the AppHeader, the
+              balance pill, and the bet awareness card, there's no
+              room for a tile grid without pushing critical content
+              below the fold on a 360-wide phone. The dropdown
+              keeps the home button compact while still exposing
+              the full catalog one tap away. Documented so a future
+              fresh-eyes audit doesn't re-flag this as off-pattern.
+            */}
             <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label={t('pickAnother')}

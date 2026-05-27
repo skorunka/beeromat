@@ -12,15 +12,29 @@ import {
 } from '@/app/[locale]/(app)/log/actions';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { MemberAvatar } from '@/components/ui/member-avatar';
+import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 
 // Spec 019 — proactive notification on home listing every
 // on-behalf log made for the consumer since their previous
 // review action. Two buttons per row: Vrátit (void + dismiss)
 // and Nechat (dismiss only — consumption stays).
+//
+// Spec 026 — logger avatar (inline size) renders before the
+// logger name in the message, matching the spec 023 treatment
+// on every other on-behalf surface (/tab "od X", /admin/pending,
+// etc.).
 
 export interface OnBehalfReviewBannerRow {
   consumptionId: string;
   loggerDisplayName: string;
+  /** Spec 026 — logger member id + avatar fields. The query
+   *  always returns the logger as same-club, so loggerMemberId
+   *  is non-null in practice; we keep null in the type for the
+   *  hard-delete edge case. */
+  loggerMemberId: string | null;
+  loggerAvatarKey: string | null;
+  loggerAvatarUploadAt: Date | null;
   beerName: string;
 }
 
@@ -69,9 +83,19 @@ export function OnBehalfReviewBanner({ rows }: { rows: OnBehalfReviewBannerRow[]
       <ul className="flex flex-col gap-3">
         {rows.map((row) => (
           <li key={row.consumptionId} className="flex flex-col gap-2">
-            <p className="text-sm leading-snug">
-              <Beer className="mr-1 inline-block h-4 w-4" aria-hidden />
-              {t('one', { logger: row.loggerDisplayName, beer: row.beerName })}
+            <p className="inline-flex flex-wrap items-center gap-1.5 text-sm leading-snug">
+              <Beer className="inline-block h-4 w-4 shrink-0" aria-hidden />
+              {row.loggerMemberId ? (
+                <MemberAvatar
+                  size="inline"
+                  avatarKey={row.loggerAvatarKey}
+                  displayName={row.loggerDisplayName}
+                  uploadUrl={avatarUploadUrl(row.loggerMemberId, row.loggerAvatarUploadAt)}
+                />
+              ) : null}
+              <span>
+                {t('one', { logger: row.loggerDisplayName, beer: row.beerName })}
+              </span>
             </p>
             <div className="flex gap-2">
               <Button

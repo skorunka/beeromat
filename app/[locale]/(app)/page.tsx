@@ -98,6 +98,9 @@ export default async function AppHomePage({
         rows={onBehalfSummary.rows.map((r) => ({
           consumptionId: r.consumptionId,
           loggerDisplayName: r.loggerDisplayName,
+          loggerMemberId: r.loggerMemberId,
+          loggerAvatarKey: r.loggerAvatarKey,
+          loggerAvatarUploadAt: r.loggerAvatarUploadAt,
           beerName: r.beerName,
         }))}
       />

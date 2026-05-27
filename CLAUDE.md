@@ -1,5 +1,14 @@
 <!-- SPECKIT START -->
-No spec currently in flight. Most recent shipped specs: 025
+No spec currently in flight. Most recent shipped specs: 026
+(polish-round-a-e — shared `BeerTile` h-16 component for
+the two genuine tile consumers (/log/for + match-result
+form); logger MemberAvatar on the home on-behalf review
+banner; intentional-dropdown comment on home-one-tap-log.
+Scope corrected mid-flight: item D dropped (/settle doesn't
+render a treasurer name), item A reframed (/log's beer-grid
+is a richer h-32 BeerCard with badges + stock count — not a
+simple tile — so stays unchanged; BeerTile became
+single-shape h-16 for the two real consumers)), 025
 (bet-beer-tile-picker — replaces the collapsed `<details>` +
 `<select>` on the match-result form with an always-visible
 tile grid matching `/log`'s beer tiles. First tile is

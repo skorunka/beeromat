@@ -1,5 +1,5 @@
 import 'server-only';
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, notExists, sum } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
 import { db } from '@/lib/db/client';
@@ -387,6 +387,13 @@ export interface SessionHistoryItem {
  * Past (and current) drink sessions the member took part in, newest
  * first, with the member's effective total for each (contracts/
  * consumption.md → getSessionHistory). US8.
+ *
+ * Spec 027 perf — previously this ran `effectiveConsumptionTotal`
+ * (2 queries) per session in a Promise.all, so a 50-session
+ * history fired 100 round-trips. Now two batched aggregations
+ * (own consumptions per session, transferred-in per session)
+ * compute every session's effective total in 3 queries total,
+ * regardless of history length. Merge happens in JS.
  */
 export async function getSessionHistory(args: {
   clubId: string;
@@ -408,12 +415,87 @@ export async function getSessionHistory(args: {
     .orderBy(desc(drinkSessions.startedAt))
     .limit(args.limit ?? 50);
 
-  return Promise.all(
-    sessionRows.map(async (s) => ({
-      ...s,
-      myTotalMinor: await effectiveConsumptionTotal(args.memberId, s.id),
-    })),
+  if (sessionRows.length === 0) return [];
+
+  const sessionIds = sessionRows.map((s) => s.id);
+
+  // Two batched aggregations: own consumptions + transferred-in,
+  // both grouped by session_id. Same semantics as
+  // `effectiveConsumptionTotal` but in O(1) DB calls instead of O(n).
+  const [ownTotals, transferredInTotals] = await Promise.all([
+    db
+      .select({
+        sessionId: consumptions.drinkSessionId,
+        total: sum(consumptions.unitPriceMinorSnapshot).mapWith(BigInt),
+      })
+      .from(consumptions)
+      .where(
+        and(
+          eq(consumptions.memberId, args.memberId),
+          inArray(consumptions.drinkSessionId, sessionIds),
+          notExists(
+            db
+              .select()
+              .from(consumptionVoids)
+              .where(eq(consumptionVoids.consumptionId, consumptions.id)),
+          ),
+          notExists(
+            db
+              .select()
+              .from(betTransfers)
+              .where(
+                and(
+                  eq(betTransfers.sourceConsumptionId, consumptions.id),
+                  notExists(
+                    db
+                      .select()
+                      .from(betTransferVoids)
+                      .where(eq(betTransferVoids.betTransferId, betTransfers.id)),
+                  ),
+                ),
+              ),
+          ),
+        ),
+      )
+      .groupBy(consumptions.drinkSessionId),
+    db
+      .select({
+        sessionId: consumptions.drinkSessionId,
+        total: sum(consumptions.unitPriceMinorSnapshot).mapWith(BigInt),
+      })
+      .from(betTransfers)
+      .innerJoin(consumptions, eq(consumptions.id, betTransfers.sourceConsumptionId))
+      .where(
+        and(
+          eq(betTransfers.toMemberId, args.memberId),
+          inArray(consumptions.drinkSessionId, sessionIds),
+          notExists(
+            db
+              .select()
+              .from(betTransferVoids)
+              .where(eq(betTransferVoids.betTransferId, betTransfers.id)),
+          ),
+          notExists(
+            db
+              .select()
+              .from(consumptionVoids)
+              .where(eq(consumptionVoids.consumptionId, consumptions.id)),
+          ),
+        ),
+      )
+      .groupBy(consumptions.drinkSessionId),
+  ]);
+
+  const ownBySession = new Map(ownTotals.map((r) => [r.sessionId, r.total ?? 0n]));
+  const transferredBySession = new Map(
+    transferredInTotals.map((r) => [r.sessionId, r.total ?? 0n]),
   );
+
+  return sessionRows.map((s) => ({
+    ...s,
+    myTotalMinor:
+      (ownBySession.get(s.id) ?? 0n) + (transferredBySession.get(s.id) ?? 0n),
+  }));
 }
 
 export interface SessionDetail {

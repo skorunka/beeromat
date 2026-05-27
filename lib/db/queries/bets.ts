@@ -1,5 +1,6 @@
 import 'server-only';
-import { and, desc, eq, inArray, ne, notExists, or } from 'drizzle-orm';
+import { and, desc, eq, ne, notExists, or } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 
 import { db } from '@/lib/db/client';
 import { betTransferVoids, betTransfers } from '@/lib/db/schema/bets';
@@ -8,6 +9,12 @@ import { consumptionVoids, consumptions } from '@/lib/db/schema/consumption';
 import { members } from '@/lib/db/schema/members';
 import { getOpenSessionForClub } from './sessions';
 import type { DrinkSession } from '@/lib/db/schema/sessions';
+
+// Spec 027 perf — two aliases on `members` so the bet-transfer
+// query can resolve from + to display names + avatars in a single
+// round-trip (was: main query + a second batched lookup).
+const fromMembers = alias(members, 'from_members');
+const toMembers = alias(members, 'to_members');
 
 export interface TransferableConsumption {
   consumptionId: string;
@@ -111,7 +118,13 @@ export async function getBetTransfersForSession(args: {
       id: betTransfers.id,
       sourceConsumptionId: betTransfers.sourceConsumptionId,
       fromMemberId: betTransfers.fromMemberId,
+      fromMemberName: fromMembers.displayName,
+      fromAvatarKey: fromMembers.avatarKey,
+      fromAvatarUploadAt: fromMembers.avatarUploadAt,
       toMemberId: betTransfers.toMemberId,
+      toMemberName: toMembers.displayName,
+      toAvatarKey: toMembers.avatarKey,
+      toAvatarUploadAt: toMembers.avatarUploadAt,
       beerTypeName: beerTypes.name,
       unitPriceMinorSnapshot: consumptions.unitPriceMinorSnapshot,
       createdAt: betTransfers.createdAt,
@@ -121,6 +134,8 @@ export async function getBetTransfersForSession(args: {
     .from(betTransfers)
     .innerJoin(consumptions, eq(consumptions.id, betTransfers.sourceConsumptionId))
     .innerJoin(beerTypes, eq(beerTypes.id, consumptions.beerTypeId))
+    .innerJoin(fromMembers, eq(fromMembers.id, betTransfers.fromMemberId))
+    .innerJoin(toMembers, eq(toMembers.id, betTransfers.toMemberId))
     .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
     .where(
       and(
@@ -135,46 +150,21 @@ export async function getBetTransfersForSession(args: {
     )
     .orderBy(desc(betTransfers.createdAt));
 
-  // Resolve winner/loser display names in one extra round-trip
-  // (two joins to `members` would need table aliasing).
-  const memberIds = new Set<string>();
-  for (const r of rows) {
-    memberIds.add(r.fromMemberId);
-    memberIds.add(r.toMemberId);
-  }
-  const memberRows =
-    memberIds.size > 0
-      ? await db
-          .select({
-            id: members.id,
-            displayName: members.displayName,
-            avatarKey: members.avatarKey,
-            avatarUploadAt: members.avatarUploadAt,
-          })
-          .from(members)
-          .where(inArray(members.id, [...memberIds]))
-      : [];
-  const memberById = new Map(memberRows.map((m) => [m.id, m]));
-
-  return rows.map((r) => {
-    const from = memberById.get(r.fromMemberId);
-    const to = memberById.get(r.toMemberId);
-    return {
-      id: r.id,
-      sourceConsumptionId: r.sourceConsumptionId,
-      fromMemberId: r.fromMemberId,
-      fromMemberName: from?.displayName ?? '—',
-      fromAvatarKey: from?.avatarKey ?? null,
-      fromAvatarUploadAt: from?.avatarUploadAt ?? null,
-      toMemberId: r.toMemberId,
-      toMemberName: to?.displayName ?? '—',
-      toAvatarKey: to?.avatarKey ?? null,
-      toAvatarUploadAt: to?.avatarUploadAt ?? null,
-      beerTypeName: r.beerTypeName,
-      unitPriceMinorSnapshot: r.unitPriceMinorSnapshot,
-      createdAt: r.createdAt,
-      createdByUserId: r.createdByUserId,
-      voided: r.voidId !== null,
-    };
-  });
+  return rows.map((r) => ({
+    id: r.id,
+    sourceConsumptionId: r.sourceConsumptionId,
+    fromMemberId: r.fromMemberId,
+    fromMemberName: r.fromMemberName ?? '—',
+    fromAvatarKey: r.fromAvatarKey ?? null,
+    fromAvatarUploadAt: r.fromAvatarUploadAt ?? null,
+    toMemberId: r.toMemberId,
+    toMemberName: r.toMemberName ?? '—',
+    toAvatarKey: r.toAvatarKey ?? null,
+    toAvatarUploadAt: r.toAvatarUploadAt ?? null,
+    beerTypeName: r.beerTypeName,
+    unitPriceMinorSnapshot: r.unitPriceMinorSnapshot,
+    createdAt: r.createdAt,
+    createdByUserId: r.createdByUserId,
+    voided: r.voidId !== null,
+  }));
 }

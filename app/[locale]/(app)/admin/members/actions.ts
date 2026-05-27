@@ -114,7 +114,7 @@ export async function inviteMemberAction(input: {
 // is via direct DB access, by design).
 export type ChangeMemberRoleResult =
   | { ok: true }
-  | { ok: false; code: 'NOT_FOUND' | 'CANT_SELF_MODIFY' | 'CROSS_CLUB' };
+  | { ok: false; code: 'NOT_FOUND' | 'CANT_SELF_MODIFY' };
 
 export async function changeMemberRoleAction(input: {
   memberId: string;
@@ -125,15 +125,18 @@ export async function changeMemberRoleAction(input: {
     return { ok: false, code: 'CANT_SELF_MODIFY' };
   }
   const target = await db.query.members.findFirst({
-    where: eq(members.id, input.memberId),
+    where: and(eq(members.id, input.memberId), eq(members.clubId, ctx.club.id)),
   });
-  if (!target) return { ok: false, code: 'NOT_FOUND' };
-  if (target.clubId !== ctx.club.id) return { ok: false, code: 'CROSS_CLUB' };
+  if (!target) {
+    // Either non-existent OR in another club — both look the same to
+    // the caller (don't leak the existence of cross-club members).
+    return { ok: false, code: 'NOT_FOUND' };
+  }
 
   await db
     .update(members)
     .set({ role: input.role })
-    .where(eq(members.id, target.id));
+    .where(and(eq(members.id, target.id), eq(members.clubId, ctx.club.id)));
   revalidatePath('/admin/members');
   return { ok: true };
 }
@@ -146,7 +149,7 @@ export async function changeMemberRoleAction(input: {
 // changeMemberRoleAction.
 export type SetMemberActiveResult =
   | { ok: true }
-  | { ok: false; code: 'NOT_FOUND' | 'CANT_SELF_MODIFY' | 'CROSS_CLUB' };
+  | { ok: false; code: 'NOT_FOUND' | 'CANT_SELF_MODIFY' };
 
 export async function setMemberActiveAction(input: {
   memberId: string;
@@ -157,15 +160,14 @@ export async function setMemberActiveAction(input: {
     return { ok: false, code: 'CANT_SELF_MODIFY' };
   }
   const target = await db.query.members.findFirst({
-    where: eq(members.id, input.memberId),
+    where: and(eq(members.id, input.memberId), eq(members.clubId, ctx.club.id)),
   });
   if (!target) return { ok: false, code: 'NOT_FOUND' };
-  if (target.clubId !== ctx.club.id) return { ok: false, code: 'CROSS_CLUB' };
 
   await db
     .update(members)
     .set({ isActive: input.isActive })
-    .where(eq(members.id, target.id));
+    .where(and(eq(members.id, target.id), eq(members.clubId, ctx.club.id)));
   revalidatePath('/admin/members');
   revalidatePath('/admin/balances');
   return { ok: true };
@@ -176,14 +178,17 @@ export async function revokeInvitationAction(input: {
 }): Promise<{ ok: true } | { ok: false; code: 'NOT_FOUND' | 'INVALID_STATE' }> {
   const ctx = await requireRole('treasurer', 'club_admin');
   const inv = await db.query.invitations.findFirst({
-    where: eq(invitations.id, input.invitationId),
+    where: and(
+      eq(invitations.id, input.invitationId),
+      eq(invitations.clubId, ctx.club.id),
+    ),
   });
-  if (!inv || inv.clubId !== ctx.club.id) return { ok: false, code: 'NOT_FOUND' };
+  if (!inv) return { ok: false, code: 'NOT_FOUND' };
   if (inv.status !== 'pending') return { ok: false, code: 'INVALID_STATE' };
   await db
     .update(invitations)
     .set({ status: 'revoked' })
-    .where(eq(invitations.id, inv.id));
+    .where(and(eq(invitations.id, inv.id), eq(invitations.clubId, ctx.club.id)));
   revalidatePath('/admin/members');
   return { ok: true };
 }

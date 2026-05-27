@@ -115,22 +115,23 @@ export function AvatarPicker({ currentKey, uploadUrl }: AvatarPickerProps) {
           );
         })}
 
-        {/* Upload tile — when no upload yet, shows the Upload icon.
-            When an upload exists, shows the uploaded image as the
-            tile content + ring to mark it as the current selection. */}
-        <PickerTile
-          isSelected={hasUpload}
+        {/* Upload tile — distinct visual treatment so members read it
+            as an action (pick a photo), not another avatar option:
+              • No-upload state: dashed border, transparent center,
+                Upload arrow icon. Universal "drop here / upload"
+                affordance.
+              • Upload exists: shows the uploaded image as the tile
+                content + selection ring (same as other tiles when
+                picked) so the picker still makes visual sense as
+                "this is what's currently set."
+            See <UploadTile /> below. */}
+        <UploadTile
+          hasUpload={hasUpload}
+          uploadUrl={uploadUrl}
           isPending={isPending}
           ariaLabel={tUpload('uploadTileLabel')}
           onClick={() => setUploading(true)}
-        >
-          {hasUpload && uploadUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={uploadUrl} alt="" className="h-full w-full rounded-full object-cover" />
-          ) : (
-            <Upload className="text-primary h-6 w-6" aria-hidden />
-          )}
-        </PickerTile>
+        />
       </div>
 
       {/* Remove-upload affordance, visible only when an upload is
@@ -194,6 +195,60 @@ function PickerTile({
       )}
     >
       {children}
+    </button>
+  );
+}
+
+interface UploadTileProps {
+  hasUpload: boolean;
+  uploadUrl: string | null;
+  isPending: boolean;
+  ariaLabel: string;
+  onClick: () => void;
+}
+
+function UploadTile({
+  hasUpload,
+  uploadUrl,
+  isPending,
+  ariaLabel,
+  onClick,
+}: UploadTileProps) {
+  // Filled state (upload exists) reuses the standard tile styling so
+  // the picker reads coherently as "this is what's currently set."
+  // Empty state diverges visually: dashed border + transparent center
+  // makes it obvious this is an action (pick a photo), not just
+  // another avatar option.
+  if (hasUpload && uploadUrl) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={isPending}
+        aria-label={ariaLabel}
+        aria-pressed
+        className={cn(
+          'bg-primary/15 hover:bg-primary/25 ring-primary animate-avatar-pop flex h-12 w-12 items-center justify-center overflow-hidden rounded-full ring-2 ring-offset-2 ring-offset-background transition-all',
+          isPending && 'opacity-60',
+        )}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={uploadUrl} alt="" className="h-full w-full rounded-full object-cover" />
+      </button>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={isPending}
+      aria-label={ariaLabel}
+      className={cn(
+        'border-primary/50 text-primary hover:bg-primary/10 hover:border-primary flex h-12 w-12 items-center justify-center rounded-full border-2 border-dashed bg-transparent transition-all',
+        isPending && 'opacity-60',
+      )}
+    >
+      <Upload className="h-5 w-5" aria-hidden />
     </button>
   );
 }

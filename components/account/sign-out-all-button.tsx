@@ -7,13 +7,16 @@ import { Button } from '@/components/ui/button';
 import { signOutAllDevicesAction } from '@/lib/auth/actions';
 
 // Spec 010 stub closure — the "brzy" badge on the sign-out-all row
-// is gone. Tap shows an inline confirm step (no separate dialog) and
-// then drops every device_sessions row for the user. The whole flow
-// lives in this client component; the row in /account just renders
-// it.
+// is gone. Renders the WHOLE row, not just the button: closed shows
+// label-left + Sign-out-everywhere button on the right; expanded
+// confirm shows the same label as a title at the top with the
+// confirm prompt + Yes/Cancel below (same pattern as ChangePinForm —
+// no "labels stranded on the left while the button takes the right"
+// L-shape).
 
 export function SignOutAllButton() {
   const t = useTranslations('account.signOutAll');
+  const tAccount = useTranslations('account');
   const [confirming, setConfirming] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -30,20 +33,29 @@ export function SignOutAllButton() {
 
   if (!confirming) {
     return (
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => setConfirming(true)}
-      >
-        {t('cta')}
-      </Button>
+      <div className="flex min-h-12 items-center justify-between gap-3">
+        <div className="flex flex-col">
+          <span className="text-sm font-medium">{tAccount('signOutAllLabel')}</span>
+          <span className="text-muted-foreground text-xs">{tAccount('signOutAllHint')}</span>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setConfirming(true)}
+        >
+          {t('cta')}
+        </Button>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-sm">{t('confirm')}</p>
+    <div className="flex w-full flex-col gap-3">
+      <div className="flex flex-col">
+        <span className="text-sm font-medium">{tAccount('signOutAllLabel')}</span>
+        <span className="text-muted-foreground text-xs">{t('confirm')}</span>
+      </div>
       <div className="flex gap-2">
         <Button
           type="button"

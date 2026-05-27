@@ -85,13 +85,10 @@ export default async function AccountPage({
         </Card>
       </section>
 
-      {/* Single-device sign-out — destructive action card. Payment
-          history was here too but moved out per UX direction
-          2026-05-27 (it overlaps with the bottom-nav History tab
-          for daily-use members). */}
-      <Card className="flex flex-col divide-y p-0">
-        <SignOutButton />
-      </Card>
+      {/* Single-device sign-out — destructive CTA at the bottom of
+          the page. Payment-history link was here too but moved out
+          (overlapped with the bottom-nav History tab). */}
+      <SignOutButton />
     </main>
   );
 }

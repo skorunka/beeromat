@@ -281,8 +281,27 @@
     "pinValue": "Nastaveno na tomhle zařízení",
     "signOutAllLabel": "Odhlásit ze všech zařízení",
     "signOutAllCta": "Odhlásit všude",
+    "signOutAllHint": "Smaže přihlášení na všech tvých zařízeních.",
     "laterBadge": "později",
     "comingSoonBadge": "brzy",
+    "changePin": {
+      "cta": "Změnit",
+      "currentLabel": "Stávající PIN",
+      "newLabel": "Nový PIN",
+      "confirmLabel": "Nový PIN ještě jednou",
+      "submit": "Uložit nový PIN",
+      "cancel": "Zrušit",
+      "saved": "PIN uložen.",
+      "wrongCurrent": "Stávající PIN nesedí.",
+      "currentRequired": "Zadej stávající PIN.",
+      "saveFailed": "Nepovedlo se uložit. Zkus to znovu."
+    },
+    "signOutAll": {
+      "cta": "Odhlásit všude",
+      "confirm": "Odhlásíme tě ze všech zařízení. Příště se přihlásíš e-mailem.",
+      "confirmCta": "Ano, odhlásit",
+      "cancel": "Zrušit"
+    },
     "avatar": {
       "sectionTitle": "Profilová ikona",
       "sectionHint": "Vyber si něco hravého.",

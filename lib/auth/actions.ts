@@ -354,3 +354,20 @@ export async function signOutDeviceAction(): Promise<AuthActionResult> {
   }
   return { ok: true };
 }
+
+/** Sign out from EVERY device — drops every device_sessions row for
+ *  the current user (forcing a fresh magic-link sign-in on each one
+ *  next time it tries to unlock), then signs out the current session
+ *  + cookie too. "Panic button" variant of signOutDeviceAction. */
+export async function signOutAllDevicesAction(): Promise<AuthActionResult> {
+  const ctx = await requireMember();
+  await db.delete(deviceSessions).where(eq(deviceSessions.userId, ctx.user.id));
+  const cookieStore = await cookies();
+  cookieStore.delete(DEVICE_ID_COOKIE);
+  try {
+    await auth.api.signOut({ headers: new Headers() });
+  } catch {
+    /* ignore */
+  }
+  return { ok: true };
+}

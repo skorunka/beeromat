@@ -281,8 +281,27 @@
     "pinValue": "Set up on this device",
     "signOutAllLabel": "Sign out from all devices",
     "signOutAllCta": "Sign out everywhere",
+    "signOutAllHint": "Clears your sign-in on every device.",
     "laterBadge": "later",
     "comingSoonBadge": "coming soon",
+    "changePin": {
+      "cta": "Change",
+      "currentLabel": "Current PIN",
+      "newLabel": "New PIN",
+      "confirmLabel": "New PIN again",
+      "submit": "Save new PIN",
+      "cancel": "Cancel",
+      "saved": "PIN saved.",
+      "wrongCurrent": "Current PIN doesn't match.",
+      "currentRequired": "Enter your current PIN.",
+      "saveFailed": "Couldn't save. Try again."
+    },
+    "signOutAll": {
+      "cta": "Sign out everywhere",
+      "confirm": "You'll be signed out from every device. Next sign-in needs the magic link.",
+      "confirmCta": "Yes, sign out",
+      "cancel": "Cancel"
+    },
     "avatar": {
       "sectionTitle": "Avatar",
       "sectionHint": "Pick something playful.",

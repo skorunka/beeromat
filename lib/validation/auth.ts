@@ -45,3 +45,19 @@ export const pinSetupSchema = z
     path: ['confirmPin'],
   });
 export type PinSetupValues = z.infer<typeof pinSetupSchema>;
+
+/** Change PIN — current + new + confirm-new. Same cross-field
+ *  mismatch rule as setup. The server action (setPinAction with
+ *  `currentPin` set) verifies the current PIN against the stored
+ *  hash and returns WRONG_CURRENT_PIN if it doesn't match. */
+export const pinChangeSchema = z
+  .object({
+    currentPin: z.string().regex(PIN_RE, { error: 'pin.setup.invalidFormat' }),
+    pin: z.string().regex(PIN_RE, { error: 'pin.setup.invalidFormat' }),
+    confirmPin: z.string().regex(PIN_RE, { error: 'pin.setup.invalidFormat' }),
+  })
+  .refine((v) => v.pin === v.confirmPin, {
+    error: 'pin.setup.mismatch',
+    path: ['confirmPin'],
+  });
+export type PinChangeValues = z.infer<typeof pinChangeSchema>;

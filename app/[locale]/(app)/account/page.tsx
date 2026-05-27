@@ -4,6 +4,8 @@ import { AccountForm } from './AccountForm';
 import { AvatarPicker } from '@/components/account/avatar-picker';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { ChangePinForm } from '@/components/account/change-pin-form';
+import { SignOutAllButton } from '@/components/account/sign-out-all-button';
 import { SignOutButton } from '@/components/account/sign-out-button';
 import { Link } from '@/lib/i18n/navigation';
 import { requireUnlocked } from '@/lib/auth/session';
@@ -46,7 +48,9 @@ export default async function AccountPage({
         </Card>
       </section>
 
-      {/* Stub rows — spec 010 FR-009. UI-only; no backend wiring. */}
+      {/* Account-management rows. Email change is still a stub (its
+          own spec — needs a verification flow); PIN change and sign-
+          out-everywhere are live since 2026-05-27. */}
       <section className="mb-6">
         <Card className="flex flex-col divide-y p-0">
           <div className="flex min-h-12 items-center justify-between gap-3 px-4 py-3">
@@ -56,26 +60,23 @@ export default async function AccountPage({
             </div>
             <Badge variant="outline">{t('laterBadge')}</Badge>
           </div>
-          <div className="flex min-h-12 items-center justify-between gap-3 px-4 py-3">
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">{t('pinLabel')}</span>
-              <span className="text-muted-foreground text-xs">{t('pinValue')}</span>
+          <div className="flex flex-col gap-2 px-4 py-3">
+            <div className="flex min-h-12 items-center justify-between gap-3">
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">{t('pinLabel')}</span>
+                <span className="text-muted-foreground text-xs">{t('pinValue')}</span>
+              </div>
+              <ChangePinForm />
             </div>
-            <Badge variant="outline">{t('laterBadge')}</Badge>
           </div>
-          <div className="flex min-h-12 items-center justify-between gap-3 px-4 py-3">
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">{t('signOutAllLabel')}</span>
-              <button
-                type="button"
-                disabled
-                aria-disabled
-                className="text-muted-foreground inline-flex h-auto items-start text-xs underline opacity-50"
-              >
-                {t('signOutAllCta')}
-              </button>
+          <div className="flex flex-col gap-2 px-4 py-3">
+            <div className="flex min-h-12 items-center justify-between gap-3">
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">{t('signOutAllLabel')}</span>
+                <span className="text-muted-foreground text-xs">{t('signOutAllHint')}</span>
+              </div>
+              <SignOutAllButton />
             </div>
-            <Badge variant="outline">{t('comingSoonBadge')}</Badge>
           </div>
         </Card>
       </section>

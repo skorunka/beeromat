@@ -13,8 +13,8 @@ vi.mock('@/lib/db/client', () => ({
 const ctxRef = {
   current: null as null | {
     user: { id: string };
-    member: { id: string; role: string };
-    club: { id: string };
+    member: { id: string; role: string; displayName: string };
+    club: { id: string; name: string };
   },
 };
 
@@ -34,6 +34,7 @@ vi.mock('next/cache', () => ({
 vi.mock('@/lib/env', () => ({
   env: {
     BASE_URL: 'http://test.local',
+    BETTER_AUTH_URL: 'http://test.local',
     SMTP_URL: 'smtp://test',
     EMAIL_FROM: 'test@test.local',
   },
@@ -43,8 +44,17 @@ vi.mock('@/lib/email/mailer', () => ({
   sendMagicLink: vi.fn(async () => {}),
 }));
 
+// inviteMemberAction calls getLocale() (from next-intl/server) to
+// thread the admin's request locale into the invitation email.
+// The real getLocale needs a server request context which tests
+// don't have. Stub it as a no-op returning the project default.
+vi.mock('next-intl/server', () => ({
+  getLocale: async () => 'cs',
+}));
+
 import {
   changeMemberRoleAction,
+  inviteMemberAction,
   setMemberActiveAction,
   revokeInvitationAction,
 } from '@/app/[locale]/(app)/admin/members/actions';
@@ -120,8 +130,8 @@ describe('changeMemberRoleAction', () => {
     const { m: target } = await seedRegularMember(club.id, 'pavel');
     ctxRef.current = {
       user: { id: adminUser.id },
-      member: { id: admin.id, role: 'club_admin' },
-      club: { id: club.id },
+      member: { id: admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: club.id, name: 'Test' },
     };
 
     const result = await changeMemberRoleAction({
@@ -138,8 +148,8 @@ describe('changeMemberRoleAction', () => {
     const { user: adminUser, club, admin } = await seedClubWithAdmin();
     ctxRef.current = {
       user: { id: adminUser.id },
-      member: { id: admin.id, role: 'club_admin' },
-      club: { id: club.id },
+      member: { id: admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: club.id, name: 'Test' },
     };
 
     const result = await changeMemberRoleAction({
@@ -158,8 +168,8 @@ describe('changeMemberRoleAction', () => {
 
     ctxRef.current = {
       user: { id: a.user.id },
-      member: { id: a.admin.id, role: 'club_admin' },
-      club: { id: a.club.id },
+      member: { id: a.admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: a.club.id, name: 'Test' },
     };
     const result = await changeMemberRoleAction({
       memberId: bTarget.id,
@@ -176,8 +186,8 @@ describe('changeMemberRoleAction', () => {
     const { user: adminUser, club, admin } = await seedClubWithAdmin();
     ctxRef.current = {
       user: { id: adminUser.id },
-      member: { id: admin.id, role: 'club_admin' },
-      club: { id: club.id },
+      member: { id: admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: club.id, name: 'Test' },
     };
     const result = await changeMemberRoleAction({
       memberId: '00000000-0000-0000-0000-000000000000',
@@ -198,8 +208,8 @@ describe('setMemberActiveAction', () => {
     const { m: target } = await seedRegularMember(club.id, 'pavel');
     ctxRef.current = {
       user: { id: adminUser.id },
-      member: { id: admin.id, role: 'club_admin' },
-      club: { id: club.id },
+      member: { id: admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: club.id, name: 'Test' },
     };
 
     const result = await setMemberActiveAction({
@@ -214,8 +224,8 @@ describe('setMemberActiveAction', () => {
     const { user: adminUser, club, admin } = await seedClubWithAdmin();
     ctxRef.current = {
       user: { id: adminUser.id },
-      member: { id: admin.id, role: 'club_admin' },
-      club: { id: club.id },
+      member: { id: admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: club.id, name: 'Test' },
     };
 
     const result = await setMemberActiveAction({
@@ -234,8 +244,8 @@ describe('setMemberActiveAction', () => {
 
     ctxRef.current = {
       user: { id: a.user.id },
-      member: { id: a.admin.id, role: 'club_admin' },
-      club: { id: a.club.id },
+      member: { id: a.admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: a.club.id, name: 'Test' },
     };
     const result = await setMemberActiveAction({
       memberId: bTarget.id,
@@ -272,8 +282,8 @@ describe('revokeInvitationAction', () => {
 
     ctxRef.current = {
       user: { id: adminUser.id },
-      member: { id: admin.id, role: 'club_admin' },
-      club: { id: club.id },
+      member: { id: admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: club.id, name: 'Test' },
     };
     const result = await revokeInvitationAction({ invitationId: inv.id });
     expect(result).toEqual({ ok: true });
@@ -303,8 +313,8 @@ describe('revokeInvitationAction', () => {
 
     ctxRef.current = {
       user: { id: adminUser.id },
-      member: { id: admin.id, role: 'club_admin' },
-      club: { id: club.id },
+      member: { id: admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: club.id, name: 'Test' },
     };
     const result = await revokeInvitationAction({ invitationId: inv.id });
     expect(result).toEqual({ ok: false, code: 'INVALID_STATE' });
@@ -330,10 +340,114 @@ describe('revokeInvitationAction', () => {
 
     ctxRef.current = {
       user: { id: a.user.id },
-      member: { id: a.admin.id, role: 'club_admin' },
-      club: { id: a.club.id },
+      member: { id: a.admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: a.club.id, name: 'Test' },
     };
     const result = await revokeInvitationAction({ invitationId: bInv.id });
     expect(result).toEqual({ ok: false, code: 'NOT_FOUND' });
+  });
+});
+
+describe('inviteMemberAction', () => {
+  beforeEach(async () => {
+    ({ db: testDb } = await makeTestDb());
+    ctxRef.current = null;
+  });
+
+  it('happy path — creates a pending invitation row', async () => {
+    const { invitations } = await import('@/lib/db/schema/members');
+    const { eq } = await import('drizzle-orm');
+    const { user: adminUser, club, admin } = await seedClubWithAdmin();
+    ctxRef.current = {
+      user: { id: adminUser.id },
+      member: { id: admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: club.id, name: 'Test' },
+    };
+    const result = await inviteMemberAction({
+      email: 'newbie@example.test',
+      role: 'member',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const inv = await testDb.query.invitations.findFirst({
+      where: eq(invitations.id, result.invitationId),
+    });
+    expect(inv?.email).toBe('newbie@example.test');
+    expect(inv?.role).toBe('member');
+    expect(inv?.status).toBe('pending');
+    expect(inv?.clubId).toBe(club.id);
+  });
+
+  it('normalizes email to lower-case + trimmed before storing', async () => {
+    const { invitations } = await import('@/lib/db/schema/members');
+    const { eq } = await import('drizzle-orm');
+    const { user: adminUser, club, admin } = await seedClubWithAdmin();
+    ctxRef.current = {
+      user: { id: adminUser.id },
+      member: { id: admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: club.id, name: 'Test' },
+    };
+    const result = await inviteMemberAction({
+      email: '  Newbie@Example.Test  ',
+      role: 'member',
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const inv = await testDb.query.invitations.findFirst({
+      where: eq(invitations.id, result.invitationId),
+    });
+    expect(inv?.email).toBe('newbie@example.test');
+  });
+
+  it('ALREADY_MEMBER when the email is already a member of THIS club', async () => {
+    const { user: adminUser, club, admin } = await seedClubWithAdmin();
+    const existing = await seedRegularMember(club.id, 'existing');
+
+    ctxRef.current = {
+      user: { id: adminUser.id },
+      member: { id: admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: club.id, name: 'Test' },
+    };
+    const result = await inviteMemberAction({
+      email: existing.u.email,
+      role: 'member',
+    });
+    expect(result).toEqual({ ok: false, code: 'ALREADY_MEMBER' });
+  });
+
+  it('email of a member of ANOTHER club is ALLOWED to be invited here (no cross-club leak)', async () => {
+    // Spec 027 privacy fix scopes the existing-member check to the
+    // caller's club; an email registered in another club should be
+    // free to receive an invite to THIS club.
+    const a = await seedClubWithAdmin();
+    const b = await seedClubWithAdmin();
+    const bMember = await seedRegularMember(b.club.id, 'cross-club');
+
+    ctxRef.current = {
+      user: { id: a.user.id },
+      member: { id: a.admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: a.club.id, name: 'Test' },
+    };
+    const result = await inviteMemberAction({
+      email: bMember.u.email,
+      role: 'member',
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it('ALREADY_INVITED on a pending invitation for the same email in THIS club', async () => {
+    const { user: adminUser, club, admin } = await seedClubWithAdmin();
+    ctxRef.current = {
+      user: { id: adminUser.id },
+      member: { id: admin.id, role: 'club_admin', displayName: 'A' },
+      club: { id: club.id, name: 'Test' },
+    };
+    await inviteMemberAction({ email: 'pending@example.test', role: 'member' });
+    const second = await inviteMemberAction({
+      email: 'pending@example.test',
+      role: 'member',
+    });
+    expect(second).toEqual({ ok: false, code: 'ALREADY_INVITED' });
   });
 });

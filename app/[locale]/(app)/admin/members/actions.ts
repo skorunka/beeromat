@@ -2,7 +2,7 @@
 
 import { randomBytes } from 'node:crypto';
 import argon2 from 'argon2';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 import { getLocale } from 'next-intl/server';
@@ -45,17 +45,20 @@ export async function inviteMemberAction(input: {
   const ctx = await requireRole('treasurer', 'club_admin');
   const email = input.email.trim().toLowerCase();
 
-  // Already a member?
+  // Already a member of THIS club? Spec 027 — query is scoped to
+  // the caller's club so this check doesn't leak whether the email
+  // is registered in any other club. A user belonging to club B
+  // can be invited to club A as a brand-new member of A.
   const existingMember = await db.query.members.findFirst({
-    where: eq(members.email, email),
+    where: and(eq(members.email, email), eq(members.clubId, ctx.club.id)),
   });
-  if (existingMember && existingMember.clubId === ctx.club.id) {
+  if (existingMember) {
     return { ok: false, code: 'ALREADY_MEMBER' };
   }
 
-  // Already invited (open invitation)?
+  // Already invited (open invitation) to THIS club? Same scoping.
   const existingInvite = await db.query.invitations.findFirst({
-    where: eq(invitations.email, email),
+    where: and(eq(invitations.email, email), eq(invitations.clubId, ctx.club.id)),
   });
   if (existingInvite && existingInvite.status === 'pending') {
     return { ok: false, code: 'ALREADY_INVITED' };

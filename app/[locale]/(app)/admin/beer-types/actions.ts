@@ -165,7 +165,15 @@ export async function updateBeerTypeAction(rawInput: unknown): Promise<UpdateBee
   if (patch.displayOrder !== undefined) set.displayOrder = patch.displayOrder;
 
   if (Object.keys(set).length > 0) {
-    await db.update(beerTypes).set(set).where(eq(beerTypes.id, id));
+    // Spec 027 defence-in-depth — the read above already scoped to
+    // the caller's club, so an unscoped UPDATE-by-id is safe in
+    // practice. But carrying the club_id through the WHERE means
+    // a future refactor of the read step can't accidentally widen
+    // the write surface.
+    await db
+      .update(beerTypes)
+      .set(set)
+      .where(and(eq(beerTypes.id, id), eq(beerTypes.clubId, ctx.club.id)));
   }
   revalidateStockViews();
   return { ok: true };
@@ -223,7 +231,7 @@ export async function recordRestockAction(rawInput: unknown): Promise<StockChang
     const [updated] = await tx
       .update(beerTypes)
       .set({ currentStock: sql`${beerTypes.currentStock} + ${quantity}` })
-      .where(eq(beerTypes.id, beerTypeId))
+      .where(and(eq(beerTypes.id, beerTypeId), eq(beerTypes.clubId, ctx.club.id)))
       .returning({ currentStock: beerTypes.currentStock });
     if (!updated) throw new Error('recordRestock: update failed');
 
@@ -263,11 +271,18 @@ export async function recordStockAdjustmentAction(
     if (!beer) return { ok: false, code: 'NOT_FOUND' } as const;
 
     // Atomic guard: the update matches only if it stays non-negative.
+    // Spec 027 defence-in-depth — also scope by club_id (the read
+    // above already did; carrying it through prevents a future read
+    // refactor from accidentally widening the write surface).
     const [updated] = await tx
       .update(beerTypes)
       .set({ currentStock: sql`${beerTypes.currentStock} + ${delta}` })
       .where(
-        and(eq(beerTypes.id, beerTypeId), sql`${beerTypes.currentStock} + ${delta} >= 0`),
+        and(
+          eq(beerTypes.id, beerTypeId),
+          eq(beerTypes.clubId, ctx.club.id),
+          sql`${beerTypes.currentStock} + ${delta} >= 0`,
+        ),
       )
       .returning({ currentStock: beerTypes.currentStock });
     if (!updated) return { ok: false, code: 'WOULD_GO_NEGATIVE' } as const;

@@ -97,12 +97,22 @@ export async function editAgreementAction(rawInput: unknown): Promise<EditAgreem
 export type CancelAgreementResult =
   | { ok: true }
   | { ok: false; code: 'NOT_FOUND' }
+  | { ok: false; code: 'NOT_AUTHORIZED' }
   | { ok: false; code: 'NOT_CANCELLABLE' };
 
 export async function cancelAgreementAction(rawInput: unknown): Promise<CancelAgreementResult> {
   const parsed = cancelAgreementSchema.safeParse(rawInput);
   if (!parsed.success) return { ok: false, code: 'NOT_FOUND' };
   const ctx = await requireUnlocked();
+  // Spec 027 — authz gap closed: cancel uses the same gate as record
+  // (participant OR treasurer+), matching spec 013 FR-007. Prior to
+  // this, any member of the club could cancel any open agreement
+  // even ones they weren't a participant in.
+  const agreement = await getAgreement(parsed.data.agreementId, ctx.club.id);
+  if (!agreement) return { ok: false, code: 'NOT_FOUND' };
+  if (!canRecordMatchResult(ctx.member.id, ctx.member.role, agreement.participantMemberIds)) {
+    return { ok: false, code: 'NOT_AUTHORIZED' };
+  }
   const result = await cancelAgreementTx({
     agreementId: parsed.data.agreementId,
     clubId: ctx.club.id,

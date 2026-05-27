@@ -301,31 +301,34 @@ body {
 }
 
 /* ─── Beer spinner ────────────────────────────────────────────────────
-   "Beer being poured" loading indicator (components/ui/beer-spinner).
-   Liquid + foam group rises from below the glass to fully filled, then
-   resets and repeats. SVG transform is in user-space units (the
-   viewBox is 0 0 24 28). transform-box: fill-box keeps the origin
-   sane across browsers. Under prefers-reduced-motion the group is
-   pinned at full so the glass still reads as "loading" visually. */
-@keyframes beer-fill {
-  0% {
-    transform: translateY(22px);
+   Loading indicator (components/ui/beer-spinner). The same lucide
+   Beer icon used by the one-tap log button, tilted back and forth
+   in a "pouring" wiggle — tips left, returns, tips right, returns.
+   Rotation anchored at the bottom-center so the mug pivots on its
+   base instead of spinning around its middle. Under
+   prefers-reduced-motion the wiggle is disabled but the icon stays
+   visible. */
+@keyframes beer-pour {
+  0%, 100% {
+    transform: rotate(0deg);
   }
-  90% {
-    transform: translateY(0);
+  25% {
+    transform: rotate(-18deg);
   }
-  100% {
-    transform: translateY(0);
+  50% {
+    transform: rotate(0deg);
+  }
+  75% {
+    transform: rotate(18deg);
   }
 }
-.animate-beer-fill {
-  animation: beer-fill 1.4s ease-in infinite;
-  transform-origin: center;
-  transform-box: fill-box;
+.animate-beer-pour {
+  animation: beer-pour 1.1s ease-in-out infinite;
+  transform-origin: 50% 90%;
 }
 @media (prefers-reduced-motion: reduce) {
-  .animate-beer-fill {
+  .animate-beer-pour {
     animation: none;
-    transform: translateY(0);
+    transform: rotate(0deg);
   }
 }

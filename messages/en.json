@@ -491,6 +491,12 @@
     "recentInvitations": "Recent invites",
     "noInvitations": "No invites yet.",
     "invitedOn": "{role} · invited {date}",
+    "invitationStatus": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "expired": "Expired",
+      "revoked": "Revoked"
+    },
     "bankingTitle": "Bank details",
     "bankingSubtitle": "Used to make the payment QR codes for members.",
     "ibanLabel": "IBAN",

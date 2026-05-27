@@ -491,6 +491,12 @@
     "recentInvitations": "Nedávné pozvánky",
     "noInvitations": "Zatím žádné pozvánky.",
     "invitedOn": "{role} · pozváno {date}",
+    "invitationStatus": {
+      "pending": "Čeká",
+      "accepted": "Přijato",
+      "expired": "Vypršelo",
+      "revoked": "Zrušeno"
+    },
     "bankingTitle": "Bankovní údaje",
     "bankingSubtitle": "Slouží k vytvoření platebních QR kódů pro členy.",
     "ibanLabel": "IBAN",

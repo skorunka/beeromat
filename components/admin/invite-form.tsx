@@ -54,8 +54,11 @@ export function InviteForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="flex flex-col gap-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+      <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
+        {/* Row 1: e-mail (takes most of the width) + role on the
+            same line. Role gets just enough width for its longest
+            label ("Pokladník") — email gets the rest. */}
+        <div className="flex items-start gap-3">
           <FormField
             control={form.control}
             name="email"
@@ -78,12 +81,12 @@ export function InviteForm() {
             control={form.control}
             name="role"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="shrink-0">
                 <FormLabel>{t('roleLabel')}</FormLabel>
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     id={field.name}
-                    className="border-input bg-background hover:bg-accent inline-flex h-11 min-w-32 items-center justify-start rounded-md border px-3 text-sm"
+                    className="border-input bg-background hover:bg-accent inline-flex h-11 w-36 items-center justify-start rounded-md border px-3 text-sm"
                   >
                     {tRoles(field.value)}
                   </DropdownMenuTrigger>
@@ -98,10 +101,18 @@ export function InviteForm() {
               </FormItem>
             )}
           />
-          <Button type="submit" className="h-11 sm:mt-7" disabled={isPending} isPending={isPending}>
-            {isPending ? t('sending') : t('sendInvitation')}
-          </Button>
         </div>
+
+        {/* Row 2: full-width submit button so it's prominent + the
+            target on a phone is wide enough for one-thumb tap. */}
+        <Button
+          type="submit"
+          className="h-11 w-full"
+          disabled={isPending}
+          isPending={isPending}
+        >
+          {isPending ? t('sending') : t('sendInvitation')}
+        </Button>
         <FormRootError />
       </form>
     </Form>

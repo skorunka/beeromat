@@ -24,6 +24,7 @@ export default async function AdminMembersPage({
   const ctx = await requireRole('treasurer', 'club_admin');
   const t = await getTranslations('admin');
   const tRoles = await getTranslations('admin.roles');
+  const tStatus = await getTranslations('admin.invitationStatus');
   const tCommon = await getTranslations('common');
 
   const memberRows = await db
@@ -94,7 +95,7 @@ export default async function AdminMembersPage({
               </div>
             </div>
             <Badge variant={inv.status === 'pending' ? 'secondary' : 'outline'}>
-              {inv.status}
+              {tStatus(inv.status)}
             </Badge>
           </li>
         ))}

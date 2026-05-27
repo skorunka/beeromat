@@ -499,6 +499,18 @@
       "expired": "Expired",
       "revoked": "Revoked"
     },
+    "memberActions": {
+      "open": "Member actions",
+      "changeRole": "Change role",
+      "deactivate": "Block member",
+      "activate": "Unblock member",
+      "deactivateConfirm": "Block {name}? They won't be able to sign in, but their history stays.",
+      "activateConfirm": "Allow {name} to sign in again?",
+      "inactiveLabel": "blocked",
+      "errorSelf": "You can't change your own role or block yourself.",
+      "errorGeneric": "That didn't work. Try again.",
+      "saved": "Saved."
+    },
     "bankingTitle": "Bank details",
     "bankingSubtitle": "Used to make the payment QR codes for members.",
     "ibanLabel": "IBAN",

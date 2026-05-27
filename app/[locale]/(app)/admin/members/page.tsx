@@ -6,12 +6,15 @@ import { eq } from 'drizzle-orm';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MemberAvatar } from '@/components/ui/member-avatar';
+import { MemberActionsMenu } from '@/components/admin/member-actions-menu';
 import { requireRole } from '@/lib/auth/session';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { db } from '@/lib/db/client';
 import { members } from '@/lib/db/schema/members';
 import { getPendingInvitations } from '@/lib/db/queries/invitations';
 import { InviteForm } from '@/components/admin/invite-form';
+import { roleSatisfies } from '@/lib/permissions';
+import { cn } from '@/lib/utils';
 
 export default async function AdminMembersPage({
   params,
@@ -25,7 +28,9 @@ export default async function AdminMembersPage({
   const t = await getTranslations('admin');
   const tRoles = await getTranslations('admin.roles');
   const tStatus = await getTranslations('admin.invitationStatus');
+  const tActions = await getTranslations('admin.memberActions');
   const tCommon = await getTranslations('common');
+  const canManageMembers = roleSatisfies(ctx.member.role, 'club_admin');
 
   const memberRows = await db
     .select()
@@ -59,7 +64,10 @@ export default async function AdminMembersPage({
         {memberRows.map((m) => (
           <li
             key={m.id}
-            className="flex items-center gap-3 rounded-md border p-3"
+            className={cn(
+              'flex items-center gap-3 rounded-md border p-3',
+              !m.isActive && 'opacity-60',
+            )}
           >
             <MemberAvatar
               avatarKey={m.avatarKey}
@@ -68,12 +76,28 @@ export default async function AdminMembersPage({
               className="h-10 w-10 text-xs"
             />
             <div className="min-w-0 flex-1">
-              <div className="font-medium">{m.displayName}</div>
+              <div className="font-medium">
+                {m.displayName}
+                {!m.isActive ? (
+                  <span className="text-muted-foreground ml-2 text-xs font-normal">
+                    · {tActions('inactiveLabel')}
+                  </span>
+                ) : null}
+              </div>
               <div className="text-muted-foreground text-xs">{m.email}</div>
             </div>
             <Badge variant={m.role === 'club_admin' ? 'default' : 'secondary'}>
               {tRoles(m.role)}
             </Badge>
+            {canManageMembers ? (
+              <MemberActionsMenu
+                memberId={m.id}
+                memberDisplayName={m.displayName}
+                currentRole={m.role}
+                isActive={m.isActive}
+                isSelf={m.id === ctx.member.id}
+              />
+            ) : null}
           </li>
         ))}
       </ul>

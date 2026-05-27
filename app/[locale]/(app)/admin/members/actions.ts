@@ -106,6 +106,68 @@ export async function inviteMemberAction(input: {
   return { ok: true, invitationId: created.id };
 }
 
+// Change a member's role. club_admin only; can't change own role
+// (prevents self-lockout — the only way to remove the last admin
+// is via direct DB access, by design).
+export type ChangeMemberRoleResult =
+  | { ok: true }
+  | { ok: false; code: 'NOT_FOUND' | 'CANT_SELF_MODIFY' | 'CROSS_CLUB' };
+
+export async function changeMemberRoleAction(input: {
+  memberId: string;
+  role: Role;
+}): Promise<ChangeMemberRoleResult> {
+  const ctx = await requireRole('club_admin');
+  if (input.memberId === ctx.member.id) {
+    return { ok: false, code: 'CANT_SELF_MODIFY' };
+  }
+  const target = await db.query.members.findFirst({
+    where: eq(members.id, input.memberId),
+  });
+  if (!target) return { ok: false, code: 'NOT_FOUND' };
+  if (target.clubId !== ctx.club.id) return { ok: false, code: 'CROSS_CLUB' };
+
+  await db
+    .update(members)
+    .set({ role: input.role })
+    .where(eq(members.id, target.id));
+  revalidatePath('/admin/members');
+  return { ok: true };
+}
+
+// Block (deactivate) or unblock a member. Soft state — sets
+// members.isActive — so consumption / payment history is preserved.
+// Inactive members can't sign in via magic link or unlock devices,
+// but their old data stays intact for the treasurer's books.
+// club_admin only; self-modify rejected for the same reason as
+// changeMemberRoleAction.
+export type SetMemberActiveResult =
+  | { ok: true }
+  | { ok: false; code: 'NOT_FOUND' | 'CANT_SELF_MODIFY' | 'CROSS_CLUB' };
+
+export async function setMemberActiveAction(input: {
+  memberId: string;
+  isActive: boolean;
+}): Promise<SetMemberActiveResult> {
+  const ctx = await requireRole('club_admin');
+  if (input.memberId === ctx.member.id) {
+    return { ok: false, code: 'CANT_SELF_MODIFY' };
+  }
+  const target = await db.query.members.findFirst({
+    where: eq(members.id, input.memberId),
+  });
+  if (!target) return { ok: false, code: 'NOT_FOUND' };
+  if (target.clubId !== ctx.club.id) return { ok: false, code: 'CROSS_CLUB' };
+
+  await db
+    .update(members)
+    .set({ isActive: input.isActive })
+    .where(eq(members.id, target.id));
+  revalidatePath('/admin/members');
+  revalidatePath('/admin/balances');
+  return { ok: true };
+}
+
 export async function revokeInvitationAction(input: {
   invitationId: string;
 }): Promise<{ ok: true } | { ok: false; code: 'NOT_FOUND' | 'INVALID_STATE' }> {

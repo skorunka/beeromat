@@ -499,6 +499,18 @@
       "expired": "Vypršelo",
       "revoked": "Zrušeno"
     },
+    "memberActions": {
+      "open": "Akce s členem",
+      "changeRole": "Změnit roli",
+      "deactivate": "Zablokovat člena",
+      "activate": "Odblokovat člena",
+      "deactivateConfirm": "Zablokovat {name}? Nebudou se moct přihlásit, ale jejich historie zůstane.",
+      "activateConfirm": "Znovu povolit přístup pro {name}?",
+      "inactiveLabel": "zablokováno",
+      "errorSelf": "Nemůžeš změnit svou vlastní roli ani se zablokovat.",
+      "errorGeneric": "Nepovedlo se to. Zkus to znovu.",
+      "saved": "Uloženo."
+    },
     "bankingTitle": "Bankovní údaje",
     "bankingSubtitle": "Slouží k vytvoření platebních QR kódů pro členy.",
     "ibanLabel": "IBAN",

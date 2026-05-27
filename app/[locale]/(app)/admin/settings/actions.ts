@@ -11,12 +11,20 @@ import { isValidIban, normalizeIban } from '@/lib/qr-platba/iban';
 // contracts/admin.md → updateBankingProfile.
 
 const patchSchema = z.object({
+  // Spec 027 polish — accept spaces + lower-case (the way users
+  // paste from bank apps). preprocess() strips ALL whitespace and
+  // upper-cases before the structural regex + length checks. The
+  // server-side normalizeIban() then runs again for belt-and-
+  // braces consistency before the mod-97 checksum.
   iban: z
-    .string()
-    .trim()
-    .min(15)
-    .max(34)
-    .regex(/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/)
+    .preprocess(
+      (v) => (typeof v === 'string' ? v.replace(/\s+/g, '').toUpperCase() : v),
+      z
+        .string()
+        .min(15)
+        .max(34)
+        .regex(/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/),
+    )
     .nullable()
     .optional(),
   accountHolderName: z.string().max(120).nullable().optional(),

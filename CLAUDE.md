@@ -1,5 +1,24 @@
 <!-- SPECKIT START -->
-No spec currently in flight. Most recent shipped specs: 026
+No spec currently in flight. Post-026 polish + correctness
+sweep (2026-05-27 evening, several small commits without a
+formal spec dir): Match entry restored to bottom nav (was
+deep-link-only); SessionTitleInlineEdit on /history list
+(spec 022 had only wired /tab + /history/[id]); dropdowns
+close on item select (MemberPickerDropdown + user-menu +
+admin locale switcher); BeerSpinner on RecordResultForm
+undo; getSessionHistory N+1 batched (3 queries regardless
+of session count); getBetTransfersForSession join collapsed
+(spec 023 follow-up); partial unique index on payments
+to close payment-claim race; LostConcurrencyRaceError on
+recordResultTx now returns ALREADY_RECORDED instead of 500
+on double-submit; cancelAgreementAction gets the
+canRecordMatchResult gate; inviteMemberAction scoped to
+caller's club (was leaking cross-club email enumeration);
+defense-in-depth club_id on beer-catalog UPDATE WHEREs.
+All changes covered by new integration tests where the
+path was untested.
+
+Most recent shipped specs: 026
 (polish-round-a-e — shared `BeerTile` h-16 component for
 the two genuine tile consumers (/log/for + match-result
 form); logger MemberAvatar on the home on-behalf review

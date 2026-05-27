@@ -117,6 +117,7 @@ export function RecordResultForm({
           variant="ghost"
           size="sm"
           disabled={isReversing}
+          isPending={isReversing}
           onClick={reverse}
           className="self-end"
         >

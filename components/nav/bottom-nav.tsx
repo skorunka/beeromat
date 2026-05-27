@@ -2,7 +2,7 @@
 
 import type { Route } from 'next';
 import { useTranslations } from 'next-intl';
-import { Clock, Dices, Home, Plus, Receipt, Shield, User } from 'lucide-react';
+import { Clock, Dices, Home, Plus, Receipt, Shield, Trophy, User } from 'lucide-react';
 
 import { Link, usePathname } from '@/lib/i18n/navigation';
 
@@ -11,13 +11,24 @@ import { Link, usePathname } from '@/lib/i18n/navigation';
 // server-side in the (app) layout and passed in — this component never
 // touches the session.
 
-export type NavKey = 'home' | 'log' | 'tab' | 'bet' | 'history' | 'account' | 'treasurer' | 'stock' | 'admin';
+export type NavKey =
+  | 'home'
+  | 'log'
+  | 'tab'
+  | 'bet'
+  | 'match'
+  | 'history'
+  | 'account'
+  | 'treasurer'
+  | 'stock'
+  | 'admin';
 
 const ICONS: Record<NavKey, typeof Home> = {
   home: Home,
   log: Plus,
   tab: Receipt,
   bet: Dices,
+  match: Trophy,
   history: Clock,
   account: User,
   treasurer: Shield,

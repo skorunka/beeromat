@@ -71,6 +71,13 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
   const navItems: NavItem[] = [
     { key: 'home', href: '/' as Route },
     { key: 'bet', href: '/bet' as Route },
+    // /match restored to the bottom nav (2026-05-27). Previously
+    // a deep-link-only page reachable only AFTER a match had been
+    // settled (from home's Match-bet card or /tab "ze zápasu →"
+    // links). No way to create a new agreement from the UI alone —
+    // user demonstrated the gap by asking "where do I arrange a
+    // match?". Match icon (Trophy) sits between Bet and History.
+    { key: 'match', href: '/match' as Route },
     { key: 'history', href: '/history' as Route },
     { key: 'account', href: '/account' as Route },
   ];

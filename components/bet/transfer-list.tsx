@@ -10,16 +10,28 @@ import {
 } from '@/app/[locale]/(app)/bet/actions';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { MemberAvatar } from '@/components/ui/member-avatar';
+import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 
 export interface TransferableView {
   consumptionId: string;
-  label: string;
+  beerTypeName: string;
+  ownerMemberId: string;
+  ownerDisplayName: string;
+  ownerAvatarKey: string | null;
+  ownerAvatarUploadAt: Date | null;
   amountDisplay: string;
 }
 
 export interface BetTransferView {
   id: string;
   description: string;
+  /** Counterparty = whoever is NOT the viewing member.
+   *  Their face leads the row so the user reads the actor at a glance. */
+  counterpartyMemberId: string;
+  counterpartyDisplayName: string;
+  counterpartyAvatarKey: string | null;
+  counterpartyAvatarUploadAt: Date | null;
   amountDisplay: string;
   voided: boolean;
   canVoid: boolean;
@@ -93,10 +105,20 @@ export function TransferList({
             {transferables.map((c) => (
               <li key={c.consumptionId}>
                 <Card className="flex items-center justify-between gap-3 p-3">
-                  <div className="min-w-0">
-                    <div className="truncate font-medium">{c.label}</div>
-                    <div className="text-muted-foreground font-mono text-xs">
-                      {c.amountDisplay}
+                  <div className="flex min-w-0 items-center gap-2">
+                    <MemberAvatar
+                      size="inline"
+                      avatarKey={c.ownerAvatarKey}
+                      displayName={c.ownerDisplayName}
+                      uploadUrl={avatarUploadUrl(c.ownerMemberId, c.ownerAvatarUploadAt)}
+                    />
+                    <div className="min-w-0">
+                      <div className="truncate font-medium">
+                        {c.beerTypeName} · {c.ownerDisplayName}
+                      </div>
+                      <div className="text-muted-foreground font-mono text-xs">
+                        {c.amountDisplay}
+                      </div>
                     </div>
                   </div>
                   <Button
@@ -126,13 +148,21 @@ export function TransferList({
                     tr.voided ? 'opacity-50' : ''
                   }`}
                 >
-                  <div className="min-w-0">
-                    <div className="truncate text-sm">
-                      {tr.description}
-                      {tr.voided ? ` · ${t('undone')}` : ''}
-                    </div>
-                    <div className="text-muted-foreground font-mono text-xs">
-                      {tr.amountDisplay}
+                  <div className="flex min-w-0 items-center gap-2">
+                    <MemberAvatar
+                      size="inline"
+                      avatarKey={tr.counterpartyAvatarKey}
+                      displayName={tr.counterpartyDisplayName}
+                      uploadUrl={avatarUploadUrl(tr.counterpartyMemberId, tr.counterpartyAvatarUploadAt)}
+                    />
+                    <div className="min-w-0">
+                      <div className="truncate text-sm">
+                        {tr.description}
+                        {tr.voided ? ` · ${t('undone')}` : ''}
+                      </div>
+                      <div className="text-muted-foreground font-mono text-xs">
+                        {tr.amountDisplay}
+                      </div>
                     </div>
                   </div>
                   {tr.canVoid ? (

@@ -1,5 +1,6 @@
 import 'server-only';
 import { and, desc, eq, isNull } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 
 import { db } from '@/lib/db/client';
 import { effectiveConsumptionTotal } from '@/lib/balance/calculate';
@@ -11,6 +12,11 @@ import { matchBetTransfers } from '@/lib/db/schema/matches';
 import { members } from '@/lib/db/schema/members';
 import { drinkSessions, type DrinkSession } from '@/lib/db/schema/sessions';
 import { getBetTransfersForSession, type BetTransferRow } from './bets';
+
+// Spec 023 — second alias on `members` so we can join the LOGGER's
+// member row (when an on-behalf log) alongside the existing CONSUMER
+// join, and pull the logger's avatar fields.
+const loggerMembers = alias(members, 'logger_members');
 
 /**
  * Spec 017 — predictive-default lookup for home's one-tap log button.
@@ -82,6 +88,13 @@ export interface MemberTabEntry {
   // display name of the OTHER member (the logger for on-behalf,
   // the winner-of-the-bet for transfer_in).
   loggerDisplayName: string | null;
+  // Spec 023 — avatar fields for the logger, populated ONLY when
+  // kind='consumption' AND the row is on-behalf. transfer_in / self
+  // / match-origin rows leave these null (FR-006: only the on-behalf
+  // origin type renders an extra avatar).
+  loggerMemberId: string | null;
+  loggerAvatarKey: string | null;
+  loggerAvatarUploadAt: Date | null;
 }
 
 export interface MemberTab {
@@ -121,6 +134,9 @@ export async function getMyTabForSession(args: {
         createdAt: consumptions.createdAt,
         createdByUserId: consumptions.createdByUserId,
         loggerDisplayName: users.name,
+        loggerMemberId: loggerMembers.id,
+        loggerAvatarKey: loggerMembers.avatarKey,
+        loggerAvatarUploadAt: loggerMembers.avatarUploadAt,
         consumerMemberUserId: members.userId,
         voidId: consumptionVoids.id,
         sourceMatchId: matchBetTransfers.matchId,
@@ -130,6 +146,13 @@ export async function getMyTabForSession(args: {
       .innerJoin(beerTypes, eq(beerTypes.id, consumptions.beerTypeId))
       .innerJoin(members, eq(members.id, consumptions.memberId))
       .innerJoin(users, eq(users.id, consumptions.createdByUserId))
+      .leftJoin(
+        loggerMembers,
+        and(
+          eq(loggerMembers.userId, consumptions.createdByUserId),
+          eq(loggerMembers.clubId, consumptions.clubId),
+        ),
+      )
       .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
       .leftJoin(betTransfers, eq(betTransfers.sourceConsumptionId, consumptions.id))
       .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
@@ -186,6 +209,9 @@ export async function getMyTabForSession(args: {
       canUndo: !voided && isLogger && inWindow,
       sourceMatchId: r.betTransferVoidId === null ? r.sourceMatchId : null,
       loggerDisplayName: isOnBehalf ? r.loggerDisplayName : null,
+      loggerMemberId: isOnBehalf ? r.loggerMemberId : null,
+      loggerAvatarKey: isOnBehalf ? r.loggerAvatarKey : null,
+      loggerAvatarUploadAt: isOnBehalf ? r.loggerAvatarUploadAt : null,
     };
   });
 
@@ -201,6 +227,9 @@ export async function getMyTabForSession(args: {
       canUndo: false,
       sourceMatchId: r.sourceMatchId,
       loggerDisplayName: r.fromMemberDisplayName,
+      loggerMemberId: null,
+      loggerAvatarKey: null,
+      loggerAvatarUploadAt: null,
     }));
 
   // Merge + sort by createdAt DESC (Constitution V — single
@@ -243,6 +272,9 @@ export async function getMemberTabForAdmin(args: {
         unitPriceMinor: consumptions.unitPriceMinorSnapshot,
         createdAt: consumptions.createdAt,
         loggerDisplayName: users.name,
+        loggerMemberId: loggerMembers.id,
+        loggerAvatarKey: loggerMembers.avatarKey,
+        loggerAvatarUploadAt: loggerMembers.avatarUploadAt,
         consumerMemberUserId: members.userId,
         createdByUserId: consumptions.createdByUserId,
         voidId: consumptionVoids.id,
@@ -253,6 +285,13 @@ export async function getMemberTabForAdmin(args: {
       .innerJoin(beerTypes, eq(beerTypes.id, consumptions.beerTypeId))
       .innerJoin(members, eq(members.id, consumptions.memberId))
       .innerJoin(users, eq(users.id, consumptions.createdByUserId))
+      .leftJoin(
+        loggerMembers,
+        and(
+          eq(loggerMembers.userId, consumptions.createdByUserId),
+          eq(loggerMembers.clubId, consumptions.clubId),
+        ),
+      )
       .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
       .leftJoin(betTransfers, eq(betTransfers.sourceConsumptionId, consumptions.id))
       .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
@@ -302,6 +341,9 @@ export async function getMemberTabForAdmin(args: {
       canUndo: false,
       sourceMatchId: r.betTransferVoidId === null ? r.sourceMatchId : null,
       loggerDisplayName: isOnBehalf ? r.loggerDisplayName : null,
+      loggerMemberId: isOnBehalf ? r.loggerMemberId : null,
+      loggerAvatarKey: isOnBehalf ? r.loggerAvatarKey : null,
+      loggerAvatarUploadAt: isOnBehalf ? r.loggerAvatarUploadAt : null,
     };
   });
 
@@ -317,6 +359,9 @@ export async function getMemberTabForAdmin(args: {
       canUndo: false,
       sourceMatchId: r.sourceMatchId,
       loggerDisplayName: r.fromMemberDisplayName,
+      loggerMemberId: null,
+      loggerAvatarKey: null,
+      loggerAvatarUploadAt: null,
     }));
 
   const entries = [...consumptionEntries, ...transferEntries].sort(

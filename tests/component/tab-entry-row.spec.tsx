@@ -36,6 +36,9 @@ const baseEntry: MemberTabEntry = {
   canUndo: false,
   sourceMatchId: null,
   loggerDisplayName: null,
+  loggerMemberId: null,
+  loggerAvatarKey: null,
+  loggerAvatarUploadAt: null,
 };
 
 function renderRow(entry: MemberTabEntry, locale: 'cs' | 'en' = 'en') {
@@ -110,5 +113,66 @@ describe('TabEntryRow (component layer — spec 019)', () => {
   it('canUndo: renders the UndoButton', () => {
     renderRow({ ...baseEntry, canUndo: true });
     expect(screen.getByRole('button', { name: /undo/i })).toBeInTheDocument();
+  });
+
+  // Spec 023 — logger avatar on the on-behalf attribution subtitle.
+  describe('on-behalf avatar (spec 023)', () => {
+    it('renders <img> next to "by X" when logger has an upload', () => {
+      const { container } = renderRow({
+        ...baseEntry,
+        loggerDisplayName: 'Pavel',
+        loggerMemberId: 'logger-m-1',
+        loggerAvatarKey: null,
+        loggerAvatarUploadAt: new Date('2026-05-01T12:00:00Z'),
+      });
+      expect(container.querySelector('img')).toBeInTheDocument();
+      expect(screen.getByText(/by pavel/i)).toBeInTheDocument();
+    });
+
+    it('renders the glyph SVG next to "by X" when logger has avatarKey', () => {
+      const { container } = renderRow({
+        ...baseEntry,
+        loggerDisplayName: 'Pavel',
+        loggerMemberId: 'logger-m-1',
+        loggerAvatarKey: 'star',
+        loggerAvatarUploadAt: null,
+      });
+      // Two svgs is acceptable (glyph + possibly the link arrow icon),
+      // but at minimum the row must carry at least one svg now.
+      expect(container.querySelector('svg')).toBeInTheDocument();
+      expect(screen.getByText(/by pavel/i)).toBeInTheDocument();
+    });
+
+    it('renders initials chip next to "by X" when logger has neither', () => {
+      renderRow({
+        ...baseEntry,
+        loggerDisplayName: 'Pavel',
+        loggerMemberId: 'logger-m-1',
+        loggerAvatarKey: null,
+        loggerAvatarUploadAt: null,
+      });
+      // Initials of 'Pavel' = 'PA'
+      expect(screen.getByText('PA')).toBeInTheDocument();
+      expect(screen.getByText(/by pavel/i)).toBeInTheDocument();
+    });
+
+    it('self-logged consumption: no avatar (FR-006 — only on-behalf gets one)', () => {
+      const { container } = renderRow(baseEntry);
+      expect(container.querySelector('img')).not.toBeInTheDocument();
+      // No avatar wrapper span has its bg-primary/15 class on a self row.
+      expect(container.querySelector('span.bg-primary\\/15')).not.toBeInTheDocument();
+    });
+
+    it('lost-bet transfer_in row: no avatar (FR-006 — only on-behalf gets one)', () => {
+      const { container } = renderRow({
+        ...baseEntry,
+        id: 't-1',
+        kind: 'transfer_in',
+        loggerDisplayName: 'Pavel',
+        sourceMatchId: 'm-9',
+      });
+      expect(container.querySelector('img')).not.toBeInTheDocument();
+      expect(container.querySelector('span.bg-primary\\/15')).not.toBeInTheDocument();
+    });
   });
 });

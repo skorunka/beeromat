@@ -1,14 +1,18 @@
 <!-- SPECKIT START -->
-No spec currently in flight. Most recent shipped specs: 022
-(session-titles — inline-editable drink-session titles on
-/tab + /history/[sessionId], any active member, any session,
-60-char cap, NULL → "Round / Kolo" fallback preserved), 021
-(avatar-upload), 020 (fun-avatar-picker), 019
-(log-for-other-member + /tab origin-row expansion), 018
-(match-bet → home awareness), 017 (home redesign + one-tap
-log), 016 (onboarding happy-path E2E). Each spec dir under
-`specs/NNN-…/` carries its plan.md / data-model.md /
-contracts/ as source of truth.
+No spec currently in flight. Most recent shipped specs: 023
+(avatars-everywhere — <MemberAvatar /> next to member names
+on /admin/pending pending + confirmed, /bet drinks-you-can-take
++ past-bets, /history/[id] bet transfers, /tab on-behalf
+attribution; two new size variants on the component (inline
+h-5, row h-8) reused from the spec-020 + spec-021 primitive;
+five query shapes extended to carry memberId + avatarKey +
+avatarUploadAt; native `<select>` picker conversion deferred
+to spec 024), 022 (session-titles), 021 (avatar-upload), 020
+(fun-avatar-picker), 019 (log-for-other-member + /tab
+origin-row expansion), 018 (match-bet → home awareness), 017
+(home redesign + one-tap log), 016 (onboarding happy-path
+E2E). Each spec dir under `specs/NNN-…/` carries its plan.md
+/ data-model.md / contracts/ as source of truth.
 
 Live backlog (BACKLOG.md): inline polish items including pay-debt
 button on /tab, money formatting without cents in the header,

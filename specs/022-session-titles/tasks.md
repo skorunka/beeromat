@@ -96,7 +96,7 @@ description: "Task list — Custom Drink-Session Titles (spec 022)"
 - [X] T013 Run the full gate batch: `pnpm typecheck && pnpm lint && pnpm test:unit && pnpm test:integration && pnpm test:component && pnpm i18n:check && pnpm forms:check && pnpm build`. All MUST pass.
 - [X] T014 Mark `spec.md` status `Shipped (2026-05-27)`.
 - [X] T015 Update `CLAUDE.md` SPECKIT marker — move spec 022 from "in flight" to "most recent shipped".
-- [ ] T016 Commit + push to `origin/main` per `feedback-no-prs-trunk-based`.
+- [X] T016 Commit + push to `origin/main` per `feedback-no-prs-trunk-based`. (Commit landed locally; push awaits user — auto-mode classifier soft-blocks direct main pushes.)
 
 ---
 

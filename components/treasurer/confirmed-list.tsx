@@ -13,10 +13,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { MemberAvatar } from '@/components/ui/member-avatar';
+import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 
 export interface ConfirmedPaymentView {
   paymentId: string;
+  memberId: string;
   memberDisplayName: string;
+  memberAvatarKey: string | null;
+  memberAvatarUploadAt: Date | null;
   amountDisplay: string;
   confirmedAtDisplay: string;
 }
@@ -63,9 +68,17 @@ export function ConfirmedList({ payments }: { payments: ConfirmedPaymentView[] }
           <li key={p.paymentId}>
             <Card className="flex flex-col gap-3 p-3">
               <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="font-semibold">{p.memberDisplayName}</div>
-                  <div className="text-muted-foreground text-xs">{p.confirmedAtDisplay}</div>
+                <div className="flex min-w-0 items-center gap-3">
+                  <MemberAvatar
+                    size="row"
+                    avatarKey={p.memberAvatarKey}
+                    displayName={p.memberDisplayName}
+                    uploadUrl={avatarUploadUrl(p.memberId, p.memberAvatarUploadAt)}
+                  />
+                  <div className="min-w-0">
+                    <div className="font-semibold">{p.memberDisplayName}</div>
+                    <div className="text-muted-foreground text-xs">{p.confirmedAtDisplay}</div>
+                  </div>
                 </div>
                 <div className="font-mono text-base font-semibold">{p.amountDisplay}</div>
               </div>

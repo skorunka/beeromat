@@ -17,10 +17,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { MemberAvatar } from '@/components/ui/member-avatar';
+import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 
 export interface PendingClaimView {
   paymentId: string;
+  memberId: string;
   memberDisplayName: string;
+  memberAvatarKey: string | null;
+  memberAvatarUploadAt: Date | null;
   amountDisplay: string;
   variableSymbol: string | null;
   note: string | null;
@@ -107,6 +112,12 @@ export function PendingList({ claims }: { claims: PendingClaimView[] }) {
                   checked={selected.has(claim.paymentId)}
                   onChange={() => toggle(claim.paymentId)}
                   className="mt-1 size-5"
+                />
+                <MemberAvatar
+                  size="row"
+                  avatarKey={claim.memberAvatarKey}
+                  displayName={claim.memberDisplayName}
+                  uploadUrl={avatarUploadUrl(claim.memberId, claim.memberAvatarUploadAt)}
                 />
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold">{claim.memberDisplayName}</div>

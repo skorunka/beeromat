@@ -15,6 +15,8 @@ export interface TransferableConsumption {
   unitPriceMinor: bigint;
   ownerMemberId: string;
   ownerDisplayName: string;
+  ownerAvatarKey: string | null;
+  ownerAvatarUploadAt: Date | null;
   loggedAt: Date;
 }
 
@@ -37,6 +39,8 @@ export async function getTransferableConsumptionsForCurrentSession(args: {
       unitPriceMinor: consumptions.unitPriceMinorSnapshot,
       ownerMemberId: consumptions.memberId,
       ownerDisplayName: members.displayName,
+      ownerAvatarKey: members.avatarKey,
+      ownerAvatarUploadAt: members.avatarUploadAt,
       loggedAt: consumptions.createdAt,
     })
     .from(consumptions)
@@ -80,8 +84,12 @@ export interface BetTransferRow {
   sourceConsumptionId: string;
   fromMemberId: string;
   fromMemberName: string;
+  fromAvatarKey: string | null;
+  fromAvatarUploadAt: Date | null;
   toMemberId: string;
   toMemberName: string;
+  toAvatarKey: string | null;
+  toAvatarUploadAt: Date | null;
   beerTypeName: string;
   unitPriceMinorSnapshot: bigint;
   createdAt: Date;
@@ -134,26 +142,39 @@ export async function getBetTransfersForSession(args: {
     memberIds.add(r.fromMemberId);
     memberIds.add(r.toMemberId);
   }
-  const nameRows =
+  const memberRows =
     memberIds.size > 0
       ? await db
-          .select({ id: members.id, displayName: members.displayName })
+          .select({
+            id: members.id,
+            displayName: members.displayName,
+            avatarKey: members.avatarKey,
+            avatarUploadAt: members.avatarUploadAt,
+          })
           .from(members)
           .where(inArray(members.id, [...memberIds]))
       : [];
-  const nameById = new Map(nameRows.map((m) => [m.id, m.displayName]));
+  const memberById = new Map(memberRows.map((m) => [m.id, m]));
 
-  return rows.map((r) => ({
-    id: r.id,
-    sourceConsumptionId: r.sourceConsumptionId,
-    fromMemberId: r.fromMemberId,
-    fromMemberName: nameById.get(r.fromMemberId) ?? '—',
-    toMemberId: r.toMemberId,
-    toMemberName: nameById.get(r.toMemberId) ?? '—',
-    beerTypeName: r.beerTypeName,
-    unitPriceMinorSnapshot: r.unitPriceMinorSnapshot,
-    createdAt: r.createdAt,
-    createdByUserId: r.createdByUserId,
-    voided: r.voidId !== null,
-  }));
+  return rows.map((r) => {
+    const from = memberById.get(r.fromMemberId);
+    const to = memberById.get(r.toMemberId);
+    return {
+      id: r.id,
+      sourceConsumptionId: r.sourceConsumptionId,
+      fromMemberId: r.fromMemberId,
+      fromMemberName: from?.displayName ?? '—',
+      fromAvatarKey: from?.avatarKey ?? null,
+      fromAvatarUploadAt: from?.avatarUploadAt ?? null,
+      toMemberId: r.toMemberId,
+      toMemberName: to?.displayName ?? '—',
+      toAvatarKey: to?.avatarKey ?? null,
+      toAvatarUploadAt: to?.avatarUploadAt ?? null,
+      beerTypeName: r.beerTypeName,
+      unitPriceMinorSnapshot: r.unitPriceMinorSnapshot,
+      createdAt: r.createdAt,
+      createdByUserId: r.createdByUserId,
+      voided: r.voidId !== null,
+    };
+  });
 }

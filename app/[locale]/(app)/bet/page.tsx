@@ -58,7 +58,11 @@ export default async function BetPage({
 
   const transferables: TransferableView[] = consumptions.map((c) => ({
     consumptionId: c.consumptionId,
-    label: `${c.beerTypeName} · ${c.ownerDisplayName}`,
+    beerTypeName: c.beerTypeName,
+    ownerMemberId: c.ownerMemberId,
+    ownerDisplayName: c.ownerDisplayName,
+    ownerAvatarKey: c.ownerAvatarKey,
+    ownerAvatarUploadAt: c.ownerAvatarUploadAt,
     amountDisplay: formatMoney(c.unitPriceMinor, currencyCode, defaultLocale),
   }));
 
@@ -82,11 +86,30 @@ export default async function BetPage({
 
   const transfers: BetTransferView[] = transferRows.map((tr) => {
     const tookByMe = tr.toMemberId === ctx.member.id;
+    // Counterparty = the OTHER member from the viewer's perspective.
+    // Their face leads the row.
+    const counterparty = tookByMe
+      ? {
+          id: tr.fromMemberId,
+          displayName: tr.fromMemberName,
+          avatarKey: tr.fromAvatarKey,
+          avatarUploadAt: tr.fromAvatarUploadAt,
+        }
+      : {
+          id: tr.toMemberId,
+          displayName: tr.toMemberName,
+          avatarKey: tr.toAvatarKey,
+          avatarUploadAt: tr.toAvatarUploadAt,
+        };
     return {
       id: tr.id,
       description: tookByMe
         ? t('youTook', { name: tr.fromMemberName, beer: tr.beerTypeName })
         : t('tookYours', { name: tr.toMemberName, beer: tr.beerTypeName }),
+      counterpartyMemberId: counterparty.id,
+      counterpartyDisplayName: counterparty.displayName,
+      counterpartyAvatarKey: counterparty.avatarKey,
+      counterpartyAvatarUploadAt: counterparty.avatarUploadAt,
       amountDisplay: formatMoney(tr.unitPriceMinorSnapshot, currencyCode, defaultLocale),
       voided: tr.voided,
       canVoid: !tr.voided && (tr.createdByUserId === ctx.user.id || isTreasurer),

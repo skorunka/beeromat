@@ -3,6 +3,8 @@ import { useTranslations } from 'next-intl';
 
 import { Link } from '@/lib/i18n/navigation';
 import { UndoButton } from '@/components/log/undo-button';
+import { MemberAvatar } from '@/components/ui/member-avatar';
+import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { formatMoney } from '@/lib/format';
 import type { MemberTabEntry } from '@/lib/db/queries/consumption';
 
@@ -32,7 +34,18 @@ export function TabEntryRow({ entry, currencyCode, locale }: TabEntryRowProps) {
   if (entry.kind === 'consumption') {
     if (entry.loggerDisplayName) {
       subtitle = (
-        <span className="text-muted-foreground text-xs">
+        <span className="text-muted-foreground inline-flex items-center gap-1.5 text-xs">
+          {entry.loggerMemberId ? (
+            // Spec 023 — logger's face leads the "od X" attribution
+            // when we have the avatar fields. Falls through to text-only
+            // when the row is on-behalf but the join couldn't resolve.
+            <MemberAvatar
+              size="inline"
+              avatarKey={entry.loggerAvatarKey}
+              displayName={entry.loggerDisplayName}
+              uploadUrl={avatarUploadUrl(entry.loggerMemberId, entry.loggerAvatarUploadAt)}
+            />
+          ) : null}
           {t('byOther', { logger: entry.loggerDisplayName })}
         </span>
       );

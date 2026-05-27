@@ -68,4 +68,62 @@ describe('MemberAvatar (component layer — spec 020)', () => {
     // With null uploadUrl + null key + non-empty name → initials.
     expect(screen.getByText('TŠ')).toBeInTheDocument();
   });
+
+  // Spec 023 — size variant prop. Default unchanged, two new variants.
+  describe('size variants (spec 023)', () => {
+    it('defaults to h-9 w-9 (preserves spec 020/021 behavior)', () => {
+      const { container } = render(
+        <MemberAvatar avatarKey={null} displayName="P" />,
+      );
+      const wrapper = container.firstChild as HTMLElement;
+      expect(wrapper.className).toContain('h-9');
+      expect(wrapper.className).toContain('w-9');
+    });
+
+    it('size="row" renders at h-8 w-8', () => {
+      const { container } = render(
+        <MemberAvatar avatarKey={null} displayName="P" size="row" />,
+      );
+      const wrapper = container.firstChild as HTMLElement;
+      expect(wrapper.className).toContain('h-8');
+      expect(wrapper.className).toContain('w-8');
+    });
+
+    it('size="inline" renders at h-5 w-5 with smaller inner glyph', () => {
+      const { container } = render(
+        <MemberAvatar avatarKey="star" displayName="Pavel" size="inline" />,
+      );
+      const wrapper = container.firstChild as HTMLElement;
+      expect(wrapper.className).toContain('h-5');
+      expect(wrapper.className).toContain('w-5');
+      // Inner glyph scaled to h-3 so it fits inside the h-5 wrapper.
+      const svg = container.querySelector('svg');
+      expect(svg?.getAttribute('class')).toContain('h-3');
+    });
+
+    it('fallback chain preserved per size — upload wins at every size', () => {
+      for (const size of ['default', 'row', 'inline'] as const) {
+        const { container, unmount } = render(
+          <MemberAvatar
+            avatarKey="star"
+            displayName="Pavel"
+            uploadUrl="/api/avatar/x?v=1"
+            size={size}
+          />,
+        );
+        expect(container.querySelector('img')).toBeInTheDocument();
+        expect(container.querySelector('svg')).not.toBeInTheDocument();
+        unmount();
+      }
+    });
+
+    it('className still appends on top of the size variant', () => {
+      const { container } = render(
+        <MemberAvatar avatarKey={null} displayName="P" size="row" className="ml-2" />,
+      );
+      const wrapper = container.firstChild as HTMLElement;
+      expect(wrapper.className).toContain('ml-2');
+      expect(wrapper.className).toContain('h-8');
+    });
+  });
 });

@@ -4,7 +4,9 @@ import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Card } from '@/components/ui/card';
+import { MemberAvatar } from '@/components/ui/member-avatar';
 import { SessionTitleInlineEdit } from '@/components/session/session-title-inline-edit';
+import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getSessionDetail } from '@/lib/db/queries/consumption';
 import { formatMoney } from '@/lib/format';
@@ -96,6 +98,19 @@ export default async function SessionDetailPage({
           <ul className="flex flex-col gap-2">
             {detail.transfers.map((tr) => {
               const tookByMe = tr.toMemberId === ctx.member.id;
+              const counterparty = tookByMe
+                ? {
+                    id: tr.fromMemberId,
+                    name: tr.fromMemberName,
+                    avatarKey: tr.fromAvatarKey,
+                    avatarUploadAt: tr.fromAvatarUploadAt,
+                  }
+                : {
+                    id: tr.toMemberId,
+                    name: tr.toMemberName,
+                    avatarKey: tr.toAvatarKey,
+                    avatarUploadAt: tr.toAvatarUploadAt,
+                  };
               return (
                 <li
                   key={tr.id}
@@ -103,11 +118,19 @@ export default async function SessionDetailPage({
                     tr.voided ? 'opacity-50' : ''
                   }`}
                 >
-                  <div className="text-sm">
-                    {tookByMe
-                      ? tBet('youTook', { name: tr.fromMemberName, beer: tr.beerTypeName })
-                      : tBet('tookYours', { name: tr.toMemberName, beer: tr.beerTypeName })}
-                    {tr.voided ? ` · ${tBet('undone')}` : ''}
+                  <div className="flex min-w-0 items-center gap-2 text-sm">
+                    <MemberAvatar
+                      size="inline"
+                      avatarKey={counterparty.avatarKey}
+                      displayName={counterparty.name}
+                      uploadUrl={avatarUploadUrl(counterparty.id, counterparty.avatarUploadAt)}
+                    />
+                    <span className="min-w-0 truncate">
+                      {tookByMe
+                        ? tBet('youTook', { name: tr.fromMemberName, beer: tr.beerTypeName })
+                        : tBet('tookYours', { name: tr.toMemberName, beer: tr.beerTypeName })}
+                      {tr.voided ? ` · ${tBet('undone')}` : ''}
+                    </span>
                   </div>
                   <div className="font-mono text-sm">
                     {tookByMe ? '+' : '−'}

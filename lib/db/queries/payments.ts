@@ -37,6 +37,8 @@ export interface PendingClaim {
   paymentId: string;
   memberId: string;
   memberDisplayName: string;
+  memberAvatarKey: string | null;
+  memberAvatarUploadAt: Date | null;
   amountMinor: bigint;
   currencyCode: string;
   variableSymbol: bigint | null;
@@ -65,6 +67,8 @@ export async function getPendingClaimsForTreasurer(
       paymentId: payments.id,
       memberId: payments.memberId,
       memberDisplayName: members.displayName,
+      memberAvatarKey: members.avatarKey,
+      memberAvatarUploadAt: members.avatarUploadAt,
       amountMinor: payments.amountMinor,
       currencyCode: payments.currencyCode,
       variableSymbol: payments.variableSymbol,
@@ -278,7 +282,10 @@ export async function getPaymentHistory(
 
 export interface ConfirmedPaymentRow {
   paymentId: string;
+  memberId: string;
   memberDisplayName: string;
+  memberAvatarKey: string | null;
+  memberAvatarUploadAt: Date | null;
   amountMinor: bigint;
   currencyCode: string;
   confirmedAt: Date;
@@ -296,7 +303,10 @@ export async function getRecentlyConfirmedPayments(
   const rows = await db
     .select({
       paymentId: payments.id,
+      memberId: payments.memberId,
       memberDisplayName: members.displayName,
+      memberAvatarKey: members.avatarKey,
+      memberAvatarUploadAt: members.avatarUploadAt,
       amountMinor: payments.amountMinor,
       currencyCode: payments.currencyCode,
       confirmedAt: paymentStateTransitions.createdAt,

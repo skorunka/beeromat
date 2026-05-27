@@ -15,8 +15,14 @@ import { cn } from '@/lib/utils';
 // Server-safe (no 'use client'). Unknown avatarKey falls through to
 // initials so renaming/removing a palette entry can't crash anywhere.
 //
-// Default sizing matches the AppHeader user-menu trigger (h-9 w-9).
-// `className` lets call sites override for compact contexts.
+// Spec 023 — added `size` prop with three variants:
+//   default (h-9 w-9): AppHeader user-menu, /admin/members roster.
+//                      Pre-spec-023 behavior preserved.
+//   row     (h-8 w-8): list-card rows on /admin/pending.
+//   inline  (h-5 w-5): text-flow attribution on /tab, /bet, /history/[id].
+// `className` still appends so call sites can nudge spacing/margin.
+
+export type MemberAvatarSize = 'default' | 'row' | 'inline';
 
 interface MemberAvatarProps {
   avatarKey: string | null;
@@ -25,13 +31,28 @@ interface MemberAvatarProps {
    *  via `avatarUploadUrl(memberId, member.avatarUploadAt)`. When
    *  non-null, the image wins over every other fallback. */
   uploadUrl?: string | null;
+  size?: MemberAvatarSize;
   className?: string;
 }
+
+const WRAPPER_SIZE: Record<MemberAvatarSize, string> = {
+  default: 'h-9 w-9 text-sm',
+  row: 'h-8 w-8 text-sm',
+  inline: 'h-5 w-5 text-[10px]',
+};
+
+// At h-5 the default h-5 glyph/icon would overflow the circle; shrink it.
+const INNER_SIZE: Record<MemberAvatarSize, string> = {
+  default: 'h-5 w-5',
+  row: 'h-5 w-5',
+  inline: 'h-3 w-3',
+};
 
 export function MemberAvatar({
   avatarKey,
   displayName,
   uploadUrl,
+  size = 'default',
   className,
 }: MemberAvatarProps) {
   const validKey: AvatarKey | null =
@@ -42,7 +63,8 @@ export function MemberAvatar({
   return (
     <span
       className={cn(
-        'bg-primary/15 text-primary inline-flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-semibold',
+        'bg-primary/15 text-primary inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold',
+        WRAPPER_SIZE[size],
         className,
       )}
     >
@@ -59,14 +81,14 @@ export function MemberAvatar({
           viewBox={GLYPHS[validKey].viewBox}
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden
-          className="h-5 w-5"
+          className={INNER_SIZE[size]}
         >
           {GLYPHS[validKey].body}
         </svg>
       ) : trimmed ? (
         <span aria-hidden>{initials(trimmed)}</span>
       ) : (
-        <CircleUser aria-hidden className="h-5 w-5" />
+        <CircleUser aria-hidden className={INNER_SIZE[size]} />
       )}
     </span>
   );

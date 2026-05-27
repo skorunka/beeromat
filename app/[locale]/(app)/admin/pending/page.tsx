@@ -32,7 +32,10 @@ export default async function PendingPaymentsPage({
 
   const view = claims.map((c) => ({
     paymentId: c.paymentId,
+    memberId: c.memberId,
     memberDisplayName: c.memberDisplayName,
+    memberAvatarKey: c.memberAvatarKey,
+    memberAvatarUploadAt: c.memberAvatarUploadAt,
     amountDisplay: formatMoney(c.amountMinor, c.currencyCode, ctx.club.defaultLocale),
     variableSymbol: c.variableSymbol?.toString() ?? null,
     note: c.note,
@@ -42,7 +45,10 @@ export default async function PendingPaymentsPage({
   const confirmed = await getRecentlyConfirmedPayments(ctx.club.id);
   const confirmedView = confirmed.map((c) => ({
     paymentId: c.paymentId,
+    memberId: c.memberId,
     memberDisplayName: c.memberDisplayName,
+    memberAvatarKey: c.memberAvatarKey,
+    memberAvatarUploadAt: c.memberAvatarUploadAt,
     amountDisplay: formatMoney(c.amountMinor, c.currencyCode, ctx.club.defaultLocale),
     confirmedAtDisplay: dateFmt.format(c.confirmedAt),
   }));

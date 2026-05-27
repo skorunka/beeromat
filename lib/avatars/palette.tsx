@@ -38,20 +38,34 @@ export const GLYPHS: Record<AvatarKey, Glyph> = {
     viewBox: '0 0 24 24',
     body: (
       <>
-        {/* mug body */}
-        <rect x="6" y="8" width="9" height="11" rx="1" fill="currentColor" />
-        {/* foam */}
+        {/* D-handle on the right — drawn first so the mug body
+            covers where the handle meets it */}
         <path
-          d="M6 8 Q7.5 5.5 9 7 Q10.5 5.5 12 7 Q13.5 5.5 15 8 Z"
-          fill="currentColor"
-        />
-        {/* handle */}
-        <path
-          d="M15 11 h2 a2 2 0 0 1 0 4 h-2"
+          d="M16 12 c 3.5 0 4.5 1.5 4.5 3.5 s -1 3.5 -4.5 3.5"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth="1.8"
+          strokeLinecap="round"
         />
+        {/* Mug body — solid amber tankard, slightly rounded bottom */}
+        <rect x="4.5" y="9" width="11.5" height="13" rx="1.5" fill="currentColor" />
+        {/* Glass highlight — thin bright stripe down the left side */}
+        <rect
+          x="6"
+          y="11"
+          width="1"
+          height="9"
+          rx="0.5"
+          fill="var(--background)"
+          opacity="0.35"
+        />
+        {/* Foam cap — overhanging bubbles, slightly lighter via opacity */}
+        <g opacity="0.65">
+          <circle cx="6" cy="8.5" r="2.2" fill="currentColor" />
+          <circle cx="9.5" cy="7" r="2.5" fill="currentColor" />
+          <circle cx="13" cy="7.5" r="2.2" fill="currentColor" />
+          <circle cx="15.5" cy="8.5" r="1.6" fill="currentColor" />
+        </g>
       </>
     ),
   },

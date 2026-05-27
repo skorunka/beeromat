@@ -313,7 +313,7 @@
         "cropSubtitle": "Drag to move, corners to resize.",
         "saveCta": "Save",
         "cancelCta": "Cancel",
-        "removeCta": "Remove uploaded",
+        "removeCta": "Remove photo",
         "errorOversize": "Image is too big. Try a smaller one.",
         "errorInvalidType": "Please pick an image (JPEG, PNG, WebP).",
         "errorGeneric": "Couldn't upload. Try again."

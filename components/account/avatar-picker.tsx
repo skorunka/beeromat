@@ -4,13 +4,14 @@ import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { CircleUser, Upload } from 'lucide-react';
+import { CircleUser, Trash2, Upload } from 'lucide-react';
 
 import {
   setAvatarAction,
   removeAvatarUploadAction,
 } from '@/app/[locale]/(app)/account/actions';
 import { AvatarUploadForm } from '@/components/account/avatar-upload-form';
+import { Button } from '@/components/ui/button';
 import { AVATAR_KEYS, GLYPHS, type AvatarKey } from '@/lib/avatars/palette';
 import { cn } from '@/lib/utils';
 
@@ -135,18 +136,24 @@ export function AvatarPicker({ currentKey, uploadUrl }: AvatarPickerProps) {
       </div>
 
       {/* Remove-upload affordance, visible only when an upload is
-          the current selection. The Default tile / glyph picks
-          ALSO remove the upload via the server action, but a direct
-          "Remove uploaded" button is the most discoverable path. */}
+          the current selection. Standalone outline button with a
+          trash icon — matches the Slack/GitHub/Notion pattern for
+          "Remove photo." Picking a glyph or the Default tile also
+          drops the upload via the server action; this is the
+          explicit path. */}
       {hasUpload ? (
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={handleRemoveUpload}
           disabled={isPending}
-          className="text-muted-foreground hover:text-foreground self-start text-xs underline"
+          isPending={isPending}
+          className="self-start"
         >
+          <Trash2 aria-hidden />
           {tUpload('removeCta')}
-        </button>
+        </Button>
       ) : null}
 
       {/* Upload form expansion — collapsed by default, opens on

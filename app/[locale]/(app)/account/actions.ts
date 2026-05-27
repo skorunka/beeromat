@@ -52,3 +52,46 @@ export async function updateAccountAction(
 
   return { ok: true };
 }
+
+// Spec 020 — pick an avatar (or clear back to initials). Per-club
+// seat: writes to ctx.member.avatarKey only; no cross-club identity
+// effect. See contracts/set-avatar.md for the contract.
+
+import { isValidAvatarKey } from '@/lib/avatars/validate';
+import type { AvatarKey } from '@/lib/avatars/palette';
+
+export type SetAvatarResult =
+  | { ok: true }
+  | { ok: false; code: 'INVALID_KEY' | 'NO_MEMBERSHIP' };
+
+export async function setAvatarAction(input: {
+  avatarKey: AvatarKey | string | null;
+}): Promise<SetAvatarResult> {
+  // Defensive normalization: empty string → null. The picker never
+  // sends '' but a manual API call might.
+  const rawKey = input.avatarKey === '' ? null : input.avatarKey;
+  if (rawKey !== null && !isValidAvatarKey(rawKey)) {
+    return { ok: false, code: 'INVALID_KEY' };
+  }
+  const finalKey: AvatarKey | null = rawKey;
+
+  const ctx = await requireUnlocked();
+  // requireUnlocked already guarantees ctx.member exists; this guard
+  // is belt-and-braces for the contract's NO_MEMBERSHIP failure code.
+  if (!ctx.member) {
+    return { ok: false, code: 'NO_MEMBERSHIP' };
+  }
+
+  await db
+    .update(members)
+    .set({ avatarKey: finalKey })
+    .where(eq(members.id, ctx.member.id));
+
+  // Layout-level revalidation — the AppHeader renders the avatar in
+  // every authenticated page, so the next navigation tick picks up
+  // the new glyph everywhere.
+  revalidatePath('/', 'layout');
+  revalidatePath('/account');
+
+  return { ok: true };
+}

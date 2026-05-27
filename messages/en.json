@@ -283,6 +283,12 @@
     "signOutAllCta": "Sign out everywhere",
     "laterBadge": "later",
     "comingSoonBadge": "coming soon",
+    "avatar": {
+      "sectionTitle": "Avatar",
+      "sectionHint": "Pick something playful.",
+      "defaultTileLabel": "Default",
+      "saveError": "Couldn't save the avatar. Try again."
+    },
     "errors": {
       "displayNameRequired": "Enter your name.",
       "displayNameTooLong": "Maximum 80 characters.",

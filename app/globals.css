@@ -272,3 +272,30 @@ body {
 .animate-beer-mug-fountain {
   animation: beer-mug-fountain 1.2s ease-out forwards;
 }
+
+/* ─── Avatar picker pop ──────────────────────────────────────────────
+   Spec 020 — when a tile becomes the selected one in the avatar
+   picker, give it a brief scale-pop so the selection feels confirmed
+   beyond the static ring. Short (~280ms) + motion-reduce-aware. */
+@keyframes avatar-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.18);
+  }
+  70% {
+    transform: scale(0.96);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-avatar-pop {
+  animation: avatar-pop 0.28s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-avatar-pop {
+    animation: none;
+  }
+}

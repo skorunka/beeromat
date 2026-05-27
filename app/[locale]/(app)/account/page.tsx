@@ -1,6 +1,7 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { AccountForm } from './AccountForm';
+import { AvatarPicker } from '@/components/account/avatar-picker';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { SignOutButton } from '@/components/account/sign-out-button';
@@ -35,6 +36,13 @@ export default async function AccountPage({
       <section className="mb-6">
         <Card className="p-4">
           <AccountForm initialDisplayName={ctx.member.displayName} />
+        </Card>
+      </section>
+
+      {/* Spec 020 — fun avatar picker. */}
+      <section className="mb-6">
+        <Card className="p-4">
+          <AvatarPicker currentKey={ctx.member.avatarKey ?? null} />
         </Card>
       </section>
 

@@ -2,13 +2,13 @@
 
 import { useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { CircleUser } from 'lucide-react';
 
 import { Link, usePathname, useRouter } from '@/lib/i18n/navigation';
 import { setLocaleCookie } from '@/lib/i18n/actions';
 import { routing } from '@/lib/i18n/routing';
 import { signOutDeviceAction } from '@/lib/auth/actions';
 import { FlagIcon } from '@/components/ui/flag-icon';
+import { MemberAvatar } from '@/components/ui/member-avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,19 +38,14 @@ const LOCALE_LABEL: Record<string, string> = {
 // Menu items: identity header (display name + email), Account link,
 // Language toggle (inline CS/EN), Sign out.
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase();
-}
-
 export function UserMenu({
   displayName,
   email,
+  avatarKey,
 }: {
   displayName: string;
   email: string;
+  avatarKey: string | null;
 }) {
   const t = useTranslations();
   const active = useLocale();
@@ -78,13 +73,9 @@ export function UserMenu({
       <DropdownMenuTrigger
         aria-label={t('nav.userMenu')}
         disabled={isPending}
-        className="bg-primary/15 text-primary hover:bg-primary/25 focus-visible:ring-ring/50 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:outline-none disabled:opacity-50"
+        className="focus-visible:ring-ring/50 rounded-full transition-colors hover:opacity-90 focus-visible:ring-3 focus-visible:outline-none disabled:opacity-50"
       >
-        {displayName.trim() ? (
-          <span aria-hidden>{initials(displayName)}</span>
-        ) : (
-          <CircleUser aria-hidden className="h-5 w-5" />
-        )}
+        <MemberAvatar avatarKey={avatarKey} displayName={displayName} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={6} className="min-w-56">
         {/* Identity header — plain div (not DropdownMenuLabel) because

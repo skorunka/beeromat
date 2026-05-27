@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-26
 
-**Status**: Draft
+**Status**: Shipped (2026-05-27)
 
 **Input**: User description: spec 020 — small predefined avatar
 palette so each member can pick a playful glyph (beer mug, tennis

@@ -82,15 +82,17 @@ When one matures, run `/speckit-specify` and the item moves into
   user-menu avatar) is outside the link so taps on those don't
   navigate home.
 
-- **Fun avatar picker.** Today the user-menu shows the member's
-  initials in a primary-tinted circle. Add an "Edit avatar"
-  option that lets the member pick from a small predefined set
-  of playful images — beer mug 🍺, tennis ball 🎾, court 🏟️,
-  mate-emoji set, etc. Stored on the user (probably a small
-  enum or a string id pointing at an image asset). Falls back to
-  initials when nothing's picked. Enjoyable + personal touch
-  that fits a club app. Schema: small new `users.avatar_key` or
-  `members.avatar_key` (decide during spec).
+- ~~**Fun avatar picker.**~~ **— Shipped 2026-05-27 as spec 020**
+  (`specs/020-fun-avatar-picker/`). Member picks one of 8
+  inline-SVG glyphs (beer-mug, tennis-ball, trophy, lightning,
+  target, star, heart, sparkle) in a new `/account` section.
+  Stored per-club seat on `members.avatar_key`. `<MemberAvatar />`
+  renderer falls back to initials → CircleUser icon for missing
+  data. Picker uses optimistic updates + a small scale-pop on
+  selection (motion-reduce gated). Follow-up: render
+  `<MemberAvatar />` next to member names in admin lists, /tab
+  attribution, settle screens (today those surfaces are
+  text-only, so the spec didn't require it).
 
 - ~~**Refine language picker in the user-menu.**~~ **— Shipped
   2026-05-26.** The 2-tile CS/EN button grid was replaced with

@@ -57,6 +57,13 @@
       "when": 1779807905392,
       "tag": "0007_fair_bug",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1779854923463,
+      "tag": "0008_sudden_snowbird",
+      "breakpoints": true
     }
   ]
 }

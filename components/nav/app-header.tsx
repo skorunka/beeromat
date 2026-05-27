@@ -19,12 +19,14 @@ export function AppHeader({
   clubName,
   displayName,
   email,
+  avatarKey,
   balanceFormatted,
   balanceAriaLabel,
 }: {
   clubName: string;
   displayName: string;
   email: string;
+  avatarKey: string | null;
   balanceFormatted: string | null;
   balanceAriaLabel: string;
 }) {
@@ -46,7 +48,7 @@ export function AppHeader({
       </Link>
       <div className="flex shrink-0 items-center gap-2">
         <BalanceBadge balanceFormatted={balanceFormatted} ariaLabel={balanceAriaLabel} />
-        <UserMenu displayName={displayName} email={email} />
+        <UserMenu displayName={displayName} email={email} avatarKey={avatarKey} />
       </div>
     </header>
   );

@@ -1,17 +1,14 @@
 <!-- SPECKIT START -->
-**In flight**: spec 020 — fun avatar picker. Spec + plan + research
-+ data-model + contract + quickstart written; awaiting
-`/speckit-tasks`. Plan: `specs/020-fun-avatar-picker/plan.md`.
-Clarify decisions (2026-05-27): storage on `members.avatar_key`
-per club seat (A), inline-SVG rendering via FlagIcon precedent
-(B), picker lives in a new `/account` section (A).
-
-Most recent shipped specs: 019 (log-for-other-member + /tab
-origin-row expansion, all gates green, on origin/main), 018
-(match-bet → home awareness MVP + follow-ups), 017 (home redesign
-+ one-tap log), 016 (onboarding happy-path E2E). Each spec dir
-under `specs/NNN-…/` carries its plan.md / data-model.md /
-contracts/ as source of truth.
+No spec currently in flight. Most recent shipped specs: 020
+(fun-avatar-picker — 8 inline-SVG glyphs picked on /account,
+stored per-club seat on `members.avatar_key`, MemberAvatar
+renderer in the AppHeader trigger; admin/treasurer/tab surfaces
+left as text-only per the FR-006 audit), 019 (log-for-other-member
++ /tab origin-row expansion), 018 (match-bet → home awareness
+MVP + follow-ups), 017 (home redesign + one-tap log), 016
+(onboarding happy-path E2E). Each spec dir under `specs/NNN-…/`
+carries its plan.md / data-model.md / contracts/ as source of
+truth.
 
 Live backlog (BACKLOG.md): inline polish items including pay-debt
 button on /tab, money formatting without cents in the header,

@@ -283,6 +283,12 @@
     "signOutAllCta": "Odhlásit všude",
     "laterBadge": "později",
     "comingSoonBadge": "brzy",
+    "avatar": {
+      "sectionTitle": "Profilová ikona",
+      "sectionHint": "Vyber si něco hravého.",
+      "defaultTileLabel": "Výchozí",
+      "saveError": "Nepovedlo se uložit ikonu. Zkus to znovu."
+    },
     "errors": {
       "displayNameRequired": "Doplň své jméno.",
       "displayNameTooLong": "Maximálně 80 znaků.",

@@ -32,6 +32,10 @@ export const members = pgTable(
     acceptedInvitationAt: timestamp({ withTimezone: true }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     createdByUserId: uuid().references(() => users.id, { onDelete: 'set null' }),
+    // spec 020 — picked avatar palette key (one of AVATAR_KEYS in
+    // lib/avatars/palette.tsx) or NULL for "use initials fallback".
+    // Per-club seat — same person in two clubs picks independently.
+    avatarKey: text('avatar_key'),
   },
   (t) => [
     uniqueIndex('uniq_members_club_user').on(t.clubId, t.userId),

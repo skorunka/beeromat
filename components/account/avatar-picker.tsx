@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useRef, useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -14,19 +14,22 @@ import {
 import { AvatarUploadForm } from '@/components/account/avatar-upload-form';
 import { Button } from '@/components/ui/button';
 import { AVATAR_KEYS, GLYPHS, type AvatarKey } from '@/lib/avatars/palette';
+import {
+  AVATAR_ALLOWED_CONTENT_TYPES,
+} from '@/lib/avatars/upload-validate';
 import { cn } from '@/lib/utils';
 
 // Spec 020 + spec 021 — the avatar picker grid. Lives in /account.
-// Two upload states the picker distinguishes:
-//   • activeUploadUrl: non-null iff the upload is what the renderer
-//     is currently showing (members.avatar_upload_at is non-null).
-//   • storedUploadUrl: non-null iff avatar_uploads has bytes for
-//     this member at all — active OR deactivated by picking a glyph.
 //
-// Picking a glyph DEACTIVATES the upload (clears avatar_upload_at)
-// but DOES NOT delete the bytes — so the member can tap the Upload
-// tile to reactivate their previously-uploaded photo. The "Remove
-// photo" button is the only path that actually drops the bytes.
+// The Upload tile owns the file picker directly: tapping it opens
+// the OS file dialog (when no stored bytes exist OR when the upload
+// is currently the active renderer choice) and the crop UI appears
+// as soon as a file lands. When stored bytes exist but a glyph is
+// currently active, tapping the Upload tile REACTIVATES the stored
+// photo instead — no re-upload needed.
+//
+// Stored bytes survive a glyph pick (the renderer just stops using
+// them); only the explicit "Remove photo" trash button drops them.
 
 interface AvatarPickerProps {
   /** Current spec-020 glyph key (null if none picked). */
@@ -37,6 +40,8 @@ interface AvatarPickerProps {
    *  whether they're the active renderer choice or not. */
   storedUploadUrl: string | null;
 }
+
+const ALLOWED_ACCEPT = AVATAR_ALLOWED_CONTENT_TYPES.join(',');
 
 export function AvatarPicker({
   currentKey,
@@ -49,7 +54,8 @@ export function AvatarPicker({
 
   const [optimisticKey, setOptimisticKey] = useState<string | null>(currentKey);
   const [isPending, startTransition] = useTransition();
-  const [uploading, setUploading] = useState(false);
+  const [pickedFile, setPickedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const uploadIsActive = activeUploadUrl !== null;
   const hasStoredBytes = storedUploadUrl !== null;
@@ -86,9 +92,20 @@ export function AvatarPicker({
       });
       return;
     }
-    // Active OR empty → open the form. Active means the member
-    // wants to re-upload / re-crop; empty means first upload.
-    setUploading(true);
+    // Empty OR already-active — open the OS file picker. Active
+    // means the member wants to re-crop / re-upload.
+    fileInputRef.current?.click();
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-picking the same file later
+    if (!file) return;
+    if (!(AVATAR_ALLOWED_CONTENT_TYPES as readonly string[]).includes(file.type)) {
+      toast.error(tUpload('errorInvalidType'));
+      return;
+    }
+    setPickedFile(file);
   }
 
   function handleRemoveUpload() {
@@ -109,6 +126,17 @@ export function AvatarPicker({
         <h2 className="text-sm font-medium">{t('sectionTitle')}</h2>
         <p className="text-muted-foreground text-xs">{t('sectionHint')}</p>
       </header>
+
+      {/* Hidden file input owned by the picker. The Upload tile
+          programmatically clicks it; the file change handler opens
+          the crop UI by setting pickedFile. */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={ALLOWED_ACCEPT}
+        onChange={handleFileChange}
+        className="hidden"
+      />
 
       <div className="grid grid-cols-5 gap-3">
         {/* Default tile — clears back to initials/icon. Deactivates
@@ -147,8 +175,9 @@ export function AvatarPicker({
         {/* Upload tile — three visual states:
               • Stored bytes + active → image + selection ring
               • Stored bytes + not active → image, no ring (tap to
-                reactivate)
-              • No stored bytes → dashed-border Upload icon */}
+                reactivate without re-uploading)
+              • No stored bytes → dashed-border Upload icon (tap to
+                open file picker) */}
         <UploadTile
           uploadIsActive={uploadIsActive}
           storedUploadUrl={storedUploadUrl}
@@ -158,9 +187,9 @@ export function AvatarPicker({
         />
       </div>
 
-      {/* Remove-photo button — the only path that deletes stored
-          bytes. Tapping the Upload tile handles upload, re-upload,
-          and reactivation; no separate "Change photo" button. */}
+      {/* Remove-photo button — only path that deletes stored bytes.
+          Right-aligned so it sits beneath the Upload tile (which is
+          the last column in the 5-wide grid). */}
       {hasStoredBytes ? (
         <Button
           type="button"
@@ -169,22 +198,24 @@ export function AvatarPicker({
           onClick={handleRemoveUpload}
           disabled={isPending}
           isPending={isPending}
-          className="self-start"
+          className="self-end"
         >
           <Trash2 aria-hidden />
           {tUpload('removeCta')}
         </Button>
       ) : null}
 
-      {/* Upload form expansion — collapsed by default. */}
-      {uploading ? (
+      {/* Crop UI appears as soon as a file is picked. The form
+          handles read → crop → resize → upload internally. */}
+      {pickedFile ? (
         <div className="border-border rounded-lg border p-3">
           <AvatarUploadForm
+            file={pickedFile}
             onSuccess={() => {
-              setUploading(false);
+              setPickedFile(null);
               router.refresh();
             }}
-            onCancel={() => setUploading(false)}
+            onCancel={() => setPickedFile(null)}
           />
         </div>
       ) : null}

@@ -123,21 +123,21 @@ When one matures, run `/speckit-specify` and the item moves into
   the overlay entirely for users who've requested reduced
   motion (the toast still confirms verbally).
 
-- **/account stub rows — actually wire them up.** Three rows on
-  `/account` (spec 010 FR-009) are visual stubs with "později" /
-  "brzy" badges and no backend: (a) **Change e-mail** — the
-  member changes the e-mail tied to their `users` row; needs a
-  verification flow (magic link to the new address) before the
-  change commits, and the active session should keep working;
-  (b) **Change PIN** — the member rotates the per-device PIN
-  without resetting the device session. Action: prompt for the
-  current PIN, then accept the new one; reject if wrong. Reuses
-  most of the spec-001 PinGate primitives; (c) **Sign out from
-  all devices** — clears every `device_sessions` row for the
-  current user, forcing a fresh magic-link sign-in everywhere
-  next time. The single-device sign-out below already exists;
-  this is the "panic button" variant. Captured 2026-05-27 — user
-  flagged the placeholders shouldn't be forgotten.
+- **/account stub rows — Change e-mail still pending.** Of the
+  three stubs flagged 2026-05-27, two shipped same day:
+  ~~Change PIN~~ (lib/auth/actions setPinAction with currentPin
+  arg + components/account/change-pin-form.tsx) and ~~Sign out
+  from all devices~~ (new signOutAllDevicesAction +
+  components/account/sign-out-all-button.tsx). The third — Change
+  e-mail — still wears the "později" badge. Needs its own small
+  spec: Better Auth supports `auth.api.changeEmail` with a
+  verification link to the new address; the user-facing flow is
+  "enter new e-mail → magic-link confirmation arrives at new
+  address → click → e-mail rotated, current session keeps
+  working." Also need to think about: what happens if the link
+  expires (rollback?), what happens to the OLD address (orphaned
+  magic-link path?), and whether the actor needs to re-verify
+  with PIN before initiating the change.
 
 - ~~**Refine the bottom nav.**~~ **— Shipped 2026-05-26.** Log
   and Tab dropped from the bottom nav. Bottom nav is now

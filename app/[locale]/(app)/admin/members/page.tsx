@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { MemberAvatar } from '@/components/ui/member-avatar';
 import { requireRole } from '@/lib/auth/session';
 import { db } from '@/lib/db/client';
 import { members } from '@/lib/db/schema/members';
@@ -54,9 +55,14 @@ export default async function AdminMembersPage({
         {memberRows.map((m) => (
           <li
             key={m.id}
-            className="flex items-center justify-between rounded-md border p-3"
+            className="flex items-center gap-3 rounded-md border p-3"
           >
-            <div>
+            <MemberAvatar
+              avatarKey={m.avatarKey}
+              displayName={m.displayName}
+              className="h-10 w-10 text-xs"
+            />
+            <div className="min-w-0 flex-1">
               <div className="font-medium">{m.displayName}</div>
               <div className="text-muted-foreground text-xs">{m.email}</div>
             </div>

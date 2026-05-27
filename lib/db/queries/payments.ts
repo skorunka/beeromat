@@ -95,6 +95,7 @@ export async function getPendingClaimsForTreasurer(
 export interface MemberBalanceRow {
   memberId: string;
   displayName: string;
+  avatarKey: string | null;
   isActive: boolean;
   balanceMinor: bigint;
   pendingConfirmationMinor: bigint;
@@ -111,6 +112,7 @@ export async function getAllMemberBalances(clubId: string): Promise<MemberBalanc
       .select({
         id: members.id,
         displayName: members.displayName,
+        avatarKey: members.avatarKey,
         isActive: members.isActive,
       })
       .from(members)
@@ -147,6 +149,7 @@ export async function getAllMemberBalances(clubId: string): Promise<MemberBalanc
     .map((m) => ({
       memberId: m.id,
       displayName: m.displayName,
+      avatarKey: m.avatarKey,
       isActive: m.isActive,
       balanceMinor: (consumedByMember.get(m.id) ?? 0n) - (confirmedByMember.get(m.id) ?? 0n),
       pendingConfirmationMinor: claimedByMember.get(m.id) ?? 0n,

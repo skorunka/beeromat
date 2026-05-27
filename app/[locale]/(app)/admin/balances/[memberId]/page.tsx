@@ -7,6 +7,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ManualPaymentForm } from '@/components/treasurer/manual-payment-form';
 import { TabEntryRow } from '@/components/tab/tab-entry-row';
 import { Card } from '@/components/ui/card';
+import { MemberAvatar } from '@/components/ui/member-avatar';
 import { requireRole } from '@/lib/auth/session';
 import { memberBalance, paymentsTotal } from '@/lib/balance/calculate';
 import { db } from '@/lib/db/client';
@@ -47,7 +48,14 @@ export default async function MemberBalanceDetailPage({
       <Link href={'/admin/balances' as Route} className="text-primary text-sm underline">
         ← {t('balancesTitle')}
       </Link>
-      <h1 className="mt-2 mb-4 text-2xl font-bold">{member.displayName}</h1>
+      <div className="mt-2 mb-4 flex items-center gap-3">
+        <MemberAvatar
+          avatarKey={member.avatarKey}
+          displayName={member.displayName}
+          className="h-12 w-12"
+        />
+        <h1 className="text-2xl font-bold">{member.displayName}</h1>
+      </div>
 
       <Card className="mb-6 p-6">
         <div className="text-muted-foreground text-sm">{tHome('outstandingBalance')}</div>

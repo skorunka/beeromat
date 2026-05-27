@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { MemberAvatar } from '@/components/ui/member-avatar';
 import { requireRole } from '@/lib/auth/session';
 import { getAllMemberBalances } from '@/lib/db/queries/payments';
 import { formatMoney } from '@/lib/format';
@@ -42,8 +43,13 @@ export default async function BalancesPage({
         {balances.map((b) => (
           <li key={b.memberId}>
             <Link href={`/admin/balances/${b.memberId}` as Route}>
-              <Card className="hover:bg-accent flex items-center justify-between gap-3 p-3 transition-colors">
-                <div className="min-w-0">
+              <Card className="hover:bg-accent flex items-center gap-3 p-3 transition-colors">
+                <MemberAvatar
+                  avatarKey={b.avatarKey}
+                  displayName={b.displayName}
+                  className="h-10 w-10 text-xs"
+                />
+                <div className="min-w-0 flex-1">
                   <div className="font-medium">
                     {b.displayName}
                     {b.isActive ? null : (

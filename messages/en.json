@@ -314,6 +314,7 @@
         "saveCta": "Save",
         "cancelCta": "Cancel",
         "removeCta": "Remove photo",
+        "changeCta": "Change photo",
         "errorOversize": "Image is too big. Try a smaller one.",
         "errorInvalidType": "Please pick an image (JPEG, PNG, WebP).",
         "errorGeneric": "Couldn't upload. Try again."

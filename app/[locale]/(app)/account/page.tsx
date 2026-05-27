@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { eq } from 'drizzle-orm';
 
 import { AccountForm } from './AccountForm';
 import { AvatarPicker } from '@/components/account/avatar-picker';
@@ -10,6 +11,8 @@ import { SignOutButton } from '@/components/account/sign-out-button';
 import { Link } from '@/lib/i18n/navigation';
 import { requireUnlocked } from '@/lib/auth/session';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
+import { db } from '@/lib/db/client';
+import { avatarUploads } from '@/lib/db/schema/avatar-uploads';
 
 // Spec 010 — the member account page.
 //
@@ -28,6 +31,16 @@ export default async function AccountPage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('account');
+  // Spec 021 — pull the stored-upload row so the picker can show
+  // the photo on the Upload tile even when a glyph is currently
+  // active (lets members switch back without re-uploading).
+  const storedUpload = await db.query.avatarUploads.findFirst({
+    where: eq(avatarUploads.memberId, ctx.member.id),
+    columns: { updatedAt: true },
+  });
+  const storedUploadUrl = storedUpload
+    ? avatarUploadUrl(ctx.member.id, storedUpload.updatedAt)
+    : null;
 
   return (
     <main className="mx-auto max-w-md p-5">
@@ -47,7 +60,8 @@ export default async function AccountPage({
         <Card className="p-4">
           <AvatarPicker
             currentKey={ctx.member.avatarKey ?? null}
-            uploadUrl={avatarUploadUrl(ctx.member.id, ctx.member.avatarUploadAt)}
+            activeUploadUrl={avatarUploadUrl(ctx.member.id, ctx.member.avatarUploadAt)}
+            storedUploadUrl={storedUploadUrl}
           />
         </Card>
       </section>

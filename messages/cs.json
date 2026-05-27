@@ -314,6 +314,7 @@
         "saveCta": "Uložit",
         "cancelCta": "Zrušit",
         "removeCta": "Odstranit fotku",
+        "changeCta": "Změnit fotku",
         "errorOversize": "Obrázek je moc velký. Zkus menší.",
         "errorInvalidType": "Vyber prosím obrázek (JPEG, PNG, WebP).",
         "errorGeneric": "Nepovedlo se nahrát. Zkus to znovu."

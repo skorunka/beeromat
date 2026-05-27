@@ -87,16 +87,16 @@ export async function setAvatarAction(input: {
     return { ok: false, code: 'NO_MEMBERSHIP' };
   }
 
-  // Spec 021 — picking a glyph or Default ALSO drops any existing
-  // uploaded avatar so the glyph/default wins (FR-006). One tx so
-  // the members row + avatar_uploads row stay in lockstep.
-  await db.transaction(async (tx) => {
-    await tx.delete(avatarUploads).where(eq(avatarUploads.memberId, ctx.member.id));
-    await tx
-      .update(members)
-      .set({ avatarKey: finalKey, avatarUploadAt: null })
-      .where(eq(members.id, ctx.member.id));
-  });
+  // Spec 021 fix (2026-05-27): picking a glyph or Default
+  // DEACTIVATES any existing upload (clears avatarUploadAt so the
+  // glyph wins) but KEEPS the avatar_uploads row around. Members
+  // can then tap the Upload tile in the picker to reactivate
+  // their stored photo without re-uploading. Hard removal happens
+  // only via removeAvatarUploadAction (the "Remove photo" button).
+  await db
+    .update(members)
+    .set({ avatarKey: finalKey, avatarUploadAt: null })
+    .where(eq(members.id, ctx.member.id));
 
   // Layout-level revalidation — the AppHeader renders the avatar in
   // every authenticated page, so the next navigation tick picks up
@@ -163,6 +163,40 @@ export async function uploadAvatarAction(input: {
   revalidatePath('/account');
 
   return { ok: true };
+}
+
+// Spec 021 — reactivate the member's previously-uploaded avatar
+// (the bytes are still in avatar_uploads but the renderer was
+// using a glyph or initials). Used by the picker's Upload tile
+// when stored bytes exist but the upload isn't the current
+// renderer choice. No-op (returns ok) when no stored bytes exist.
+
+export type ActivateAvatarUploadResult =
+  | { ok: true; activated: boolean }
+  | { ok: false; code: 'NO_MEMBERSHIP' };
+
+export async function activateAvatarUploadAction(): Promise<ActivateAvatarUploadResult> {
+  const ctx = await requireUnlocked();
+  if (!ctx.member) {
+    return { ok: false, code: 'NO_MEMBERSHIP' };
+  }
+
+  const existing = await db.query.avatarUploads.findFirst({
+    where: eq(avatarUploads.memberId, ctx.member.id),
+  });
+  if (!existing) {
+    return { ok: true, activated: false };
+  }
+
+  await db
+    .update(members)
+    .set({ avatarUploadAt: existing.updatedAt })
+    .where(eq(members.id, ctx.member.id));
+
+  revalidatePath('/', 'layout');
+  revalidatePath('/account');
+
+  return { ok: true, activated: true };
 }
 
 export type RemoveAvatarUploadResult =

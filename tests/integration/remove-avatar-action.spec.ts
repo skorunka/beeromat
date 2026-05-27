@@ -28,6 +28,7 @@ vi.mock('next/cache', () => ({
 }));
 
 import {
+  activateAvatarUploadAction,
   removeAvatarUploadAction,
   setAvatarAction,
   uploadAvatarAction,
@@ -120,7 +121,7 @@ describe('removeAvatarUploadAction + setAvatarAction clears upload (spec 021)', 
     expect((await readMemberRow(member.id))?.avatarUploadAt).toBeNull();
   });
 
-  it('picking a glyph also clears the upload', async () => {
+  it('picking a glyph DEACTIVATES upload but KEEPS bytes (spec 021 fix)', async () => {
     const { user, club, member } = await seedClubAndMember();
     ctxRef.current = {
       user: { id: user.id },
@@ -136,10 +137,53 @@ describe('removeAvatarUploadAction + setAvatarAction clears upload (spec 021)', 
     const result = await setAvatarAction({ avatarKey: 'star' });
 
     expect(result).toEqual({ ok: true });
-    expect(await uploadCount(member.id)).toBe(0);
+    // Bytes ARE retained — member can switch back without re-upload.
+    expect(await uploadCount(member.id)).toBe(1);
     const row = await readMemberRow(member.id);
     expect(row?.avatarKey).toBe('star');
+    // But the renderer sentinel is cleared so the glyph wins.
     expect(row?.avatarUploadAt).toBeNull();
+  });
+
+  it('activate reactivates a deactivated upload without re-uploading', async () => {
+    const { user, club, member } = await seedClubAndMember();
+    ctxRef.current = {
+      user: { id: user.id },
+      member: { id: member.id, role: 'member' },
+      club: { id: club.id },
+    };
+    await uploadAvatarAction({
+      imageBase64: TINY_JPEG_BASE64,
+      contentType: 'image/jpeg',
+    });
+    // Glyph pick deactivates the upload (avatarUploadAt = null) but
+    // bytes stay.
+    await setAvatarAction({ avatarKey: 'star' });
+    expect((await readMemberRow(member.id))?.avatarUploadAt).toBeNull();
+    expect(await uploadCount(member.id)).toBe(1);
+
+    const result = await activateAvatarUploadAction();
+
+    expect(result).toEqual({ ok: true, activated: true });
+    const row = await readMemberRow(member.id);
+    expect(row?.avatarUploadAt).toBeInstanceOf(Date);
+    // Glyph key is preserved — when the upload is removed later,
+    // the renderer falls back to the previously-picked glyph.
+    expect(row?.avatarKey).toBe('star');
+  });
+
+  it('activate is a safe no-op when no stored bytes exist', async () => {
+    const { user, club, member } = await seedClubAndMember();
+    ctxRef.current = {
+      user: { id: user.id },
+      member: { id: member.id, role: 'member' },
+      club: { id: club.id },
+    };
+
+    const result = await activateAvatarUploadAction();
+
+    expect(result).toEqual({ ok: true, activated: false });
+    expect((await readMemberRow(member.id))?.avatarUploadAt).toBeNull();
   });
 
   it('cascade on member delete — drops upload row', async () => {

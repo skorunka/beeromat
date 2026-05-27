@@ -4,11 +4,12 @@ import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { CircleUser, Trash2, Upload } from 'lucide-react';
+import { CircleUser, Pencil, Trash2, Upload } from 'lucide-react';
 
 import {
-  setAvatarAction,
+  activateAvatarUploadAction,
   removeAvatarUploadAction,
+  setAvatarAction,
 } from '@/app/[locale]/(app)/account/actions';
 import { AvatarUploadForm } from '@/components/account/avatar-upload-form';
 import { Button } from '@/components/ui/button';
@@ -16,36 +17,45 @@ import { AVATAR_KEYS, GLYPHS, type AvatarKey } from '@/lib/avatars/palette';
 import { cn } from '@/lib/utils';
 
 // Spec 020 + spec 021 — the avatar picker grid. Lives in /account.
-//   • Tap any glyph or the Default tile → setAvatarAction.
-//   • Tap the Upload tile → expands the AvatarUploadForm inline.
-// Picking a glyph or Default also drops any existing upload (the
-// server action handles the dual-clear in one transaction).
+// Two upload states the picker distinguishes:
+//   • activeUploadUrl: non-null iff the upload is what the renderer
+//     is currently showing (members.avatar_upload_at is non-null).
+//   • storedUploadUrl: non-null iff avatar_uploads has bytes for
+//     this member at all — active OR deactivated by picking a glyph.
+//
+// Picking a glyph DEACTIVATES the upload (clears avatar_upload_at)
+// but DOES NOT delete the bytes — so the member can tap the Upload
+// tile to reactivate their previously-uploaded photo. The "Remove
+// photo" button is the only path that actually drops the bytes.
 
 interface AvatarPickerProps {
   /** Current spec-020 glyph key (null if none picked). */
   currentKey: string | null;
-  /** Pre-computed URL of the member's uploaded avatar, or null. */
-  uploadUrl: string | null;
+  /** URL of the uploaded photo iff the renderer is currently using it. */
+  activeUploadUrl: string | null;
+  /** URL of the stored upload bytes — non-null iff bytes exist,
+   *  whether they're the active renderer choice or not. */
+  storedUploadUrl: string | null;
 }
 
-export function AvatarPicker({ currentKey, uploadUrl }: AvatarPickerProps) {
+export function AvatarPicker({
+  currentKey,
+  activeUploadUrl,
+  storedUploadUrl,
+}: AvatarPickerProps) {
   const t = useTranslations('account.avatar');
   const tUpload = useTranslations('account.avatar.upload');
   const router = useRouter();
 
-  // Optimistic state for the glyph selection. The upload state is
-  // not optimistic — it's driven entirely by the server response
-  // (the bytes have to be processed before the URL is valid).
   const [optimisticKey, setOptimisticKey] = useState<string | null>(currentKey);
   const [isPending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
 
-  const hasUpload = uploadUrl !== null;
+  const uploadIsActive = activeUploadUrl !== null;
+  const hasStoredBytes = storedUploadUrl !== null;
 
-  function handlePick(nextKey: AvatarKey | null) {
-    // No-op only when there's no upload either (otherwise picking
-    // any glyph also removes the upload — meaningful action).
-    if (nextKey === optimisticKey && !hasUpload) return;
+  function handlePickGlyph(nextKey: AvatarKey | null) {
+    if (nextKey === optimisticKey && !uploadIsActive) return;
     if (isPending) return;
     const previousKey = optimisticKey;
     setOptimisticKey(nextKey);
@@ -56,11 +66,33 @@ export function AvatarPicker({ currentKey, uploadUrl }: AvatarPickerProps) {
         toast.error(t('saveError'));
         return;
       }
-      // The server action revalidates the layout; force a refresh
-      // so the parent re-fetches uploadUrl (now null) and re-renders
-      // the picker with the new state.
       router.refresh();
     });
+  }
+
+  function handleUploadTileTap() {
+    if (isPending) return;
+    if (uploadIsActive) {
+      // Already the active choice — no-op, same as tapping any
+      // already-selected tile. (Re-uploading is via the pencil
+      // button below.)
+      return;
+    }
+    if (hasStoredBytes) {
+      // Stored bytes exist but a glyph is currently active —
+      // reactivate the upload without re-uploading.
+      startTransition(async () => {
+        const result = await activateAvatarUploadAction();
+        if (!result.ok) {
+          toast.error(tUpload('errorGeneric'));
+          return;
+        }
+        router.refresh();
+      });
+      return;
+    }
+    // No stored bytes — open the upload form to pick a new photo.
+    setUploading(true);
   }
 
   function handleRemoveUpload() {
@@ -83,13 +115,13 @@ export function AvatarPicker({ currentKey, uploadUrl }: AvatarPickerProps) {
       </header>
 
       <div className="grid grid-cols-5 gap-3">
-        {/* Default tile — clears back to initials/icon (also drops
-            any upload via the server action). */}
+        {/* Default tile — clears back to initials/icon. Deactivates
+            any upload but keeps the bytes. */}
         <PickerTile
-          isSelected={optimisticKey === null && !hasUpload}
+          isSelected={optimisticKey === null && !uploadIsActive}
           isPending={isPending}
           ariaLabel={t('defaultTileLabel')}
-          onClick={() => handlePick(null)}
+          onClick={() => handlePickGlyph(null)}
         >
           <CircleUser className="text-primary h-6 w-6" aria-hidden />
         </PickerTile>
@@ -99,10 +131,10 @@ export function AvatarPicker({ currentKey, uploadUrl }: AvatarPickerProps) {
           return (
             <PickerTile
               key={key}
-              isSelected={optimisticKey === key && !hasUpload}
+              isSelected={optimisticKey === key && !uploadIsActive}
               isPending={isPending}
               ariaLabel={key}
-              onClick={() => handlePick(key)}
+              onClick={() => handlePickGlyph(key)}
             >
               <svg
                 viewBox={glyph.viewBox}
@@ -116,48 +148,51 @@ export function AvatarPicker({ currentKey, uploadUrl }: AvatarPickerProps) {
           );
         })}
 
-        {/* Upload tile — distinct visual treatment so members read it
-            as an action (pick a photo), not another avatar option:
-              • No-upload state: dashed border, transparent center,
-                Upload arrow icon. Universal "drop here / upload"
-                affordance.
-              • Upload exists: shows the uploaded image as the tile
-                content + selection ring (same as other tiles when
-                picked) so the picker still makes visual sense as
-                "this is what's currently set."
-            See <UploadTile /> below. */}
+        {/* Upload tile — three visual states:
+              • Stored bytes + active → image + selection ring
+              • Stored bytes + not active → image, no ring (tap to
+                reactivate)
+              • No stored bytes → dashed-border Upload icon */}
         <UploadTile
-          hasUpload={hasUpload}
-          uploadUrl={uploadUrl}
+          uploadIsActive={uploadIsActive}
+          storedUploadUrl={storedUploadUrl}
           isPending={isPending}
           ariaLabel={tUpload('uploadTileLabel')}
-          onClick={() => setUploading(true)}
+          onClick={handleUploadTileTap}
         />
       </div>
 
-      {/* Remove-upload affordance, visible only when an upload is
-          the current selection. Standalone outline button with a
-          trash icon — matches the Slack/GitHub/Notion pattern for
-          "Remove photo." Picking a glyph or the Default tile also
-          drops the upload via the server action; this is the
-          explicit path. */}
-      {hasUpload ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleRemoveUpload}
-          disabled={isPending}
-          isPending={isPending}
-          className="self-start"
-        >
-          <Trash2 aria-hidden />
-          {tUpload('removeCta')}
-        </Button>
+      {/* Photo-management buttons. Visible whenever stored bytes
+          exist (whether currently active or deactivated by a glyph
+          pick), so the member can manage their photo without
+          re-uploading. */}
+      {hasStoredBytes ? (
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setUploading(true)}
+            disabled={isPending}
+          >
+            <Pencil aria-hidden />
+            {tUpload('changeCta')}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleRemoveUpload}
+            disabled={isPending}
+            isPending={isPending}
+          >
+            <Trash2 aria-hidden />
+            {tUpload('removeCta')}
+          </Button>
+        </div>
       ) : null}
 
-      {/* Upload form expansion — collapsed by default, opens on
-          Upload tile tap. Closes on success or cancel. */}
+      {/* Upload form expansion — collapsed by default. */}
       {uploading ? (
         <div className="border-border rounded-lg border p-3">
           <AvatarUploadForm
@@ -207,43 +242,43 @@ function PickerTile({
 }
 
 interface UploadTileProps {
-  hasUpload: boolean;
-  uploadUrl: string | null;
+  uploadIsActive: boolean;
+  storedUploadUrl: string | null;
   isPending: boolean;
   ariaLabel: string;
   onClick: () => void;
 }
 
 function UploadTile({
-  hasUpload,
-  uploadUrl,
+  uploadIsActive,
+  storedUploadUrl,
   isPending,
   ariaLabel,
   onClick,
 }: UploadTileProps) {
-  // Filled state (upload exists) reuses the standard tile styling so
-  // the picker reads coherently as "this is what's currently set."
-  // Empty state diverges visually: dashed border + transparent center
-  // makes it obvious this is an action (pick a photo), not just
-  // another avatar option.
-  if (hasUpload && uploadUrl) {
+  // Stored bytes exist (active or not) → show the image. The ring
+  // is only on the active state.
+  if (storedUploadUrl) {
     return (
       <button
         type="button"
         onClick={onClick}
         disabled={isPending}
         aria-label={ariaLabel}
-        aria-pressed
+        aria-pressed={uploadIsActive}
         className={cn(
-          'bg-primary/15 hover:bg-primary/25 ring-primary animate-avatar-pop flex h-12 w-12 items-center justify-center overflow-hidden rounded-full ring-2 ring-offset-2 ring-offset-background transition-all',
+          'bg-primary/15 hover:bg-primary/25 flex h-12 w-12 items-center justify-center overflow-hidden rounded-full transition-all',
+          uploadIsActive &&
+            'ring-primary animate-avatar-pop ring-2 ring-offset-2 ring-offset-background',
           isPending && 'opacity-60',
         )}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={uploadUrl} alt="" className="h-full w-full rounded-full object-cover" />
+        <img src={storedUploadUrl} alt="" className="h-full w-full rounded-full object-cover" />
       </button>
     );
   }
+  // No stored bytes — dashed-border empty state, reads as an action.
   return (
     <button
       type="button"

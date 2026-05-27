@@ -19,6 +19,16 @@ past) drink-session a custom title so /history reads as
   active member of the club. Matches the small-group trust
   model already used by log-on-behalf (spec 019); restricting
   to admins would feel corporate.
+- Q: When can a title be set? → A: Option β — any session,
+  current or past. Retroactive naming (US2) stays in scope —
+  the treasurer reconciling old "Round / Kolo" entries can
+  name them weeks later. Same UPDATE statement, same permission
+  check.
+- Q: Where does the "set title" affordance live? → A: Option
+  III — both. Inline edit on /tab for the live session AND on
+  /history/[sessionId] for any session. Same inline-edit
+  component reused at both mount points; single source of
+  truth for the edit UX.
 
 ## User Scenarios & Testing *(mandatory)*
 

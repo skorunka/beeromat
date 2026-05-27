@@ -47,6 +47,11 @@ export function MemberActionsMenu({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [optimisticRole, setOptimisticRole] = useState<Role>(currentRole);
+  // Control open state explicitly so we can close the menu after the
+  // user picks an action (base-ui RadioItem keeps the menu open by
+  // default, since radio menus are typically meant for flipping
+  // multiple selections — not our case here).
+  const [open, setOpen] = useState(false);
 
   if (isSelf) return null;
 
@@ -54,6 +59,7 @@ export function MemberActionsMenu({
     if (nextRole === optimisticRole || isPending) return;
     const previousRole = optimisticRole;
     setOptimisticRole(nextRole);
+    setOpen(false);
     startTransition(async () => {
       const result = await changeMemberRoleAction({ memberId, role: nextRole });
       if (!result.ok) {
@@ -69,6 +75,7 @@ export function MemberActionsMenu({
   function handleToggleActive() {
     const nextActive = !isActive;
     const confirmKey = nextActive ? 'activateConfirm' : 'deactivateConfirm';
+    setOpen(false);
     if (!window.confirm(t(confirmKey, { name: memberDisplayName }))) return;
     startTransition(async () => {
       const result = await setMemberActiveAction({ memberId, isActive: nextActive });
@@ -82,7 +89,7 @@ export function MemberActionsMenu({
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
         aria-label={t('open')}
         disabled={isPending}

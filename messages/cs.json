@@ -460,6 +460,14 @@
     "noDrinksInSession": "V tomhle kole žádné pití.",
     "betTransfers": "Výměny sázek"
   },
+  "session": {
+    "title": {
+      "placeholder": "Pojmenuj tohle kolo",
+      "editAriaLabel": "Upravit název kola",
+      "saveError": "Nepovedlo se uložit. Zkus to znovu.",
+      "tooLong": "Maximálně {max} znaků"
+    }
+  },
   "admin": {
     "roles": {
       "member": "Člen",

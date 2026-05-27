@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Card } from '@/components/ui/card';
+import { SessionTitleInlineEdit } from '@/components/session/session-title-inline-edit';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getSessionDetail } from '@/lib/db/queries/consumption';
 import { formatMoney } from '@/lib/format';
@@ -37,7 +38,13 @@ export default async function SessionDetailPage({
     <main className="mx-auto max-w-md p-5">
       <header className="mb-4">
         <div className="flex items-start justify-between gap-3">
-          <h1 className="text-2xl font-bold">{detail.session.title ?? t('drinkSession')}</h1>
+          <h1 className="min-w-0 flex-1 text-2xl font-bold">
+            <SessionTitleInlineEdit
+              sessionId={detail.session.id}
+              currentTitle={detail.session.title}
+              fallbackLabel={t('drinkSession')}
+            />
+          </h1>
           <Link href={'/history' as Route} className="text-primary shrink-0 text-sm underline">
             ← {t('title')}
           </Link>

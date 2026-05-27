@@ -460,6 +460,14 @@
     "noDrinksInSession": "No drinks logged this round.",
     "betTransfers": "Bet swaps"
   },
+  "session": {
+    "title": {
+      "placeholder": "Name this round",
+      "editAriaLabel": "Edit round name",
+      "saveError": "Couldn't save. Try again.",
+      "tooLong": "Max {max} characters"
+    }
+  },
   "admin": {
     "roles": {
       "member": "Member",

@@ -19,6 +19,13 @@ vi.mock('sonner', () => ({
   toast: { error: (...args: unknown[]) => mockToastError(...args) },
 }));
 
+// next/navigation router.refresh is called on a successful action
+// (spec 021 added the upload-aware flow). Stub a minimal router so
+// the component renders outside Next's app-router runtime.
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: vi.fn(), push: vi.fn(), replace: vi.fn() }),
+}));
+
 function renderPicker(currentKey: string | null = null) {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages}>
@@ -37,11 +44,11 @@ beforeEach(() => {
 });
 
 describe('AvatarPicker (component layer — spec 020)', () => {
-  it('renders one tile per palette key plus the Default tile', () => {
+  it('renders one tile per palette key plus the Default and Upload tiles', () => {
     renderPicker(null);
-    // Default tile + every key in AVATAR_KEYS.
+    // Default tile + Upload tile (spec 021) + every key in AVATAR_KEYS.
     const buttons = screen.getAllByRole('button');
-    expect(buttons).toHaveLength(AVATAR_KEYS.length + 1);
+    expect(buttons).toHaveLength(AVATAR_KEYS.length + 2);
     expect(screen.getByRole('button', { name: /default/i })).toBeInTheDocument();
     for (const key of AVATAR_KEYS) {
       expect(screen.getByRole('button', { name: key })).toBeInTheDocument();

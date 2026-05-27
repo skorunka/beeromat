@@ -4,7 +4,7 @@
 
 **Created**: 2026-05-27
 
-**Status**: Draft
+**Status**: Shipped (2026-05-27)
 
 **Input**: User description: let a member give the current (or a
 past) drink-session a custom title so /history reads as

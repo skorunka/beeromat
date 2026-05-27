@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/lib/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { SessionTitleInlineEdit } from '@/components/session/session-title-inline-edit';
 import { TabEntryRow } from '@/components/tab/tab-entry-row';
 import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
@@ -22,6 +23,7 @@ export default async function TabPage({
   const ctx = await requireUnlocked();
   const t = await getTranslations('tab');
   const tHome = await getTranslations('home');
+  const tHistory = await getTranslations('history');
   const session = await getOpenSessionForClub(ctx.club.id);
   const [tab, outstandingBalanceMinor] = await Promise.all([
     getMyTabForSession({
@@ -39,7 +41,12 @@ export default async function TabPage({
       <header className="mb-4">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         {tab.session ? (
-          <p className="text-muted-foreground text-sm">{tab.session.title}</p>
+          <SessionTitleInlineEdit
+            sessionId={tab.session.id}
+            currentTitle={tab.session.title}
+            fallbackLabel={tHistory('drinkSession')}
+            className="text-muted-foreground text-sm"
+          />
         ) : (
           <p className="text-muted-foreground text-sm">{t('noOpenSession')}</p>
         )}

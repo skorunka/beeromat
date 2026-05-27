@@ -282,6 +282,22 @@ export type RecordResultResult =
   | { ok: false; code: 'CANCELLED' }
   | { ok: false; code: 'NO_BEER_IN_STOCK' };
 
+// Spec 027 perf — sentinel thrown when the optimistic-lock UPDATE
+// inside recordResultTx returns 0 rows (another caller already
+// stamped resultRecordedAt). The throw is needed to roll back the
+// transaction's already-completed inserts (matches + consumptions +
+// stock_changes + bet_transfers); the outer try/catch converts it
+// to a user-friendly ALREADY_RECORDED result so a double-submit
+// during network stall produces a clean error toast instead of a
+// 500. Custom class keeps the matching specific (no error-string
+// sniffing).
+class LostConcurrencyRaceError extends Error {
+  constructor() {
+    super('recordResultTx: lost concurrency race');
+    this.name = 'LostConcurrencyRaceError';
+  }
+}
+
 export async function recordResultTx(args: RecordResultArgs): Promise<RecordResultResult> {
   try {
     return await db.transaction(async (tx) => {
@@ -436,7 +452,7 @@ export async function recordResultTx(args: RecordResultArgs): Promise<RecordResu
         )
         .returning({ id: matchAgreements.id });
       if (updated.length === 0) {
-        throw new Error('recordResultTx: lost concurrency race');
+        throw new LostConcurrencyRaceError();
       }
 
       return {
@@ -450,6 +466,23 @@ export async function recordResultTx(args: RecordResultArgs): Promise<RecordResu
   } catch (e) {
     if (e instanceof NoBeerInStockError) {
       return { ok: false, code: 'NO_BEER_IN_STOCK' };
+    }
+    if (e instanceof LostConcurrencyRaceError) {
+      // Re-read post-rollback to surface the canonical recorded-at
+      // for the user-facing toast. The winner has already committed,
+      // so this select returns the populated values.
+      const winner = await db.query.matchAgreements.findFirst({
+        where: and(
+          eq(matchAgreements.id, args.agreementId),
+          eq(matchAgreements.clubId, args.clubId),
+        ),
+      });
+      return {
+        ok: false,
+        code: 'ALREADY_RECORDED',
+        recordedAt: winner?.resultRecordedAt ?? new Date(),
+        recordedByUserId: winner?.resultRecordedByUserId ?? null,
+      };
     }
     throw e;
   }

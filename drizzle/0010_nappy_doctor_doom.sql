@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "uniq_payments_member_one_claimed" ON "payments" USING btree ("member_id") WHERE "payments"."status" = 'claimed';

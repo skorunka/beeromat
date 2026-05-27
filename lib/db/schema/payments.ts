@@ -37,6 +37,15 @@ export const payments = pgTable(
     uniqueIndex('uniq_payments_club_vs')
       .on(t.clubId, t.variableSymbol)
       .where(sql`${t.variableSymbol} IS NOT NULL`),
+    // Spec 027 perf — at most one claimed (pending-confirmation)
+    // payment per member at a time (FR-032). Server-side check-
+    // then-insert in confirmTransferMadeAction +
+    // markPaidOtherMethodAction is racy under concurrent retries;
+    // the partial unique index closes the window. Action catches
+    // the constraint violation and returns CLAIM_PENDING.
+    uniqueIndex('uniq_payments_member_one_claimed')
+      .on(t.memberId)
+      .where(sql`${t.status} = 'claimed'`),
   ],
 );
 

@@ -1,15 +1,16 @@
 import { cn } from '@/lib/utils';
 
-// "Beer being poured" loading indicator. A pint-glass outline + an
-// amber fill that rises from empty to full on a continuous loop.
-// Inline SVG (no asset hosting), uses `currentColor` for the glass
-// outline so it inherits the surrounding text color — drop into any
-// button or full-page loader and it picks up the right tint.
+// "Beer being poured" loading indicator — chunky mug silhouette
+// (handle on the right, bubbly foam cap on top) with amber liquid
+// that rises from empty to full on a continuous loop. Inline SVG;
+// glass outline + handle + foam all use `currentColor` so the
+// spinner inherits the surrounding text color in any button or
+// loader context.
 //
-// Aspect ratio is tall (24x28) to match a real pint silhouette. The
-// fill animation lives in app/globals.css (animate-beer-fill) and is
-// disabled under prefers-reduced-motion — the glass outline still
-// shows so users get a visible "loading" affordance without motion.
+// Aspect ratio 28x24 (wider than tall because the handle adds width).
+// The fill animation lives in app/globals.css (animate-beer-fill)
+// and is gated by prefers-reduced-motion — the mug outline + foam
+// stay visible so users get a "loading" affordance without motion.
 
 interface BeerSpinnerProps {
   className?: string;
@@ -20,38 +21,57 @@ interface BeerSpinnerProps {
 export function BeerSpinner({ className, label = 'Loading' }: BeerSpinnerProps) {
   return (
     <svg
-      viewBox="0 0 24 28"
+      viewBox="0 0 28 24"
       xmlns="http://www.w3.org/2000/svg"
       role="status"
       aria-label={label}
-      className={cn('inline-block h-5 w-[18px] shrink-0', className)}
+      className={cn('inline-block h-5 w-[24px] shrink-0', className)}
     >
       <defs>
-        {/* Clip to the glass interior — slightly inset from the outline
-            so the fill doesn't bleed over the stroke. */}
-        <clipPath id="beer-spinner-glass">
-          <path d="M6.6 4.5 h10.8 l-1.45 20.2 a1.5 1.5 0 0 1 -1.5 1.2 h-5.1 a1.5 1.5 0 0 1 -1.5 -1.2 z" />
+        {/* Clip to the mug interior — slightly inset from the outline
+            so the rising amber doesn't bleed across the stroke. */}
+        <clipPath id="beer-spinner-mug">
+          <rect x="3.5" y="9" width="14" height="11" rx="0.8" />
         </clipPath>
       </defs>
 
-      {/* Amber liquid + foam, rising from below. The group is sized
-          to the full glass interior; the keyframe translates it from
-          fully-below to fully-in-place on each cycle. */}
-      <g clipPath="url(#beer-spinner-glass)" className="animate-beer-fill">
-        {/* Foam (lighter strip on top of the liquid) */}
-        <rect x="6" y="4" width="12" height="2.5" fill="currentColor" opacity="0.45" />
-        {/* Amber body */}
-        <rect x="6" y="6.5" width="12" height="22" fill="currentColor" opacity="0.7" />
-      </g>
-
-      {/* Glass outline — drawn last so it sits above the fill. */}
+      {/* Handle on the right — drawn first so the mug body covers
+          where the handle attaches. */}
       <path
-        d="M6 4 h12 l-1.5 21 a2 2 0 0 1 -2 1.5 h-5 a2 2 0 0 1 -2 -1.5 z"
+        d="M18 11 a 3.2 3.2 0 0 1 0 6"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.3"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+
+      {/* Mug body outline */}
+      <rect
+        x="3"
+        y="8.5"
+        width="15"
+        height="12"
+        rx="1"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
         strokeLinejoin="round"
       />
+
+      {/* Amber liquid rising — clipped to the mug interior */}
+      <g clipPath="url(#beer-spinner-mug)" className="animate-beer-fill">
+        <rect x="3" y="9" width="15" height="11" fill="currentColor" opacity="0.75" />
+      </g>
+
+      {/* Bubbly foam cap on top of the mug — always visible,
+          drawn last so it sits above everything. */}
+      <g opacity="0.55">
+        <circle cx="5" cy="8" r="2.2" fill="currentColor" />
+        <circle cx="8.5" cy="7.2" r="2.4" fill="currentColor" />
+        <circle cx="12" cy="7.5" r="2.2" fill="currentColor" />
+        <circle cx="15.5" cy="7.5" r="2.4" fill="currentColor" />
+        <circle cx="17.5" cy="8.2" r="1.6" fill="currentColor" />
+      </g>
     </svg>
   );
 }

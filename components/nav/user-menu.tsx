@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { LogOut, User } from 'lucide-react';
 
 import { Link, usePathname, useRouter } from '@/lib/i18n/navigation';
 import { setLocaleCookie } from '@/lib/i18n/actions';
@@ -88,6 +89,7 @@ export function UserMenu({
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem render={<Link href="/account" />}>
+          <User aria-hidden />
           {t('nav.account')}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -109,11 +111,8 @@ export function UserMenu({
           ))}
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={handleSignOut}
-          disabled={isPending}
-          className="text-destructive focus:text-destructive"
-        >
+        <DropdownMenuItem onClick={handleSignOut} disabled={isPending}>
+          <LogOut aria-hidden />
           {t('auth.signOut')}
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -72,6 +72,7 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
     { key: 'home', href: '/' as Route },
     { key: 'bet', href: '/bet' as Route },
     { key: 'history', href: '/history' as Route },
+    { key: 'account', href: '/account' as Route },
   ];
   if (roleSatisfies(ctx.member.role, 'club_admin')) {
     navItems.push({ key: 'admin', href: '/admin' as Route });

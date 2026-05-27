@@ -30,6 +30,9 @@ async function seedClubAndPlayers() {
     .values({ name: 'Test', currencyCode: 'CZK', defaultLocale: 'cs-CZ' })
     .returning();
   if (!club) throw new Error('seed club');
+  // TS narrowing of `club` doesn't follow through the nested
+  // closure — capture clubId locally.
+  const clubId = club.id;
 
   async function seedPlayer(name: string) {
     const [u] = await testDb
@@ -43,7 +46,7 @@ async function seedClubAndPlayers() {
     const [m] = await testDb
       .insert(members)
       .values({
-        clubId: club.id,
+        clubId,
         userId: u.id,
         email: u.email,
         displayName: name,

@@ -20,6 +20,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { LocaleDropdown } from '@/components/ui/locale-dropdown';
 import { routing } from '@/lib/i18n/routing';
 import { onboardingSchema, type OnboardingInput } from '@/lib/validation/onboarding';
 
@@ -158,16 +159,11 @@ export function SetupWizardForm() {
             <FormItem>
               <FormLabel>{t('defaultLocaleLabel')}</FormLabel>
               <FormControl>
-                <select
-                  {...field}
-                  className="border-input bg-background hover:bg-accent inline-flex h-11 w-full items-center rounded-md border px-3 text-sm"
-                >
-                  {routing.locales.map((locale) => (
-                    <option key={locale} value={locale}>
-                      {locale}
-                    </option>
-                  ))}
-                </select>
+                {/* Shared LocaleDropdown — flag + endonym ("Čeština" /
+                    "English") so a first-time admin sees the languages
+                    by name, not bare locale codes. Same shape as the
+                    admin config locale switcher. */}
+                <LocaleDropdown value={field.value} onChange={field.onChange} />
               </FormControl>
               <FormDescription>{t('defaultLocaleHint')}</FormDescription>
               <FormMessage />

@@ -44,6 +44,10 @@ async function seedClubAndPlayers(opts: { thirdMemberRole?: 'member' | 'treasure
     .values({ name: 'Test', currencyCode: 'CZK', defaultLocale: 'cs-CZ' })
     .returning();
   if (!club) throw new Error('seed club');
+  // TS narrowing of `club` doesn't follow through the nested seed
+  // function closure — capture clubId locally so the inner function
+  // sees a non-undefined string.
+  const clubId = club.id;
 
   async function seed(name: string, role: 'member' | 'treasurer' = 'member') {
     const [u] = await testDb
@@ -54,7 +58,7 @@ async function seedClubAndPlayers(opts: { thirdMemberRole?: 'member' | 'treasure
     const [m] = await testDb
       .insert(members)
       .values({
-        clubId: club.id,
+        clubId,
         userId: u.id,
         email: u.email,
         displayName: name,

@@ -26,74 +26,12 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { updateClubConfigAction } from '@/app/[locale]/(app)/admin/config/actions';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { FlagIcon } from '@/components/ui/flag-icon';
-import { ChevronDown } from 'lucide-react';
+import { LocaleDropdown } from '@/components/ui/locale-dropdown';
 import { routing } from '@/lib/i18n/routing';
 import {
   clubConfigSchema,
   type ClubConfigInput,
 } from '@/lib/validation/admin-config';
-
-// Locale endonyms — each language labelled in its own script.
-// Same map the user-menu uses; consistency keeps the picker reading
-// the same way wherever it appears.
-const LOCALE_LABEL: Record<string, string> = {
-  cs: 'Čeština',
-  en: 'English',
-};
-
-// Locale dropdown extracted so it can own its own `open` state and
-// close the popup the moment a value is picked. base-ui's RadioItem
-// doesn't auto-close otherwise.
-function LocaleDropdown({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (next: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger
-        className="border-input bg-background hover:bg-accent flex h-11 w-full items-center justify-between gap-2 rounded-md border px-3 text-sm"
-      >
-        <span className="inline-flex items-center gap-2">
-          <FlagIcon code={value} />
-          {LOCALE_LABEL[value] ?? value.toUpperCase()}
-        </span>
-        <ChevronDown className="h-4 w-4 opacity-60" aria-hidden />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="start"
-        sideOffset={4}
-        className="min-w-(--anchor-width)"
-      >
-        <DropdownMenuRadioGroup
-          value={value}
-          onValueChange={(v) => {
-            onChange(v);
-            setOpen(false);
-          }}
-        >
-          {routing.locales.map((locale) => (
-            <DropdownMenuRadioItem key={locale} value={locale}>
-              <FlagIcon code={locale} />
-              {LOCALE_LABEL[locale] ?? locale.toUpperCase()}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
 
 // Spec 008 — ClubConfigForm.
 //

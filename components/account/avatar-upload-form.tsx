@@ -176,9 +176,9 @@ export function AvatarUploadForm({ onSuccess, onCancel }: AvatarUploadFormProps)
   );
 }
 
-// Draw the cropped region of the loaded <img> onto a canvas and
-// return it as a JPEG blob. Source dimensions for the crop come
-// from the natural image; what the user sees is a scaled preview.
+// Draw the cropped region of the loaded image element onto a canvas
+// and return it as a JPEG blob. Source dimensions for the crop
+// come from the natural image; what the user sees is a scaled preview.
 async function cropToBlob(image: HTMLImageElement, crop: PixelCrop): Promise<Blob> {
   const scaleX = image.naturalWidth / image.width;
   const scaleY = image.naturalHeight / image.height;

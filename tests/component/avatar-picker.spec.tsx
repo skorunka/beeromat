@@ -22,7 +22,11 @@ vi.mock('sonner', () => ({
 function renderPicker(currentKey: string | null = null) {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages}>
-      <AvatarPicker currentKey={currentKey} />
+      <AvatarPicker
+        currentKey={currentKey}
+        activeUploadUrl={null}
+        storedUploadUrl={null}
+      />
     </NextIntlClientProvider>,
   );
 }

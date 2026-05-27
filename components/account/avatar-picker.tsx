@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { CircleUser, Pencil, Trash2, Upload } from 'lucide-react';
+import { CircleUser, Trash2, Upload } from 'lucide-react';
 
 import {
   activateAvatarUploadAction,
@@ -72,15 +72,10 @@ export function AvatarPicker({
 
   function handleUploadTileTap() {
     if (isPending) return;
-    if (uploadIsActive) {
-      // Already the active choice — no-op, same as tapping any
-      // already-selected tile. (Re-uploading is via the pencil
-      // button below.)
-      return;
-    }
-    if (hasStoredBytes) {
+    if (hasStoredBytes && !uploadIsActive) {
       // Stored bytes exist but a glyph is currently active —
-      // reactivate the upload without re-uploading.
+      // reactivate the upload without re-uploading. Single tap
+      // restores the previously-uploaded photo.
       startTransition(async () => {
         const result = await activateAvatarUploadAction();
         if (!result.ok) {
@@ -91,7 +86,8 @@ export function AvatarPicker({
       });
       return;
     }
-    // No stored bytes — open the upload form to pick a new photo.
+    // Active OR empty → open the form. Active means the member
+    // wants to re-upload / re-crop; empty means first upload.
     setUploading(true);
   }
 
@@ -162,34 +158,22 @@ export function AvatarPicker({
         />
       </div>
 
-      {/* Photo-management buttons. Visible whenever stored bytes
-          exist (whether currently active or deactivated by a glyph
-          pick), so the member can manage their photo without
-          re-uploading. */}
+      {/* Remove-photo button — the only path that deletes stored
+          bytes. Tapping the Upload tile handles upload, re-upload,
+          and reactivation; no separate "Change photo" button. */}
       {hasStoredBytes ? (
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setUploading(true)}
-            disabled={isPending}
-          >
-            <Pencil aria-hidden />
-            {tUpload('changeCta')}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleRemoveUpload}
-            disabled={isPending}
-            isPending={isPending}
-          >
-            <Trash2 aria-hidden />
-            {tUpload('removeCta')}
-          </Button>
-        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleRemoveUpload}
+          disabled={isPending}
+          isPending={isPending}
+          className="self-start"
+        >
+          <Trash2 aria-hidden />
+          {tUpload('removeCta')}
+        </Button>
       ) : null}
 
       {/* Upload form expansion — collapsed by default. */}

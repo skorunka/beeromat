@@ -225,6 +225,7 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
             type="submit"
             size="lg"
             disabled={isPending}
+            isPending={isPending}
             className="h-14 text-lg"
           >
             {t(mode === 'setup' ? 'setup.submit' : 'unlock.submit')}

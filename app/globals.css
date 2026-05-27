@@ -299,3 +299,33 @@ body {
     animation: none;
   }
 }
+
+/* ─── Beer spinner ────────────────────────────────────────────────────
+   "Beer being poured" loading indicator (components/ui/beer-spinner).
+   Liquid + foam group rises from below the glass to fully filled, then
+   resets and repeats. SVG transform is in user-space units (the
+   viewBox is 0 0 24 28). transform-box: fill-box keeps the origin
+   sane across browsers. Under prefers-reduced-motion the group is
+   pinned at full so the glass still reads as "loading" visually. */
+@keyframes beer-fill {
+  0% {
+    transform: translateY(22px);
+  }
+  90% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+.animate-beer-fill {
+  animation: beer-fill 1.4s ease-in infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-beer-fill {
+    animation: none;
+    transform: translateY(0);
+  }
+}

@@ -109,10 +109,11 @@ export function HomeOneTapLog({ beer, currencyCode, locale }: HomeOneTapLogProps
         size="lg"
         onClick={handleTap}
         disabled={isPending}
+        isPending={isPending}
         aria-busy={isPending ? 'true' : undefined}
         className="h-14 w-full gap-2 text-base"
       >
-        <Beer className="h-5 w-5" aria-hidden />
+        {isPending ? null : <Beer className="h-5 w-5" aria-hidden />}
         {t('oneTapLog', {
           beer: beer.name,
           price: formatMoneyCompact(beer.unitPriceMinor, currencyCode, locale),

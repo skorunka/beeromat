@@ -109,6 +109,7 @@ export function LogOnBehalfForm({
         type="button"
         size="lg"
         disabled={!canSubmit}
+        isPending={isPending}
         onClick={handleSubmit}
         className="h-14 text-base"
       >

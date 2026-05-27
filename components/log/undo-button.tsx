@@ -32,6 +32,7 @@ export function UndoButton({ consumptionId }: UndoButtonProps) {
       variant="ghost"
       onClick={handleUndo}
       disabled={isPending}
+      isPending={isPending}
     >
       {t('back')}
     </Button>

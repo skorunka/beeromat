@@ -1,6 +1,7 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
 
+import { BeerSpinner } from "@/components/ui/beer-spinner"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
@@ -42,18 +43,31 @@ const buttonVariants = cva(
   }
 )
 
+type ButtonProps = ButtonPrimitive.Props &
+  VariantProps<typeof buttonVariants> & {
+    /** When true, prepends the BeerSpinner inside the button. The
+     *  caller still controls `disabled` — this prop only handles the
+     *  visual indicator so call sites can opt in by adding one prop. */
+    isPending?: boolean
+  }
+
 function Button({
   className,
   variant = "default",
   size = "default",
+  isPending = false,
+  children,
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonProps) {
   return (
     <ButtonPrimitive
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
-    />
+    >
+      {isPending ? <BeerSpinner label="" /> : null}
+      {children}
+    </ButtonPrimitive>
   )
 }
 

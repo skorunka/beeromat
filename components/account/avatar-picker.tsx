@@ -130,7 +130,7 @@ export function AvatarPicker({
         {hasStoredBytes ? (
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={handleRemoveUpload}
             disabled={isPending}

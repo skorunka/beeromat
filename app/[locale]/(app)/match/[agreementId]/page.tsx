@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { requireUnlocked } from '@/lib/auth/session';
 import { db } from '@/lib/db/client';
 import { beerTypes } from '@/lib/db/schema/catalog';
+import { lastBeerForMember } from '@/lib/db/queries/consumption';
 import {
   getAgreement,
   listActiveClubMembers,
@@ -47,13 +48,15 @@ export default async function AgreementDetailPage({
 
   const members = isOpen ? await listActiveClubMembers(ctx.club.id) : [];
 
-  // Spec 018 follow-up — for an open for-beer agreement, expose
-  // the in-stock catalog as an optional override the recorder can
-  // pick from before submitting the result. The action falls back
-  // to winner's last-beer if nothing is picked.
-  const betBeerOptions =
-    isOpen && agreement.forBeer && viewerCanRecord
-      ? await db
+  // Spec 018 follow-up + spec 025 — for an open for-beer agreement,
+  // expose the in-stock catalog as the bet-beer picker source AND
+  // resolve the recorder's last-beer so the picker's Auto tile can
+  // show what the server-side auto-default would land on. Both
+  // queries run in parallel with each other.
+  const pickerEnabled = isOpen && agreement.forBeer && viewerCanRecord;
+  const [betBeerOptions, recorderLastBeer] = pickerEnabled
+    ? await Promise.all([
+        db
           .select({ id: beerTypes.id, name: beerTypes.name })
           .from(beerTypes)
           .where(
@@ -63,8 +66,10 @@ export default async function AgreementDetailPage({
               gt(beerTypes.currentStock, 0),
             ),
           )
-          .orderBy(beerTypes.displayOrder)
-      : [];
+          .orderBy(beerTypes.displayOrder),
+        lastBeerForMember(ctx.member.id, ctx.club.id),
+      ])
+    : [[], null];
 
   function pickSeat(side: 'A' | 'B', seat: 1 | 2): string | null {
     const found = agreement!.sides[side].find((s) => s.seat === seat);
@@ -134,6 +139,7 @@ export default async function AgreementDetailPage({
           sideALabel={sideAName}
           sideBLabel={sideBName}
           betBeerOptions={agreement.forBeer ? betBeerOptions : undefined}
+          loserLastBeerName={recorderLastBeer?.name ?? null}
         />
       ) : isOpen ? (
         <Card className="text-muted-foreground p-4 text-sm">{t('viewerCannotRecord')}</Card>

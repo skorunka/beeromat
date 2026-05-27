@@ -92,7 +92,7 @@ description: "Task list — Picker Avatars (spec 024)"
 - [X] T018 Manual walkthrough per `quickstart.md` — confirm all 3 user stories on a seeded multi-avatar club. Tab-only keyboard navigation also exercised on both shapes.
 - [X] T019 Mark `spec.md` status `Shipped (2026-05-27)`.
 - [X] T020 Update `CLAUDE.md` SPECKIT marker — move spec 024 from "in flight" to "most recent shipped".
-- [ ] T021 Commit + push to `origin/main` per `feedback-no-prs-trunk-based`.
+- [X] T021 Commit + push to `origin/main` per `feedback-no-prs-trunk-based`.
 
 ---
 

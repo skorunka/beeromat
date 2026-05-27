@@ -16,11 +16,18 @@ interface RecordResultFormProps {
   agreementId: string;
   sideALabel: string;
   sideBLabel: string;
-  // Spec 018 follow-up — when present (i.e. agreement.forBeer ===
-  // true), renders an optional beer-picker. Auto-default = winner's
-  // last beer (resolved server-side). Setting an override sends it
-  // as `betBeerOverrideId` in the action payload.
+  // Spec 018 follow-up + spec 025 — when present (i.e.
+  // agreement.forBeer === true and the viewer can record),
+  // renders an always-visible tile grid above the "who won"
+  // buttons. The first tile ("Auto · {beer}") represents
+  // "use the server-side default" and is pre-selected. Tapping
+  // any non-Auto tile sets `betBeerOverrideId` on submit.
   betBeerOptions?: Array<{ id: string; name: string }>;
+  // Spec 025 — name shown on the Auto tile so the recorder
+  // sees what the auto-default will be. Null when the recorder
+  // has no last beer (new member) — falls back to a generic
+  // localized "Auto · Pivo" / "Auto · Beer" label.
+  loserLastBeerName?: string | null;
 }
 
 interface RecentRecord {
@@ -36,15 +43,17 @@ export function RecordResultForm({
   sideALabel,
   sideBLabel,
   betBeerOptions,
+  loserLastBeerName,
 }: RecordResultFormProps) {
   const t = useTranslations('match');
   const router = useRouter();
   const [isRecording, startRecord] = useTransition();
   const [isReversing, startReverse] = useTransition();
   const [recent, setRecent] = useState<RecentRecord | null>(null);
-  // Spec 018 follow-up — optional beer override the recorder picks
-  // before submitting. Empty string = use the auto-default.
-  const [betBeerOverrideId, setBetBeerOverrideId] = useState<string>('');
+  // Spec 025 — picker selection. null = Auto tile selected
+  // (use server-side default); any string = that beer's id
+  // is sent as `betBeerOverrideId` on submit.
+  const [betBeerOverrideId, setBetBeerOverrideId] = useState<string | null>(null);
 
   function record(side: 'A' | 'B') {
     startRecord(async () => {
@@ -116,32 +125,47 @@ export function RecordResultForm({
     );
   }
 
+  // Spec 025 — Auto tile label. Use the recorder's last-beer
+  // name when we have it; otherwise the localized fallback.
+  const autoLabel = loserLastBeerName
+    ? t('betPicker.autoLabel', { beer: loserLastBeerName })
+    : t('betPicker.autoFallback');
+
   return (
     <div className="flex flex-col gap-3">
       {betBeerOptions && betBeerOptions.length > 0 ? (
-        <details className="border-border rounded-md border p-3">
-          <summary className="text-muted-foreground cursor-pointer text-xs">
-            {t('betPicker.override')}
-          </summary>
-          <div className="mt-3 flex flex-col gap-2">
-            <label className="text-xs font-medium" htmlFor="betBeer">
-              {t('betPicker.label')}
-            </label>
-            <select
-              id="betBeer"
-              value={betBeerOverrideId}
-              onChange={(e) => setBetBeerOverrideId(e.target.value)}
-              className="border-input bg-background h-10 rounded-md border px-2 text-sm"
-            >
-              <option value="">{t('betPicker.defaultHint')}</option>
-              {betBeerOptions.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </details>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            aria-pressed={betBeerOverrideId === null}
+            onClick={() => setBetBeerOverrideId(null)}
+            className={`flex h-16 items-center justify-center rounded-md border px-3 text-base font-medium transition-colors ${
+              betBeerOverrideId === null
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'border-input bg-background hover:bg-accent'
+            }`}
+          >
+            <span className="truncate">{autoLabel}</span>
+          </button>
+          {betBeerOptions.map((b) => {
+            const isSelected = betBeerOverrideId === b.id;
+            return (
+              <button
+                key={b.id}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => setBetBeerOverrideId(b.id)}
+                className={`flex h-16 items-center justify-center rounded-md border px-3 text-base font-medium transition-colors ${
+                  isSelected
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'border-input bg-background hover:bg-accent'
+                }`}
+              >
+                <span className="truncate">{b.name}</span>
+              </button>
+            );
+          })}
+        </div>
       ) : null}
 
       <p className="text-muted-foreground text-sm">{t('whoWon')}</p>

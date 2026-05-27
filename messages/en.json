@@ -159,10 +159,8 @@
       "generic": "That didn't work — give it another go."
     },
     "betPicker": {
-      "label": "Beer the winner drinks",
-      "defaultHint": "Default: their last beer (or cheapest in stock)",
-      "override": "Change beer",
-      "submitHint": "Selected: {beer}"
+      "autoLabel": "Auto · {beer}",
+      "autoFallback": "Auto · Beer"
     }
   },
   "onboarding": {

@@ -159,10 +159,8 @@
       "generic": "Nepovedlo se to — zkus to prosím znovu."
     },
     "betPicker": {
-      "label": "Pivo, které vyhrávající vypije",
-      "defaultHint": "Standardně poslední pivo (nebo nejlevnější na skladě)",
-      "override": "Změnit pivo",
-      "submitHint": "Vybráno: {beer}"
+      "autoLabel": "Auto · {beer}",
+      "autoFallback": "Auto · Pivo"
     }
   },
   "onboarding": {

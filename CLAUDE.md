@@ -1,6 +1,13 @@
 <!-- SPECKIT START -->
-No spec currently in flight. Most recent shipped specs: 024
-(picker-avatars — replaces the three native `<select>` member
+No spec currently in flight. Most recent shipped specs: 025
+(bet-beer-tile-picker — replaces the collapsed `<details>` +
+`<select>` on the match-result form with an always-visible
+tile grid matching `/log`'s beer tiles. First tile is
+"Auto · {recorder-last-beer}" pre-selected; tapping any
+other tile sends `betBeerOverrideId` on submit. No schema
+change; recorder's last-beer name added to the page's
+Promise.all via `lastBeerForMember`. Four obsolete i18n keys
+removed, two added), 024 (picker-avatars — replaces the three native `<select>` member
 pickers with avatar-bearing custom controls: /log/for becomes
 a tile grid matching the beer grid on the same form; /match
 new + edit forms get an avatar dropdown per seat with

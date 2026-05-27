@@ -64,10 +64,11 @@ logging out + back in) confirms the choice persisted.
 
 ### User Story 2 - Avatar shows wherever the member appears (Priority: P1)
 
-When the system renders a member's glyph anywhere in the app — the
-user-menu trigger for the signed-in member, the "od X" attribution
-on /tab, the treasurer's member lists, the settle-confirm screens
-— the picked avatar is used in place of the initials.
+When the system renders a member's identity glyph (currently only
+the user-menu trigger in the AppHeader, per the audit recorded in
+FR-006), the picked avatar is used in place of the initials. Any
+future surface that adds a member glyph picks up picked avatars
+automatically because every glyph site shares the same renderer.
 
 **Why this priority**: P1 because without this, US1 delivers
 personalization in only one spot (the header). Members expect their
@@ -75,24 +76,28 @@ chosen avatar to be their identity throughout the app, the same way
 their display name is. If the picker only changed one screen the
 feature would feel half-finished.
 
-**Independent Test**: With member A having picked an avatar and
-member B having not picked one, a third member viewing a screen
-that lists both (e.g. the treasurer's member list) sees the picked
-glyph for A and the initials fallback for B.
+**Independent Test**: Member A picks an avatar; the AppHeader
+avatar circle on every authenticated page renders A's SVG glyph
+in place of A's initials. Member B (who has never picked)
+continues to see initials in the same surface. (The audit in
+FR-006 confirmed the AppHeader is the only member-glyph surface
+today; future surfaces test the same way via the shared
+renderer.)
 
 **Acceptance Scenarios**:
 
-1. **Given** member A has picked the beer mug avatar, **When** any
-   other member views a screen that shows A's identity glyph, **Then**
-   the beer mug is rendered (and A's display name is still shown
-   alongside in any context where it was shown before).
-2. **Given** member B has not picked an avatar, **When** the same
-   screen renders B's glyph, **Then** B's initials in the existing
-   primary-tinted circle are shown — unchanged from today's behavior.
-3. **Given** the actor's own avatar in the AppHeader user-menu
-   trigger, **When** the actor changes their avatar in the picker,
-   **Then** every place that shows the actor's glyph updates within
-   one navigation tick (no stale glyphs in any visible surface).
+1. **Given** member A has picked the beer mug avatar, **When** A
+   loads any authenticated page, **Then** the AppHeader avatar
+   circle renders the beer mug SVG (A's display name still shown
+   in any text context where it was shown before).
+2. **Given** member B has not picked an avatar, **When** B loads
+   any authenticated page, **Then** the AppHeader avatar circle
+   renders B's initials in the primary-tinted circle — unchanged
+   from today's behavior.
+3. **Given** the actor changes their avatar in the picker,
+   **When** the actor navigates to any page, **Then** the
+   AppHeader avatar circle reflects the new pick within one
+   navigation tick (no stale glyphs).
 
 ---
 
@@ -179,12 +184,14 @@ in the header is back to their initials.
   other device the next time the member opens the app.
 
 - **FR-006**: Wherever the system today renders a member's identity
-  glyph — the AppHeader user-menu trigger for the signed-in member,
-  member rows in admin / treasurer screens, the "od X" attribution
-  on /tab, settle confirmation screens, and any other surface
-  showing a member's circle — the renderer MUST use the picked
-  avatar if one exists, falling back to the initials (or icon)
-  otherwise.
+  glyph, the renderer MUST use the picked avatar if one exists,
+  falling back to the initials (or icon) otherwise. As of this
+  spec's writing the only such surface is the AppHeader user-menu
+  trigger for the signed-in member (audited 2026-05-27 — admin /
+  treasurer lists, the /tab "od X" attribution, and settle screens
+  render member names as text only, with no glyph). Any future
+  surface that adds a member glyph MUST use the same renderer
+  component so picked avatars propagate automatically.
 
 - **FR-007**: If a member's stored avatar key is not in the current
   palette (e.g. removed in a later version), the renderer MUST fall

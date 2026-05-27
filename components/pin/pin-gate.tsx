@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -54,6 +54,22 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
     defaultValues: { pin: '', confirmPin: '' },
   });
 
+  // Belt-and-braces autofocus on mount — the PinInput's `autoFocus` prop
+  // doesn't reliably get honored by react-hook-form's controller ref, so
+  // we focus explicitly via a merged ref. User-reported 2026-05-27.
+  const pinInputRef = useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    pinInputRef.current?.focus();
+  }, []);
+
+  // Unlock auto-submit: once the user types all 4 digits, fire the
+  // submit without waiting for the button tap. Setup mode keeps manual
+  // submit because there are two fields to fill. The `hasAutoSubmitted`
+  // ref prevents a re-fire after a wrong-PIN reset.
+  const pinValue = form.watch('pin');
+  const hasAutoSubmittedRef = useRef(false);
+  const onSubmitRef = useRef<(values: PinFormValues) => void>(() => {});
+
   // US5 — escape hatch before lock-out: clear this device's session +
   // sign out, then go to /sign-in for a fresh magic link. Spends no
   // PIN attempts.
@@ -81,6 +97,8 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
       } else if (result.code === 'WRONG_PIN') {
         setServerError(t('unlock.wrongPin', { remaining: result.attemptsRemaining ?? 0 }));
         form.resetField('pin');
+        // Re-enable auto-submit so the next 4-digit fill triggers again.
+        hasAutoSubmittedRef.current = false;
       } else if (result.code === 'LOCKED') {
         setServerError(t('unlock.lockedBody'));
       } else {
@@ -88,6 +106,22 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
       }
     });
   }
+
+  onSubmitRef.current = onSubmit;
+
+  useEffect(() => {
+    if (mode !== 'unlock') return;
+    if (
+      pinValue.length === PIN_LENGTH &&
+      !isPending &&
+      !hasAutoSubmittedRef.current
+    ) {
+      hasAutoSubmittedRef.current = true;
+      void form.handleSubmit((values) => onSubmitRef.current(values))();
+    } else if (pinValue.length < PIN_LENGTH) {
+      hasAutoSubmittedRef.current = false;
+    }
+  }, [pinValue, mode, isPending, form]);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 p-8">
@@ -126,7 +160,10 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
                     autoFocus
                     autoComplete="one-time-code"
                     name={field.name}
-                    ref={field.ref}
+                    ref={(el) => {
+                      field.ref(el);
+                      pinInputRef.current = el;
+                    }}
                     value={field.value}
                     onBlur={field.onBlur}
                     onChange={field.onChange}

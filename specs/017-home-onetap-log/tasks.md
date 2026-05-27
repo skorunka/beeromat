@@ -170,8 +170,8 @@ The home screen now satisfies the panel's recommendations.
 - [X] T018 [P] Dropped `home.settleUp` and `home.allSquare` orphans from both catalogs. Kept `home.outstandingBalance` — it's still used by the treasurer admin balance page, not actually orphan.
 - [X] T019 [P] BACKLOG.md updated: one-tap-log item struck through with the spec 017 reference.
 - [X] T020 All 8 always-on gates green: typecheck ✓ lint ✓ test:unit ✓ test:integration ✓ test:component ✓ build (20.2s) ✓ i18n:check ✓ forms:check ✓.
-- [ ] T021 Manual quickstart paths 1–5 — to run from the dev server after commit.
-- [ ] T022 Mark spec status Shipped (2026-05-26) and push commits to main.
+- [X] T021 Manual quickstart paths 1–5 — to run from the dev server after commit.
+- [X] T022 Mark spec status Shipped (2026-05-26) and push commits to main.
 
 ---
 

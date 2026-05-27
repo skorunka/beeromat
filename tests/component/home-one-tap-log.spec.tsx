@@ -51,7 +51,7 @@ describe('HomeOneTapLog (component layer — spec 017)', () => {
     it('renders the "Log a Pilsner" button in English with the beer-glass icon', () => {
       renderWithLocale(
         <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false }}
+          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false, unitPriceMinor: 5000n }}
           currencyCode="CZK"
           locale="en"
         />,
@@ -66,7 +66,7 @@ describe('HomeOneTapLog (component layer — spec 017)', () => {
     it('renders the "Zapiš Pilsner" button in Czech', () => {
       renderWithLocale(
         <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false }}
+          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false, unitPriceMinor: 5000n }}
           currencyCode="CZK"
           locale="cs"
         />,
@@ -85,7 +85,7 @@ describe('HomeOneTapLog (component layer — spec 017)', () => {
       });
       renderWithLocale(
         <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false }}
+          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false, unitPriceMinor: 5000n }}
           currencyCode="CZK"
           locale="en"
         />,
@@ -104,7 +104,7 @@ describe('HomeOneTapLog (component layer — spec 017)', () => {
       mockLogBeerAction.mockResolvedValueOnce({ ok: false, code: 'OUT_OF_STOCK' });
       renderWithLocale(
         <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false }}
+          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false, unitPriceMinor: 5000n }}
           currencyCode="CZK"
           locale="en"
         />,
@@ -132,7 +132,7 @@ describe('HomeOneTapLog (component layer — spec 017)', () => {
     it('falls back to the generic link, ignoring the archived beer name', () => {
       renderWithLocale(
         <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Old IPA', currentStock: 30, isArchived: true }}
+          beer={{ id: 'b1', name: 'Old IPA', currentStock: 30, isArchived: true, unitPriceMinor: 5000n }}
           currencyCode="CZK"
           locale="en"
         />,
@@ -150,7 +150,7 @@ describe('HomeOneTapLog (component layer — spec 017)', () => {
     it('renders the beer name in a disabled button with a fallback picker link', () => {
       renderWithLocale(
         <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Pilsner', currentStock: 0, isArchived: false }}
+          beer={{ id: 'b1', name: 'Pilsner', currentStock: 0, isArchived: false, unitPriceMinor: 5000n }}
           currencyCode="CZK"
           locale="en"
         />,
@@ -166,7 +166,7 @@ describe('HomeOneTapLog (component layer — spec 017)', () => {
     it('renders "Pilsner — nedostupné" in Czech', () => {
       renderWithLocale(
         <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Pilsner', currentStock: 0, isArchived: false }}
+          beer={{ id: 'b1', name: 'Pilsner', currentStock: 0, isArchived: false, unitPriceMinor: 5000n }}
           currencyCode="CZK"
           locale="cs"
         />,
@@ -189,7 +189,7 @@ describe('HomeOneTapLog (component layer — spec 017)', () => {
 
       renderWithLocale(
         <HomeOneTapLog
-          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false }}
+          beer={{ id: 'b1', name: 'Pilsner', currentStock: 42, isArchived: false, unitPriceMinor: 5000n }}
           currencyCode="CZK"
           locale="en"
         />,

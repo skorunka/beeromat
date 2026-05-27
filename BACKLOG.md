@@ -121,6 +121,22 @@ When one matures, run `/speckit-specify` and the item moves into
   the overlay entirely for users who've requested reduced
   motion (the toast still confirms verbally).
 
+- **/account stub rows — actually wire them up.** Three rows on
+  `/account` (spec 010 FR-009) are visual stubs with "později" /
+  "brzy" badges and no backend: (a) **Change e-mail** — the
+  member changes the e-mail tied to their `users` row; needs a
+  verification flow (magic link to the new address) before the
+  change commits, and the active session should keep working;
+  (b) **Change PIN** — the member rotates the per-device PIN
+  without resetting the device session. Action: prompt for the
+  current PIN, then accept the new one; reject if wrong. Reuses
+  most of the spec-001 PinGate primitives; (c) **Sign out from
+  all devices** — clears every `device_sessions` row for the
+  current user, forcing a fresh magic-link sign-in everywhere
+  next time. The single-device sign-out below already exists;
+  this is the "panic button" variant. Captured 2026-05-27 — user
+  flagged the placeholders shouldn't be forgotten.
+
 - ~~**Refine the bottom nav.**~~ **— Shipped 2026-05-26.** Log
   and Tab dropped from the bottom nav. Bottom nav is now
   Home / Bet / History (+ role-gated). Rationale: home

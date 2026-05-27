@@ -3,6 +3,8 @@ import { Link } from '@/lib/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Card } from '@/components/ui/card';
+import { SessionTitleInlineEdit } from '@/components/session/session-title-inline-edit';
+import { StopRowNavigation } from '@/components/history/stop-row-navigation';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getSessionHistory } from '@/lib/db/queries/consumption';
 import { formatMoney } from '@/lib/format';
@@ -31,8 +33,21 @@ export default async function HistoryPage({
           <li key={s.id}>
             <Link href={`/history/${s.id}` as Route}>
               <Card className="hover:bg-accent flex items-center justify-between gap-3 p-3 transition-colors">
-                <div className="min-w-0">
-                  <div className="truncate font-medium">{s.title ?? t('drinkSession')}</div>
+                <div className="min-w-0 flex-1">
+                  {/* Spec 022 follow-up — inline-editable session title
+                      on the list view. StopRowNavigation prevents
+                      taps on the title (or its edit input) from
+                      bubbling to the parent Link, so clicking the
+                      title edits in place while the rest of the row
+                      still navigates to the detail page. */}
+                  <StopRowNavigation>
+                    <SessionTitleInlineEdit
+                      sessionId={s.id}
+                      currentTitle={s.title}
+                      fallbackLabel={t('drinkSession')}
+                      className="font-medium"
+                    />
+                  </StopRowNavigation>
                   <div className="text-muted-foreground text-xs">
                     {dateFmt.format(s.startedAt)}
                     {s.endedAt ? '' : ` · ${t('open')}`}

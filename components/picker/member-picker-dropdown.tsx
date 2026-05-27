@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 import {
@@ -60,9 +61,13 @@ export function MemberPickerDropdown({
   className,
 }: MemberPickerDropdownProps) {
   const picked = value ? members.find((m) => m.id === value) ?? null : null;
+  // Spec follow-up — close the popup as soon as a value is picked.
+  // base-ui's RadioItem doesn't auto-close (designed for "select-
+  // then-review"); our UX wants tap-and-go.
+  const [open, setOpen] = useState(false);
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
         aria-label={ariaLabel}
         className={cn(
@@ -94,7 +99,10 @@ export function MemberPickerDropdown({
       >
         <DropdownMenuRadioGroup
           value={value ?? CLEAR_VALUE}
-          onValueChange={(v) => onChange(v === CLEAR_VALUE ? null : v)}
+          onValueChange={(v) => {
+            onChange(v === CLEAR_VALUE ? null : v);
+            setOpen(false);
+          }}
         >
           <DropdownMenuRadioItem value={CLEAR_VALUE}>
             <span className="text-muted-foreground">—</span>

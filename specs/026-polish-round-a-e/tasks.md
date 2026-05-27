@@ -84,7 +84,7 @@ This spec has no foundational scaffolding — all three user stories are indepen
 - [X] T013 Manual walkthrough per `quickstart.md` — confirm US1 + US2 + US3 + the regression checks (Standa-persona fallback, single-beer catalog, /log card visual unchanged).
 - [X] T014 Mark `spec.md` status `Shipped (2026-05-27)`.
 - [X] T015 Update `CLAUDE.md` SPECKIT marker — move spec 026 from "in flight" to "most recent shipped".
-- [ ] T016 Commit + push to `origin/main` per `feedback-no-prs-trunk-based`.
+- [X] T016 Commit + push to `origin/main` per `feedback-no-prs-trunk-based`.
 
 ---
 

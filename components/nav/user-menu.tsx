@@ -1,6 +1,6 @@
 'use client';
 
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { LogOut, User } from 'lucide-react';
 
@@ -58,8 +58,12 @@ export function UserMenu({
   const pathname = usePathname();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  // Controlled open so the menu closes the moment a language is
+  // picked. base-ui's RadioItem doesn't auto-close otherwise.
+  const [open, setOpen] = useState(false);
 
   function switchTo(locale: string) {
+    setOpen(false);
     if (locale === active || isPending) return;
     startTransition(async () => {
       await setLocaleCookie(locale);
@@ -68,6 +72,7 @@ export function UserMenu({
   }
 
   function handleSignOut() {
+    setOpen(false);
     startTransition(async () => {
       await signOutDeviceAction();
       window.location.href = '/sign-in';
@@ -75,7 +80,7 @@ export function UserMenu({
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
         aria-label={t('nav.userMenu')}
         disabled={isPending}

@@ -122,10 +122,7 @@ export function AvatarPicker({
 
   return (
     <section className="flex flex-col gap-3">
-      <header className="flex flex-col gap-0.5">
-        <h2 className="text-sm font-medium">{t('sectionTitle')}</h2>
-        <p className="text-muted-foreground text-xs">{t('sectionHint')}</p>
-      </header>
+      <h2 className="text-sm font-medium">{t('sectionTitle')}</h2>
 
       {/* Hidden file input owned by the picker. The Upload tile
           programmatically clicks it; the file change handler opens

@@ -267,7 +267,6 @@
   },
   "account": {
     "title": "Tvůj účet",
-    "subtitle": "Spravuj svůj profil.",
     "paymentHistory": "Historie plateb",
     "displayNameLabel": "Tvoje jméno",
     "displayNamePlaceholder": "Jak ti říkají v partě",
@@ -304,7 +303,6 @@
     },
     "avatar": {
       "sectionTitle": "Profilová ikona",
-      "sectionHint": "Vyber si něco hravého.",
       "defaultTileLabel": "Výchozí",
       "saveError": "Nepovedlo se uložit ikonu. Zkus to znovu.",
       "upload": {

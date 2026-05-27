@@ -79,7 +79,7 @@ export function UserMenu({
       <DropdownMenuTrigger
         aria-label={t('nav.userMenu')}
         disabled={isPending}
-        className="focus-visible:ring-ring/50 rounded-full transition-colors hover:opacity-90 focus-visible:ring-3 focus-visible:outline-none disabled:opacity-50"
+        className="border-primary/50 hover:border-primary focus-visible:ring-ring/50 inline-flex rounded-full border-2 transition-colors hover:opacity-90 focus-visible:ring-3 focus-visible:outline-none disabled:opacity-50"
       >
         <MemberAvatar
           avatarKey={avatarKey}

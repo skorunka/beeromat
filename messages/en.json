@@ -267,7 +267,6 @@
   },
   "account": {
     "title": "Your account",
-    "subtitle": "Manage your profile.",
     "paymentHistory": "Payment history",
     "displayNameLabel": "Your name",
     "displayNamePlaceholder": "What your mates call you",
@@ -304,7 +303,6 @@
     },
     "avatar": {
       "sectionTitle": "Avatar",
-      "sectionHint": "Pick something playful.",
       "defaultTileLabel": "Default",
       "saveError": "Couldn't save the avatar. Try again.",
       "upload": {

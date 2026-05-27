@@ -46,7 +46,6 @@ export default async function AccountPage({
     <main className="mx-auto max-w-md p-5">
       <header className="mb-6">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
       </header>
 
       <section className="mb-6">

@@ -27,7 +27,10 @@ interface SignInFormProps {
 export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
   const t = useTranslations('auth.signIn');
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [result, setResult] = useState<{ status: MagicLinkStatus } | null>(null);
+  const [result, setResult] = useState<{
+    status: MagicLinkStatus;
+    email: string;
+  } | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const form = useForm<SignInValues>({
@@ -40,7 +43,12 @@ export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
     if (!turnstileToken) return;
     startTransition(async () => {
       const r = await requestMagicLinkAction({ email: values.email, turnstileToken });
-      if (r.ok) setResult({ status: r.data?.status ?? 'rate-limited' });
+      if (r.ok) {
+        setResult({
+          status: r.data?.status ?? 'rate-limited',
+          email: values.email,
+        });
+      }
     });
   }
 
@@ -58,6 +66,10 @@ export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
       <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 p-8 text-center">
         <BrandMark />
         <h1 className="text-2xl font-bold">{t('linkSent')}</h1>
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-muted-foreground text-sm">{t('sentToPrefix')}</p>
+          <p className="text-primary text-lg font-semibold break-all">{result.email}</p>
+        </div>
         <p className="text-muted-foreground text-sm">{t('linkExpiresIn')}</p>
         <button
           type="button"

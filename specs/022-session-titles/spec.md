@@ -11,6 +11,15 @@ past) drink-session a custom title so /history reads as
 "Středeční debly s Pardubicema" instead of an endless list of
 "Round / Kolo" fallbacks.
 
+## Clarifications
+
+### Session 2026-05-27
+
+- Q: Who can set/edit a session title? → A: Option A — any
+  active member of the club. Matches the small-group trust
+  model already used by log-on-behalf (spec 019); restricting
+  to admins would feel corporate.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Name the current session (Priority: P1)
@@ -176,10 +185,11 @@ in a /history list row without layout shift.
   localized "Round / Kolo" string on every surface — preserving
   today's behavior for members who never set titles.
 
-- **FR-007**: The permission rule for setting/editing a title
-  is a planning-time decision (see Clarifications). The chosen
-  rule MUST be enforced at the server-action boundary, not only
-  in the UI.
+- **FR-007**: Any active member of the club MAY set or edit a
+  session title (per Clarifications 2026-05-27 — Option A).
+  The rule MUST be enforced at the server-action boundary
+  (`requireUnlocked()` + active-member check), not only in
+  the UI.
 
 - **FR-008**: Title text MUST accept full Unicode — Czech
   diacritics, emoji, etc.

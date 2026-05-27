@@ -59,9 +59,13 @@ export function InvitationForm({ token }: InvitationFormProps) {
     return (
       <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 p-8 text-center">
         <h1 className="text-2xl font-bold">{t('acceptedTitle')}</h1>
-        <p className="text-muted-foreground">
-          {t('acceptedBody', { email: accepted.email })}
-        </p>
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-muted-foreground">{t('acceptedBodyPrefix')}</p>
+          <p className="text-primary text-lg font-semibold break-all">
+            {accepted.email}
+          </p>
+          <p className="text-muted-foreground">{t('acceptedBodySuffix')}</p>
+        </div>
         <p className="text-muted-foreground text-sm">{t('acceptedNote')}</p>
       </main>
     );

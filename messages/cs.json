@@ -40,6 +40,7 @@
       "submit": "Pošli mi odkaz",
       "linkExpiresIn": "Odkaz platí 5 minut.",
       "linkSent": "Odkaz pro přihlášení odeslán.",
+      "sentToPrefix": "Poslali jsme ho na:",
       "notOnListHeadline": "Nejsi členem, máš smůlu.",
       "useDifferentEmail": "Zpět",
       "turnstileMissing": "Chybí klíč Turnstile"
@@ -200,7 +201,8 @@
     "submit": "Přidat se ke klubu",
     "working": "Moment…",
     "acceptedTitle": "Jsi uvnitř!",
-    "acceptedBody": "Přihlašovací odkaz jsme poslali na {email}. Otevři ho na tomhle telefonu a dokonči to.",
+    "acceptedBodyPrefix": "Přihlašovací odkaz jsme poslali na:",
+    "acceptedBodySuffix": "Otevři ho na tomhle telefonu a dokonči to.",
     "acceptedNote": "Odkaz platí 5 minut.",
     "errorInvalid": "Tahle pozvánka už neplatí. Řekni si správci klubu o novou.",
     "errorNameRequired": "Nejdřív napiš svoje jméno.",

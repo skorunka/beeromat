@@ -40,6 +40,7 @@
       "submit": "Send me a link",
       "linkExpiresIn": "The link's good for 5 minutes.",
       "linkSent": "Sign-in link sent.",
+      "sentToPrefix": "Sent it to:",
       "notOnListHeadline": "Not a member, tough luck.",
       "useDifferentEmail": "Back",
       "turnstileMissing": "Turnstile site key missing"
@@ -200,7 +201,8 @@
     "submit": "Join the club",
     "working": "Hang on…",
     "acceptedTitle": "You're in!",
-    "acceptedBody": "We've sent a sign-in link to {email}. Open it on this phone to finish up.",
+    "acceptedBodyPrefix": "We've sent a sign-in link to:",
+    "acceptedBodySuffix": "Open it on this phone to finish up.",
     "acceptedNote": "The link's good for 5 minutes.",
     "errorInvalid": "This invite's no longer good. Ask your club admin for a fresh one.",
     "errorNameRequired": "Pop your name in first.",

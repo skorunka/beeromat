@@ -58,6 +58,7 @@ export function InvitationForm({ token }: InvitationFormProps) {
   if (accepted) {
     return (
       <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-4 p-8 text-center">
+        <BrandMark />
         <h1 className="text-2xl font-bold">{t('acceptedTitle')}</h1>
         <div className="flex flex-col items-center gap-2">
           <p className="text-muted-foreground">{t('acceptedBodyPrefix')}</p>

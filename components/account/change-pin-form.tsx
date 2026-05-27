@@ -24,11 +24,18 @@ import { pinChangeSchema, type PinChangeValues } from '@/lib/validation/auth';
 // setPinAction with the `currentPin` arg the action already supports.
 // Wrong current PIN surfaces as a form-level error, not a toast — same
 // pattern as the unlock screen.
+//
+// Renders the WHOLE PIN row, not just the form: when closed, shows
+// the label-left + Change-button-right strip; when open, the
+// label-strip becomes a title at the top of the form (the awkward
+// "labels stranded on the left while the form fills the right" layout
+// is gone — user direction 2026-05-27).
 
 const PIN_LENGTH = 4;
 
 export function ChangePinForm() {
   const t = useTranslations('account.changePin');
+  const tAccount = useTranslations('account');
   const [open, setOpen] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -66,14 +73,20 @@ export function ChangePinForm() {
 
   if (!open) {
     return (
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => setOpen(true)}
-      >
-        {t('cta')}
-      </Button>
+      <div className="flex min-h-12 items-center justify-between gap-3">
+        <div className="flex flex-col">
+          <span className="text-sm font-medium">{tAccount('pinLabel')}</span>
+          <span className="text-muted-foreground text-xs">{tAccount('pinValue')}</span>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setOpen(true)}
+        >
+          {t('cta')}
+        </Button>
+      </div>
     );
   }
 
@@ -82,8 +95,12 @@ export function ChangePinForm() {
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         noValidate
-        className="mt-3 flex w-full flex-col gap-3"
+        className="flex w-full flex-col gap-3"
       >
+        <div className="flex flex-col">
+          <span className="text-sm font-medium">{tAccount('pinLabel')}</span>
+          <span className="text-muted-foreground text-xs">{tAccount('pinValue')}</span>
+        </div>
         <FormField
           control={form.control}
           name="currentPin"

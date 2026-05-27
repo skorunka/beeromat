@@ -53,12 +53,11 @@ When one matures, run `/speckit-specify` and the item moves into
   in the member's /history); fetched alongside the balance +
   pending payments in the same `Promise.all`.
 
-- **Club name visible in the AppHeader.** Currently the global
-  header on every authenticated page shows BrandMark (🍺 BEEROMAT)
-  + LanguageSwitcher + SignOutButton. Add the active club's name as
-  ambient identity next to the brand — small, secondary weight, so
-  members are always reminded which club they're acting on (matters
-  for the future multi-club case but useful now too).
+- ~~**Club name visible in the AppHeader.**~~ **— Shipped 2026-05-26.**
+  AppHeader now stacks BrandMark on top of the active club name on
+  the left side of the header, visible on every authenticated page.
+  Truncates on narrow phones so the right-side BalanceBadge + avatar
+  always fit.
 
 - ~~**Date duplication on history list.**~~ **— Audited 2026-05-26,
   no duplication present in current code.** Walked through
@@ -123,21 +122,12 @@ When one matures, run `/speckit-specify` and the item moves into
   the overlay entirely for users who've requested reduced
   motion (the toast still confirms verbally).
 
-- **/account stub rows — Change e-mail still pending.** Of the
-  three stubs flagged 2026-05-27, two shipped same day:
-  ~~Change PIN~~ (lib/auth/actions setPinAction with currentPin
-  arg + components/account/change-pin-form.tsx) and ~~Sign out
-  from all devices~~ (new signOutAllDevicesAction +
-  components/account/sign-out-all-button.tsx). The third — Change
-  e-mail — still wears the "později" badge. Needs its own small
-  spec: Better Auth supports `auth.api.changeEmail` with a
-  verification link to the new address; the user-facing flow is
-  "enter new e-mail → magic-link confirmation arrives at new
-  address → click → e-mail rotated, current session keeps
-  working." Also need to think about: what happens if the link
-  expires (rollback?), what happens to the OLD address (orphaned
-  magic-link path?), and whether the actor needs to re-verify
-  with PIN before initiating the change.
+- ~~**/account stub rows.**~~ **— Closed 2026-05-27.** Change
+  PIN + Sign out from all devices both shipped. Change e-mail
+  dropped from scope per user direction — e-mail is the immutable
+  account identity (the address that received the original magic
+  link), shown as a read-only subtitle under the /account title.
+  If a member needs to change their address they re-onboard.
 
 - ~~**Refine the bottom nav.**~~ **— Shipped 2026-05-26.** Log
   and Tab dropped from the bottom nav. Bottom nav is now

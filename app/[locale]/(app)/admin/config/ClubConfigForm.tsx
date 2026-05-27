@@ -217,7 +217,7 @@ export function ClubConfigForm({ defaults }: ClubConfigFormProps) {
             )}
           />
 
-          <Button type="submit" disabled={isPending}>
+          <Button type="submit" disabled={isPending} isPending={isPending}>
             {t('submit')}
           </Button>
         </form>
@@ -243,7 +243,12 @@ export function ClubConfigForm({ defaults }: ClubConfigFormProps) {
             >
               {t('currencyChangeCancel')}
             </Button>
-            <Button type="button" onClick={confirmCurrencyChange} disabled={isPending}>
+            <Button
+              type="button"
+              onClick={confirmCurrencyChange}
+              disabled={isPending}
+              isPending={isPending}
+            >
               {t('currencyChangeConfirm')}
             </Button>
           </DialogFooter>

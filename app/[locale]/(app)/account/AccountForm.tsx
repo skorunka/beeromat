@@ -74,7 +74,7 @@ export function AccountForm({ initialDisplayName }: AccountFormProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} isPending={isPending}>
           {isPending ? t('saving') : t('save')}
         </Button>
       </form>

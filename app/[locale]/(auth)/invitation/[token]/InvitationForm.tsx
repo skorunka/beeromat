@@ -107,6 +107,7 @@ export function InvitationForm({ token }: InvitationFormProps) {
             type="submit"
             size="lg"
             disabled={isPending}
+            isPending={isPending}
             className="h-14 text-lg"
           >
             {isPending ? t('working') : t('submit')}

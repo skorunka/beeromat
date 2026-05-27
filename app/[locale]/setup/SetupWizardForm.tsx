@@ -199,7 +199,7 @@ export function SetupWizardForm() {
           )}
         />
 
-          <Button type="submit" size="lg" disabled={isPending} className="mt-2 h-14 text-lg">
+          <Button type="submit" size="lg" disabled={isPending} isPending={isPending} className="mt-2 h-14 text-lg">
             {isPending ? t('submitting') : t('submit')}
           </Button>
         </form>

@@ -332,6 +332,7 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
           type="submit"
           size="lg"
           disabled={isPending || (format === 'doubles' && !pairingKind)}
+          isPending={isPending}
           className="h-14 text-base"
         >
           {isPending ? t('creating') : t('createCta')}

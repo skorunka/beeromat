@@ -142,6 +142,7 @@ export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
             type="submit"
             size="lg"
             disabled={!turnstileToken || isPending}
+            isPending={isPending}
             className="h-14 text-lg"
           >
             {t('submit')}

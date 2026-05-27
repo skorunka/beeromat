@@ -325,13 +325,19 @@ export function EditAgreementForm({ agreementId, members, initial }: EditAgreeme
         ) : null}
 
         <div className="flex gap-2">
-          <Button type="submit" disabled={isSaving} className="flex-1 h-12">
+          <Button
+            type="submit"
+            disabled={isSaving}
+            isPending={isSaving}
+            className="flex-1 h-12"
+          >
             {isSaving ? t('savingEdit') : t('saveEdit')}
           </Button>
           <Button
             type="button"
             variant="destructive"
             disabled={isCancelling}
+            isPending={isCancelling}
             onClick={onCancel}
             className="h-12"
           >

@@ -1,5 +1,5 @@
 import 'server-only';
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { invitations, type Invitation } from '@/lib/db/schema/members';
@@ -28,10 +28,13 @@ export interface InvitationRow {
 }
 
 /**
- * Admin-members-page query: pending invitations + recently accepted.
+ * Admin-members-page query: pending invitations only. Accepted
+ * invitations are dropped from the waiting list — the new member
+ * already shows up in the "Parta" members section above, so a
+ * duplicate "Přijato" row here is just noise (user direction
+ * 2026-05-27).
  */
 export async function getPendingInvitations(clubId: string): Promise<InvitationRow[]> {
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const rows = await db
     .select({
       id: invitations.id,
@@ -40,28 +43,23 @@ export async function getPendingInvitations(clubId: string): Promise<InvitationR
       status: invitations.status,
       createdAt: invitations.createdAt,
       expiresAt: invitations.expiresAt,
-      createdByUserId: invitations.createdByUserId,
-      acceptedAt: invitations.acceptedAt,
     })
     .from(invitations)
     .where(
       and(
         eq(invitations.clubId, clubId),
-        inArray(invitations.status, ['pending', 'accepted']),
+        eq(invitations.status, 'pending'),
       ),
     )
     .orderBy(desc(invitations.createdAt));
 
-  // Filter out long-accepted invitations in JS (avoids a more complex WHERE clause).
-  return rows
-    .filter((r) => r.status === 'pending' || (r.acceptedAt && r.acceptedAt > thirtyDaysAgo))
-    .map((r) => ({
-      id: r.id,
-      email: r.email,
-      role: r.role,
-      status: r.status,
-      createdAt: r.createdAt,
-      expiresAt: r.expiresAt,
-      createdByDisplayName: null,
-    }));
+  return rows.map((r) => ({
+    id: r.id,
+    email: r.email,
+    role: r.role,
+    status: r.status,
+    createdAt: r.createdAt,
+    expiresAt: r.expiresAt,
+    createdByDisplayName: null,
+  }));
 }

@@ -8,6 +8,7 @@ import { ManualPaymentForm } from '@/components/treasurer/manual-payment-form';
 import { TabEntryRow } from '@/components/tab/tab-entry-row';
 import { Card } from '@/components/ui/card';
 import { MemberAvatar } from '@/components/ui/member-avatar';
+import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { requireRole } from '@/lib/auth/session';
 import { memberBalance, paymentsTotal } from '@/lib/balance/calculate';
 import { db } from '@/lib/db/client';
@@ -52,6 +53,7 @@ export default async function MemberBalanceDetailPage({
         <MemberAvatar
           avatarKey={member.avatarKey}
           displayName={member.displayName}
+          uploadUrl={avatarUploadUrl(member.id, member.avatarUploadAt)}
           className="h-12 w-12"
         />
         <h1 className="text-2xl font-bold">{member.displayName}</h1>

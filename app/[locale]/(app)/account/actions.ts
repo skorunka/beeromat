@@ -6,8 +6,13 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
 import { users } from '@/lib/db/schema/auth';
 import { members } from '@/lib/db/schema/members';
+import { avatarUploads } from '@/lib/db/schema/avatar-uploads';
 import { requireUnlocked } from '@/lib/auth/session';
 import { accountSchema } from '@/lib/validation/account';
+import {
+  validateAvatarBytes,
+  type AvatarValidationFailure,
+} from '@/lib/avatars/upload-validate';
 
 // Spec 010 — /account display-name update.
 //
@@ -82,14 +87,102 @@ export async function setAvatarAction(input: {
     return { ok: false, code: 'NO_MEMBERSHIP' };
   }
 
-  await db
-    .update(members)
-    .set({ avatarKey: finalKey })
-    .where(eq(members.id, ctx.member.id));
+  // Spec 021 — picking a glyph or Default ALSO drops any existing
+  // uploaded avatar so the glyph/default wins (FR-006). One tx so
+  // the members row + avatar_uploads row stay in lockstep.
+  await db.transaction(async (tx) => {
+    await tx.delete(avatarUploads).where(eq(avatarUploads.memberId, ctx.member.id));
+    await tx
+      .update(members)
+      .set({ avatarKey: finalKey, avatarUploadAt: null })
+      .where(eq(members.id, ctx.member.id));
+  });
 
   // Layout-level revalidation — the AppHeader renders the avatar in
   // every authenticated page, so the next navigation tick picks up
   // the new glyph everywhere.
+  revalidatePath('/', 'layout');
+  revalidatePath('/account');
+
+  return { ok: true };
+}
+
+// Spec 021 — upload + remove the member's custom avatar image.
+// Bytes land in the dedicated avatar_uploads table; members.avatar_upload_at
+// mirrors avatar_uploads.updated_at as the renderer sentinel +
+// cache-buster. See contracts/upload-avatar.md.
+
+export type UploadAvatarResult =
+  | { ok: true }
+  | {
+      ok: false;
+      code: AvatarValidationFailure | 'NO_MEMBERSHIP';
+    };
+
+export async function uploadAvatarAction(input: {
+  imageBase64: string;
+  contentType: string;
+}): Promise<UploadAvatarResult> {
+  const ctx = await requireUnlocked();
+  if (!ctx.member) {
+    return { ok: false, code: 'NO_MEMBERSHIP' };
+  }
+
+  const bytes = Buffer.from(input.imageBase64, 'base64');
+  const validation = validateAvatarBytes(bytes, input.contentType);
+  if (!validation.ok) return validation;
+
+  const now = new Date();
+  await db.transaction(async (tx) => {
+    // UPSERT — one row per member (UNIQUE constraint on member_id).
+    await tx
+      .insert(avatarUploads)
+      .values({
+        memberId: ctx.member.id,
+        image: bytes,
+        contentType: input.contentType,
+        byteSize: bytes.length,
+        updatedAt: now,
+      })
+      .onConflictDoUpdate({
+        target: avatarUploads.memberId,
+        set: {
+          image: bytes,
+          contentType: input.contentType,
+          byteSize: bytes.length,
+          updatedAt: now,
+        },
+      });
+    await tx
+      .update(members)
+      .set({ avatarUploadAt: now })
+      .where(eq(members.id, ctx.member.id));
+  });
+
+  revalidatePath('/', 'layout');
+  revalidatePath('/account');
+
+  return { ok: true };
+}
+
+export type RemoveAvatarUploadResult =
+  | { ok: true }
+  | { ok: false; code: 'NO_MEMBERSHIP' };
+
+export async function removeAvatarUploadAction(): Promise<RemoveAvatarUploadResult> {
+  const ctx = await requireUnlocked();
+  if (!ctx.member) {
+    return { ok: false, code: 'NO_MEMBERSHIP' };
+  }
+
+  await db.transaction(async (tx) => {
+    await tx.delete(avatarUploads).where(eq(avatarUploads.memberId, ctx.member.id));
+    await tx
+      .update(members)
+      .set({ avatarUploadAt: null })
+      .where(eq(members.id, ctx.member.id));
+  });
+
   revalidatePath('/', 'layout');
   revalidatePath('/account');
 

@@ -36,6 +36,12 @@ export const members = pgTable(
     // lib/avatars/palette.tsx) or NULL for "use initials fallback".
     // Per-club seat — same person in two clubs picks independently.
     avatarKey: text('avatar_key'),
+    // spec 021 — non-null when this member has an uploaded avatar
+    // image (the row lives in avatar_uploads.member_id = this row's
+    // id). The value is the upload time + doubles as the cache-buster
+    // query param on the image URL. Renderer precedence: upload >
+    // avatarKey > initials > CircleUser.
+    avatarUploadAt: timestamp('avatar_upload_at', { withTimezone: true }),
   },
   (t) => [
     uniqueIndex('uniq_members_club_user').on(t.clubId, t.userId),

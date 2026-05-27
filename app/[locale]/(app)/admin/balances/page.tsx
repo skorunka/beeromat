@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { requireRole } from '@/lib/auth/session';
 import { getAllMemberBalances } from '@/lib/db/queries/payments';
+import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { formatMoney } from '@/lib/format';
 
 // US3 — treasurer's all-members balance overview, biggest debtors first.
@@ -47,6 +48,7 @@ export default async function BalancesPage({
                 <MemberAvatar
                   avatarKey={b.avatarKey}
                   displayName={b.displayName}
+                  uploadUrl={avatarUploadUrl(b.memberId, b.avatarUploadAt)}
                   className="h-10 w-10 text-xs"
                 />
                 <div className="min-w-0 flex-1">

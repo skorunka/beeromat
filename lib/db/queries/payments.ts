@@ -96,6 +96,7 @@ export interface MemberBalanceRow {
   memberId: string;
   displayName: string;
   avatarKey: string | null;
+  avatarUploadAt: Date | null;
   isActive: boolean;
   balanceMinor: bigint;
   pendingConfirmationMinor: bigint;
@@ -113,6 +114,7 @@ export async function getAllMemberBalances(clubId: string): Promise<MemberBalanc
         id: members.id,
         displayName: members.displayName,
         avatarKey: members.avatarKey,
+        avatarUploadAt: members.avatarUploadAt,
         isActive: members.isActive,
       })
       .from(members)
@@ -150,6 +152,7 @@ export async function getAllMemberBalances(clubId: string): Promise<MemberBalanc
       memberId: m.id,
       displayName: m.displayName,
       avatarKey: m.avatarKey,
+      avatarUploadAt: m.avatarUploadAt,
       isActive: m.isActive,
       balanceMinor: (consumedByMember.get(m.id) ?? 0n) - (confirmedByMember.get(m.id) ?? 0n),
       pendingConfirmationMinor: claimedByMember.get(m.id) ?? 0n,

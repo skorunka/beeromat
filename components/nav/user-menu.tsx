@@ -10,6 +10,7 @@ import { routing } from '@/lib/i18n/routing';
 import { signOutDeviceAction } from '@/lib/auth/actions';
 import { FlagIcon } from '@/components/ui/flag-icon';
 import { MemberAvatar } from '@/components/ui/member-avatar';
+import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,10 +44,14 @@ export function UserMenu({
   displayName,
   email,
   avatarKey,
+  memberId,
+  avatarUploadAt,
 }: {
   displayName: string;
   email: string;
   avatarKey: string | null;
+  memberId: string;
+  avatarUploadAt: Date | null;
 }) {
   const t = useTranslations();
   const active = useLocale();
@@ -76,7 +81,11 @@ export function UserMenu({
         disabled={isPending}
         className="focus-visible:ring-ring/50 rounded-full transition-colors hover:opacity-90 focus-visible:ring-3 focus-visible:outline-none disabled:opacity-50"
       >
-        <MemberAvatar avatarKey={avatarKey} displayName={displayName} />
+        <MemberAvatar
+          avatarKey={avatarKey}
+          displayName={displayName}
+          uploadUrl={avatarUploadUrl(memberId, avatarUploadAt)}
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={6} className="min-w-56">
         {/* Identity header — plain div (not DropdownMenuLabel) because

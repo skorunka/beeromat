@@ -306,7 +306,18 @@
       "sectionTitle": "Avatar",
       "sectionHint": "Pick something playful.",
       "defaultTileLabel": "Default",
-      "saveError": "Couldn't save the avatar. Try again."
+      "saveError": "Couldn't save the avatar. Try again.",
+      "upload": {
+        "uploadTileLabel": "Upload",
+        "cropTitle": "Crop your avatar",
+        "cropSubtitle": "Drag to move, corners to resize.",
+        "saveCta": "Save",
+        "cancelCta": "Cancel",
+        "removeCta": "Remove uploaded",
+        "errorOversize": "Image is too big. Try a smaller one.",
+        "errorInvalidType": "Please pick an image (JPEG, PNG, WebP).",
+        "errorGeneric": "Couldn't upload. Try again."
+      }
     },
     "errors": {
       "displayNameRequired": "Enter your name.",

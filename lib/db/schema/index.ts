@@ -5,6 +5,7 @@ export * from './enums';
 export * from './auth';
 export * from './clubs';
 export * from './members';
+export * from './avatar-uploads';
 export * from './catalog';
 export * from './sessions';
 export * from './consumption';

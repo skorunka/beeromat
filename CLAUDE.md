@@ -1,14 +1,15 @@
 <!-- SPECKIT START -->
-No spec currently in flight. Most recent shipped specs: 020
-(fun-avatar-picker — 8 inline-SVG glyphs picked on /account,
-stored per-club seat on `members.avatar_key`, MemberAvatar
-renderer in the AppHeader trigger; admin/treasurer/tab surfaces
-left as text-only per the FR-006 audit), 019 (log-for-other-member
-+ /tab origin-row expansion), 018 (match-bet → home awareness
-MVP + follow-ups), 017 (home redesign + one-tap log), 016
-(onboarding happy-path E2E). Each spec dir under `specs/NNN-…/`
-carries its plan.md / data-model.md / contracts/ as source of
-truth.
+No spec currently in flight. Most recent shipped specs: 021
+(avatar-upload — custom avatar image upload with circular-crop
+UI + client auto-resize, stored in `avatar_uploads` table with
+FK to members; new GET /api/avatar/[memberId] Route Handler;
+MemberAvatar renderer extended with uploadUrl branch on top of
+spec 020's chain), 020 (fun-avatar-picker — 8 inline-SVG glyphs
+picked on /account), 019 (log-for-other-member + /tab origin-row
+expansion), 018 (match-bet → home awareness), 017 (home redesign
++ one-tap log), 016 (onboarding happy-path E2E). Each spec dir
+under `specs/NNN-…/` carries its plan.md / data-model.md /
+contracts/ as source of truth.
 
 Live backlog (BACKLOG.md): inline polish items including pay-debt
 button on /tab, money formatting without cents in the header,

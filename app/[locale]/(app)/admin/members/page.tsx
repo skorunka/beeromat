@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { requireRole } from '@/lib/auth/session';
+import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { db } from '@/lib/db/client';
 import { members } from '@/lib/db/schema/members';
 import { getPendingInvitations } from '@/lib/db/queries/invitations';
@@ -60,6 +61,7 @@ export default async function AdminMembersPage({
             <MemberAvatar
               avatarKey={m.avatarKey}
               displayName={m.displayName}
+              uploadUrl={avatarUploadUrl(m.id, m.avatarUploadAt)}
               className="h-10 w-10 text-xs"
             />
             <div className="min-w-0 flex-1">

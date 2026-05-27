@@ -98,6 +98,8 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
         displayName={ctx.member.displayName}
         email={ctx.user.email}
         avatarKey={ctx.member.avatarKey ?? null}
+        memberId={ctx.member.id}
+        avatarUploadAt={ctx.member.avatarUploadAt ?? null}
         balanceFormatted={balanceFormatted}
         balanceAriaLabel={balanceAriaLabel}
       />

@@ -64,6 +64,13 @@
       "when": 1779854923463,
       "tag": "0008_sudden_snowbird",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1779874286539,
+      "tag": "0009_loving_prowler",
+      "breakpoints": true
     }
   ]
 }

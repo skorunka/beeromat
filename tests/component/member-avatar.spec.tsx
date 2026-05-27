@@ -41,4 +41,31 @@ describe('MemberAvatar (component layer — spec 020)', () => {
     // Empty string is not a valid key → falls back to initials.
     expect(screen.getByText('TŠ')).toBeInTheDocument();
   });
+
+  // Spec 021 — new top-priority branch: uploadUrl wins over every
+  // other fallback when set.
+  it('renders <img> when uploadUrl is provided (spec 021)', () => {
+    const { container } = render(
+      <MemberAvatar
+        avatarKey="star"
+        displayName="Tereza Š."
+        uploadUrl="/api/avatar/m1?v=12345"
+      />,
+    );
+    const img = container.querySelector('img');
+    expect(img).toBeInTheDocument();
+    expect(img).toHaveAttribute('src', '/api/avatar/m1?v=12345');
+    // The glyph SVG must NOT be rendered when uploadUrl wins.
+    expect(container.querySelector('svg')).not.toBeInTheDocument();
+    // Initials text must NOT be rendered either.
+    expect(screen.queryByText('TŠ')).not.toBeInTheDocument();
+  });
+
+  it('uploadUrl=null falls through to the existing fallback chain (spec 021)', () => {
+    render(
+      <MemberAvatar avatarKey={null} displayName="Tereza Š." uploadUrl={null} />,
+    );
+    // With null uploadUrl + null key + non-empty name → initials.
+    expect(screen.getByText('TŠ')).toBeInTheDocument();
+  });
 });

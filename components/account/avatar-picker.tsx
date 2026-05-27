@@ -2,41 +2,75 @@
 
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { CircleUser } from 'lucide-react';
+import { CircleUser, Upload } from 'lucide-react';
 
-import { setAvatarAction } from '@/app/[locale]/(app)/account/actions';
+import {
+  setAvatarAction,
+  removeAvatarUploadAction,
+} from '@/app/[locale]/(app)/account/actions';
+import { AvatarUploadForm } from '@/components/account/avatar-upload-form';
 import { AVATAR_KEYS, GLYPHS, type AvatarKey } from '@/lib/avatars/palette';
 import { cn } from '@/lib/utils';
 
-// Spec 020 — the avatar picker grid. Lives in /account. Tap a tile
-// to set; tap the Default tile to clear back to initials. Saves
-// immediately (no submit button); the visual update is the
-// confirmation, so no success toast either. Failures fall back to
-// a sonner toast.
+// Spec 020 + spec 021 — the avatar picker grid. Lives in /account.
+//   • Tap any glyph or the Default tile → setAvatarAction.
+//   • Tap the Upload tile → expands the AvatarUploadForm inline.
+// Picking a glyph or Default also drops any existing upload (the
+// server action handles the dual-clear in one transaction).
 
 interface AvatarPickerProps {
+  /** Current spec-020 glyph key (null if none picked). */
   currentKey: string | null;
+  /** Pre-computed URL of the member's uploaded avatar, or null. */
+  uploadUrl: string | null;
 }
 
-export function AvatarPicker({ currentKey }: AvatarPickerProps) {
+export function AvatarPicker({ currentKey, uploadUrl }: AvatarPickerProps) {
   const t = useTranslations('account.avatar');
-  // Optimistic update — the tile we just tapped shows as selected
-  // immediately, server response only matters for the error case.
+  const tUpload = useTranslations('account.avatar.upload');
+  const router = useRouter();
+
+  // Optimistic state for the glyph selection. The upload state is
+  // not optimistic — it's driven entirely by the server response
+  // (the bytes have to be processed before the URL is valid).
   const [optimisticKey, setOptimisticKey] = useState<string | null>(currentKey);
   const [isPending, startTransition] = useTransition();
+  const [uploading, setUploading] = useState(false);
+
+  const hasUpload = uploadUrl !== null;
 
   function handlePick(nextKey: AvatarKey | null) {
-    if (nextKey === optimisticKey || isPending) return;
+    // No-op only when there's no upload either (otherwise picking
+    // any glyph also removes the upload — meaningful action).
+    if (nextKey === optimisticKey && !hasUpload) return;
+    if (isPending) return;
     const previousKey = optimisticKey;
     setOptimisticKey(nextKey);
     startTransition(async () => {
       const result = await setAvatarAction({ avatarKey: nextKey });
       if (!result.ok) {
-        // Roll back the optimistic update.
         setOptimisticKey(previousKey);
         toast.error(t('saveError'));
+        return;
       }
+      // The server action revalidates the layout; force a refresh
+      // so the parent re-fetches uploadUrl (now null) and re-renders
+      // the picker with the new state.
+      router.refresh();
+    });
+  }
+
+  function handleRemoveUpload() {
+    if (isPending) return;
+    startTransition(async () => {
+      const result = await removeAvatarUploadAction();
+      if (!result.ok) {
+        toast.error(tUpload('errorGeneric'));
+        return;
+      }
+      router.refresh();
     });
   }
 
@@ -48,9 +82,10 @@ export function AvatarPicker({ currentKey }: AvatarPickerProps) {
       </header>
 
       <div className="grid grid-cols-5 gap-3">
-        {/* Default tile — clears back to initials/icon */}
+        {/* Default tile — clears back to initials/icon (also drops
+            any upload via the server action). */}
         <PickerTile
-          isSelected={optimisticKey === null}
+          isSelected={optimisticKey === null && !hasUpload}
           isPending={isPending}
           ariaLabel={t('defaultTileLabel')}
           onClick={() => handlePick(null)}
@@ -63,7 +98,7 @@ export function AvatarPicker({ currentKey }: AvatarPickerProps) {
           return (
             <PickerTile
               key={key}
-              isSelected={optimisticKey === key}
+              isSelected={optimisticKey === key && !hasUpload}
               isPending={isPending}
               ariaLabel={key}
               onClick={() => handlePick(key)}
@@ -79,7 +114,53 @@ export function AvatarPicker({ currentKey }: AvatarPickerProps) {
             </PickerTile>
           );
         })}
+
+        {/* Upload tile — when no upload yet, shows the Upload icon.
+            When an upload exists, shows the uploaded image as the
+            tile content + ring to mark it as the current selection. */}
+        <PickerTile
+          isSelected={hasUpload}
+          isPending={isPending}
+          ariaLabel={tUpload('uploadTileLabel')}
+          onClick={() => setUploading(true)}
+        >
+          {hasUpload && uploadUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={uploadUrl} alt="" className="h-full w-full rounded-full object-cover" />
+          ) : (
+            <Upload className="text-primary h-6 w-6" aria-hidden />
+          )}
+        </PickerTile>
       </div>
+
+      {/* Remove-upload affordance, visible only when an upload is
+          the current selection. The Default tile / glyph picks
+          ALSO remove the upload via the server action, but a direct
+          "Remove uploaded" button is the most discoverable path. */}
+      {hasUpload ? (
+        <button
+          type="button"
+          onClick={handleRemoveUpload}
+          disabled={isPending}
+          className="text-muted-foreground hover:text-foreground self-start text-xs underline"
+        >
+          {tUpload('removeCta')}
+        </button>
+      ) : null}
+
+      {/* Upload form expansion — collapsed by default, opens on
+          Upload tile tap. Closes on success or cancel. */}
+      {uploading ? (
+        <div className="border-border rounded-lg border p-3">
+          <AvatarUploadForm
+            onSuccess={() => {
+              setUploading(false);
+              router.refresh();
+            }}
+            onCancel={() => setUploading(false)}
+          />
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -107,10 +188,7 @@ function PickerTile({
       aria-label={ariaLabel}
       aria-pressed={isSelected}
       className={cn(
-        'bg-primary/15 hover:bg-primary/25 flex h-12 w-12 items-center justify-center rounded-full transition-all',
-        // The picked tile gets a ring + a tiny "pop" animation when
-        // it becomes selected. animate-avatar-pop is defined in
-        // globals.css and gated by prefers-reduced-motion.
+        'bg-primary/15 hover:bg-primary/25 flex h-12 w-12 items-center justify-center overflow-hidden rounded-full transition-all',
         isSelected && 'ring-primary ring-2 ring-offset-2 ring-offset-background animate-avatar-pop',
         isPending && 'opacity-60',
       )}

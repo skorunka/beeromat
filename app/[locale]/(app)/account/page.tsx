@@ -9,6 +9,7 @@ import { SignOutAllButton } from '@/components/account/sign-out-all-button';
 import { SignOutButton } from '@/components/account/sign-out-button';
 import { Link } from '@/lib/i18n/navigation';
 import { requireUnlocked } from '@/lib/auth/session';
+import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 
 // Spec 010 — the member account page.
 //
@@ -44,7 +45,10 @@ export default async function AccountPage({
       {/* Spec 020 — fun avatar picker. */}
       <section className="mb-6">
         <Card className="p-4">
-          <AvatarPicker currentKey={ctx.member.avatarKey ?? null} />
+          <AvatarPicker
+            currentKey={ctx.member.avatarKey ?? null}
+            uploadUrl={avatarUploadUrl(ctx.member.id, ctx.member.avatarUploadAt)}
+          />
         </Card>
       </section>
 

@@ -1,0 +1,126 @@
+'use client';
+
+import { ChevronDown } from 'lucide-react';
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MemberAvatar } from '@/components/ui/member-avatar';
+import { avatarUploadUrl } from '@/lib/avatars/upload-url';
+import { cn } from '@/lib/utils';
+import type { MemberOption } from './types';
+
+// Spec 024 — dropdown-shape member picker used per seat on the
+// /match new + edit forms. Built on the existing DropdownMenu
+// primitive (base-ui via shadcn — same component the admin kebab
+// + language switcher use).
+//
+// Trigger states:
+//   - Unpicked (value === null): placeholder text + chevron, no avatar.
+//   - Picked: <MemberAvatar size="row"> + displayName + chevron.
+// Each option row in the popup carries the candidate's avatar at
+// size="inline" + display name. The radio-checkmark indicator on
+// the right marks the picked option.
+//
+// `disabledIds` is a set of member ids already assigned to other
+// seats in the same agreement form. The picker excludes the
+// current `value` from the disable effect so re-picking the same
+// option works.
+
+interface MemberPickerDropdownProps {
+  members: MemberOption[];
+  value: string | null;
+  onChange: (memberId: string | null) => void;
+  /** Set of member ids that are non-selectable in this picker
+   *  (already assigned to another seat). The current `value` is
+   *  automatically excluded — re-selecting your own seat works. */
+  disabledIds?: Set<string>;
+  /** Trigger label when value === null. */
+  placeholder: string;
+  /** Trigger aria-label (reuse existing seat-label copy). */
+  ariaLabel: string;
+  className?: string;
+}
+
+// Sentinel value used for the "clear" radio item — base-ui's
+// RadioGroup uses string `value` and can't represent null directly.
+const CLEAR_VALUE = '';
+
+export function MemberPickerDropdown({
+  members,
+  value,
+  onChange,
+  disabledIds,
+  placeholder,
+  ariaLabel,
+  className,
+}: MemberPickerDropdownProps) {
+  const picked = value ? members.find((m) => m.id === value) ?? null : null;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={ariaLabel}
+        className={cn(
+          'border-input bg-background hover:bg-accent flex h-11 w-full items-center justify-between gap-2 rounded-md border px-3 text-left text-sm',
+          className,
+        )}
+      >
+        <span className="inline-flex min-w-0 items-center gap-2">
+          {picked ? (
+            <>
+              <MemberAvatar
+                size="row"
+                avatarKey={picked.avatarKey}
+                displayName={picked.displayName}
+                uploadUrl={avatarUploadUrl(picked.id, picked.avatarUploadAt)}
+              />
+              <span className="truncate">{picked.displayName}</span>
+            </>
+          ) : (
+            <span className="text-muted-foreground truncate">{placeholder}</span>
+          )}
+        </span>
+        <ChevronDown className="h-4 w-4 shrink-0 opacity-60" aria-hidden />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="start"
+        sideOffset={4}
+        className="min-w-(--anchor-width)"
+      >
+        <DropdownMenuRadioGroup
+          value={value ?? CLEAR_VALUE}
+          onValueChange={(v) => onChange(v === CLEAR_VALUE ? null : v)}
+        >
+          <DropdownMenuRadioItem value={CLEAR_VALUE}>
+            <span className="text-muted-foreground">—</span>
+          </DropdownMenuRadioItem>
+          {members.map((m) => {
+            // Disable only if explicitly disabled AND not the current value
+            // (re-picking the same option must remain available).
+            const isDisabled = disabledIds?.has(m.id) === true && m.id !== value;
+            return (
+              <DropdownMenuRadioItem
+                key={m.id}
+                value={m.id}
+                disabled={isDisabled}
+              >
+                <MemberAvatar
+                  size="inline"
+                  avatarKey={m.avatarKey}
+                  displayName={m.displayName}
+                  uploadUrl={avatarUploadUrl(m.id, m.avatarUploadAt)}
+                />
+                <span className="truncate">{m.displayName}</span>
+              </DropdownMenuRadioItem>
+            );
+          })}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}

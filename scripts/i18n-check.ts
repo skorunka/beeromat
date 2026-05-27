@@ -37,6 +37,11 @@ const SCAN_DIRS = ['app', 'components'];
 const EXCLUDED = new Set([
   'app/not-found.tsx',
   'components/ui/pin-input.tsx',
+  // member-picker-dropdown.tsx uses `disabledIds?: Set<string>` in
+  // its props — the `<string>` generic trips the JSX_TEXT regex
+  // (same root cause as pin-input.tsx). File audited: every user-
+  // facing string (placeholder, ariaLabel) comes in via props.
+  'components/picker/member-picker-dropdown.tsx',
 ]);
 
 // ── shared ───────────────────────────────────────────────────────────

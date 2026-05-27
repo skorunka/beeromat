@@ -800,9 +800,17 @@ export async function getAgreement(
 }
 
 // Members in club for the agreement-create flow's seat pickers.
+// Spec 024 — also projects avatarKey + avatarUploadAt so the
+// MemberPickerDropdown can render each candidate's face inline
+// with their name.
 export async function listActiveClubMembers(clubId: string) {
   return db
-    .select({ id: members.id, displayName: members.displayName })
+    .select({
+      id: members.id,
+      displayName: members.displayName,
+      avatarKey: members.avatarKey,
+      avatarUploadAt: members.avatarUploadAt,
+    })
     .from(members)
     .where(and(eq(members.clubId, clubId), eq(members.isActive, true)))
     .orderBy(asc(members.displayName));

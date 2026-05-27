@@ -8,15 +8,14 @@ import { toast } from 'sonner';
 import { logBeerOnBehalfAction } from '@/app/[locale]/(app)/log/actions';
 import { celebrateBeer } from '@/lib/celebrate';
 import { Button } from '@/components/ui/button';
+import { MemberPickerGrid } from '@/components/picker/member-picker-grid';
+import type { MemberOption } from '@/components/picker/types';
 
-// Spec 019 — single-screen on-behalf log form. Member select on
-// top, beer grid below, submit at bottom. The submit button is
-// disabled until both a member and a beer are picked.
+// Spec 019 — single-screen on-behalf log form. Member tile grid
+// on top (spec 024 — was a native <select>), beer grid below,
+// submit at bottom. The submit button is disabled until both a
+// member and a beer are picked.
 
-interface MemberOption {
-  id: string;
-  displayName: string;
-}
 interface BeerOption {
   id: string;
   name: string;
@@ -63,22 +62,13 @@ export function LogOnBehalfForm({
   return (
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-2">
-        <label htmlFor="onBehalfMember" className="text-sm font-medium">
-          {t('memberHint')}
-        </label>
-        <select
-          id="onBehalfMember"
-          value={memberId}
-          onChange={(e) => setMemberId(e.target.value)}
-          className="border-input bg-background h-12 rounded-md border px-3 text-base"
-        >
-          <option value="">—</option>
-          {members.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.displayName}
-            </option>
-          ))}
-        </select>
+        <p className="text-sm font-medium">{t('memberHint')}</p>
+        <MemberPickerGrid
+          members={members}
+          value={memberId || null}
+          onChange={(id) => setMemberId(id ?? '')}
+          ariaLabel={t('memberHint')}
+        />
       </section>
 
       <section className="flex flex-col gap-2">

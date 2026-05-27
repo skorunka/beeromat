@@ -107,7 +107,7 @@ description: "Task list — Avatars Everywhere (spec 023)"
 - [X] T022 Manual walkthrough per `quickstart.md` — confirm all 4 user stories' acceptance scenarios on a seeded multi-avatar club.
 - [X] T023 Mark `spec.md` status `Shipped (2026-05-27)`.
 - [X] T024 Update `CLAUDE.md` SPECKIT marker — move spec 023 from "in flight" to "most recent shipped".
-- [ ] T025 Commit + push to `origin/main` per `feedback-no-prs-trunk-based`.
+- [X] T025 Commit + push to `origin/main` per `feedback-no-prs-trunk-based`.
 
 ---
 

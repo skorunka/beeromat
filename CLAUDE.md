@@ -1,6 +1,12 @@
 <!-- SPECKIT START -->
-No spec currently in flight. Most recent shipped specs: 023
-(avatars-everywhere — <MemberAvatar /> next to member names
+No spec currently in flight. Most recent shipped specs: 024
+(picker-avatars — replaces the three native `<select>` member
+pickers with avatar-bearing custom controls: /log/for becomes
+a tile grid matching the beer grid on the same form; /match
+new + edit forms get an avatar dropdown per seat with
+duplicate-seat protection. Two new shared components under
+`components/picker/`; one new query helper `listOtherActiveMembers`),
+023 (avatars-everywhere — <MemberAvatar /> next to member names
 on /admin/pending pending + confirmed, /bet drinks-you-can-take
 + past-bets, /history/[id] bet transfers, /tab on-behalf
 attribution; two new size variants on the component (inline

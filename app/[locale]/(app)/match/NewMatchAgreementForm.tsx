@@ -17,15 +17,12 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { MemberPickerDropdown } from '@/components/picker/member-picker-dropdown';
+import type { MemberOption } from '@/components/picker/types';
 import {
   createAgreementSchema,
   type CreateAgreementInput,
 } from '@/lib/validation/match-agreement';
-
-interface MemberOption {
-  id: string;
-  displayName: string;
-}
 
 interface NewMatchAgreementFormProps {
   members: MemberOption[];
@@ -82,6 +79,12 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
   // because its returned values can't be memoised safely.
   const format = useWatch({ control: form.control, name: 'format' });
   const pairingKind = useWatch({ control: form.control, name: 'pairingKind' });
+  // Spec 024 — subscribe to each seat field so the disable-set
+  // recomputes when any pick changes.
+  const seatA1 = useWatch({ control: form.control, name: 'a1' });
+  const seatA2 = useWatch({ control: form.control, name: 'a2' });
+  const seatB1 = useWatch({ control: form.control, name: 'b1' });
+  const seatB2 = useWatch({ control: form.control, name: 'b2' });
 
   function onSubmit(values: FormValues) {
     // Client-side validation: pairing required for doubles (Q4 — no default).
@@ -123,11 +126,18 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
     return <p className="text-muted-foreground p-4 text-sm">{t('noOpponents')}</p>;
   }
 
-  const memberOptions = members.map((m) => (
-    <option key={m.id} value={m.id}>
-      {m.displayName}
-    </option>
-  ));
+  // Spec 024 — disable members already assigned to OTHER seats
+  // in this agreement so the user can't accidentally double-book
+  // someone. Only the seats VISIBLE in the current format count;
+  // a2/b2 still hold their last doubles values in the form state
+  // after switching to singles, but those phantom values mustn't
+  // affect the disable-set for the visible singles pickers.
+  // Each picker's own current value is also excluded from the
+  // disable effect inside <MemberPickerDropdown />.
+  const activeSeats = format === 'doubles'
+    ? [seatA1, seatA2, seatB1, seatB2]
+    : [seatA1, seatB1];
+  const assignedIds = new Set(activeSeats.filter(Boolean) as string[]);
 
   return (
     <Form {...form}>
@@ -174,13 +184,14 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
               <FormItem>
                 <FormLabel className="sr-only">{t('seat1Label')}</FormLabel>
                 <FormControl>
-                  <select
-                    {...field}
-                    className="border-input bg-background hover:bg-accent inline-flex h-12 w-full items-center rounded-md border px-3 text-base"
-                  >
-                    <option value="">{t('pickMember')}</option>
-                    {memberOptions}
-                  </select>
+                  <MemberPickerDropdown
+                    members={members}
+                    value={field.value || null}
+                    onChange={(id) => field.onChange(id ?? '')}
+                    disabledIds={assignedIds}
+                    placeholder={t('pickMember')}
+                    ariaLabel={t('seat1Label')}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -194,13 +205,14 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
                 <FormItem>
                   <FormLabel className="sr-only">{t('seat2Label')}</FormLabel>
                   <FormControl>
-                    <select
-                      {...field}
-                      className="border-input bg-background hover:bg-accent inline-flex h-12 w-full items-center rounded-md border px-3 text-base"
-                    >
-                      <option value="">{t('pickMember')}</option>
-                      {memberOptions}
-                    </select>
+                    <MemberPickerDropdown
+                      members={members}
+                      value={field.value || null}
+                      onChange={(id) => field.onChange(id ?? '')}
+                      disabledIds={assignedIds}
+                      placeholder={t('pickMember')}
+                      ariaLabel={t('seat2Label')}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -218,13 +230,14 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
               <FormItem>
                 <FormLabel className="sr-only">{t('seat1Label')}</FormLabel>
                 <FormControl>
-                  <select
-                    {...field}
-                    className="border-input bg-background hover:bg-accent inline-flex h-12 w-full items-center rounded-md border px-3 text-base"
-                  >
-                    <option value="">{t('pickMember')}</option>
-                    {memberOptions}
-                  </select>
+                  <MemberPickerDropdown
+                    members={members}
+                    value={field.value || null}
+                    onChange={(id) => field.onChange(id ?? '')}
+                    disabledIds={assignedIds}
+                    placeholder={t('pickMember')}
+                    ariaLabel={t('seat1Label')}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -238,13 +251,14 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
                 <FormItem>
                   <FormLabel className="sr-only">{t('seat2Label')}</FormLabel>
                   <FormControl>
-                    <select
-                      {...field}
-                      className="border-input bg-background hover:bg-accent inline-flex h-12 w-full items-center rounded-md border px-3 text-base"
-                    >
-                      <option value="">{t('pickMember')}</option>
-                      {memberOptions}
-                    </select>
+                    <MemberPickerDropdown
+                      members={members}
+                      value={field.value || null}
+                      onChange={(id) => field.onChange(id ?? '')}
+                      disabledIds={assignedIds}
+                      placeholder={t('pickMember')}
+                      ariaLabel={t('seat2Label')}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

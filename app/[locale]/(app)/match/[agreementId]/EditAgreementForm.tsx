@@ -19,15 +19,12 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { MemberPickerDropdown } from '@/components/picker/member-picker-dropdown';
+import type { MemberOption } from '@/components/picker/types';
 import {
   createAgreementSchema,
   type CreateAgreementInput,
 } from '@/lib/validation/match-agreement';
-
-interface MemberOption {
-  id: string;
-  displayName: string;
-}
 
 interface EditAgreementFormProps {
   agreementId: string;
@@ -92,6 +89,12 @@ export function EditAgreementForm({ agreementId, members, initial }: EditAgreeme
   // Use `useWatch` instead of `form.watch()` — the latter trips the
   // react-hooks/incompatible-library lint rule.
   const format = useWatch({ control: form.control, name: 'format' });
+  // Spec 024 — subscribe to seat values so the disable-set
+  // recomputes when any pick changes.
+  const seatA1 = useWatch({ control: form.control, name: 'a1' });
+  const seatA2 = useWatch({ control: form.control, name: 'a2' });
+  const seatB1 = useWatch({ control: form.control, name: 'b1' });
+  const seatB2 = useWatch({ control: form.control, name: 'b2' });
 
   function onSave(values: FormValues) {
     if (values.format === 'doubles' && !values.pairingKind) {
@@ -135,11 +138,15 @@ export function EditAgreementForm({ agreementId, members, initial }: EditAgreeme
     });
   }
 
-  const memberOptions = members.map((m) => (
-    <option key={m.id} value={m.id}>
-      {m.displayName}
-    </option>
-  ));
+  // Spec 024 — disable members already assigned to other seats.
+  // Only seats visible in the current format count (a2/b2 may still
+  // carry doubles values in the form state after a singles switch).
+  // Each picker excludes its own current value from the disable set
+  // (inside MemberPickerDropdown) so re-picking the same option works.
+  const activeSeats = format === 'doubles'
+    ? [seatA1, seatA2, seatB1, seatB2]
+    : [seatA1, seatB1];
+  const assignedIds = new Set(activeSeats.filter(Boolean) as string[]);
 
   return (
     <Form {...form}>
@@ -183,13 +190,14 @@ export function EditAgreementForm({ agreementId, members, initial }: EditAgreeme
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <select
-                    {...field}
-                    className="border-input bg-background hover:bg-accent inline-flex h-11 w-full items-center rounded-md border px-3 text-base"
-                  >
-                    <option value="">{t('pickMember')}</option>
-                    {memberOptions}
-                  </select>
+                  <MemberPickerDropdown
+                    members={members}
+                    value={field.value || null}
+                    onChange={(id) => field.onChange(id ?? '')}
+                    disabledIds={assignedIds}
+                    placeholder={t('pickMember')}
+                    ariaLabel={t('seat1Label')}
+                  />
                 </FormControl>
               </FormItem>
             )}
@@ -201,13 +209,14 @@ export function EditAgreementForm({ agreementId, members, initial }: EditAgreeme
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <select
-                      {...field}
-                      className="border-input bg-background hover:bg-accent inline-flex h-11 w-full items-center rounded-md border px-3 text-base"
-                    >
-                      <option value="">{t('pickMember')}</option>
-                      {memberOptions}
-                    </select>
+                    <MemberPickerDropdown
+                      members={members}
+                      value={field.value || null}
+                      onChange={(id) => field.onChange(id ?? '')}
+                      disabledIds={assignedIds}
+                      placeholder={t('pickMember')}
+                      ariaLabel={t('seat2Label')}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -223,13 +232,14 @@ export function EditAgreementForm({ agreementId, members, initial }: EditAgreeme
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <select
-                    {...field}
-                    className="border-input bg-background hover:bg-accent inline-flex h-11 w-full items-center rounded-md border px-3 text-base"
-                  >
-                    <option value="">{t('pickMember')}</option>
-                    {memberOptions}
-                  </select>
+                  <MemberPickerDropdown
+                    members={members}
+                    value={field.value || null}
+                    onChange={(id) => field.onChange(id ?? '')}
+                    disabledIds={assignedIds}
+                    placeholder={t('pickMember')}
+                    ariaLabel={t('seat1Label')}
+                  />
                 </FormControl>
               </FormItem>
             )}
@@ -241,13 +251,14 @@ export function EditAgreementForm({ agreementId, members, initial }: EditAgreeme
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <select
-                      {...field}
-                      className="border-input bg-background hover:bg-accent inline-flex h-11 w-full items-center rounded-md border px-3 text-base"
-                    >
-                      <option value="">{t('pickMember')}</option>
-                      {memberOptions}
-                    </select>
+                    <MemberPickerDropdown
+                      members={members}
+                      value={field.value || null}
+                      onChange={(id) => field.onChange(id ?? '')}
+                      disabledIds={assignedIds}
+                      placeholder={t('pickMember')}
+                      ariaLabel={t('seat2Label')}
+                    />
                   </FormControl>
                 </FormItem>
               )}

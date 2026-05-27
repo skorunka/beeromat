@@ -1,11 +1,11 @@
-import { and, eq, gt, ne } from 'drizzle-orm';
+import { and, eq, gt } from 'drizzle-orm';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Link } from '@/lib/i18n/navigation';
 import { db } from '@/lib/db/client';
 import { requireUnlocked } from '@/lib/auth/session';
 import { beerTypes } from '@/lib/db/schema/catalog';
-import { members } from '@/lib/db/schema/members';
+import { listOtherActiveMembers } from '@/lib/db/queries/members';
 import { LogOnBehalfForm } from '@/components/log/log-on-behalf-form';
 
 // Spec 019 — on-behalf flow page reachable from home + /log via
@@ -24,17 +24,7 @@ export default async function LogOnBehalfPage({
   const t = await getTranslations('log.onBehalf');
 
   const [otherMembers, inStockBeers] = await Promise.all([
-    db
-      .select({ id: members.id, displayName: members.displayName })
-      .from(members)
-      .where(
-        and(
-          eq(members.clubId, ctx.club.id),
-          eq(members.isActive, true),
-          ne(members.id, ctx.member.id),
-        ),
-      )
-      .orderBy(members.displayName),
+    listOtherActiveMembers(ctx.club.id, ctx.member.id),
     db
       .select({
         id: beerTypes.id,

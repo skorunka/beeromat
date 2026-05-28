@@ -66,12 +66,12 @@ describe('OnBehalfReviewBanner (component layer — spec 019)', () => {
     expect(screen.getByRole('button', { name: /keep/i })).toBeInTheDocument();
   });
 
-  it('V2 — Czech variant: "Pavel ti zapsal: Kozel"', () => {
+  it('V2 — Czech variant: "Pavel ti zapsal/a: Kozel"', () => {
     renderBanner(
       [row({ consumptionId: 'c-1', loggerDisplayName: 'Pavel', beerName: 'Kozel' })],
       'cs',
     );
-    expect(screen.getByText(/pavel ti zapsal: kozel/i)).toBeInTheDocument();
+    expect(screen.getByText(/pavel ti zapsal\/a: kozel/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /vrátit/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /nechat/i })).toBeInTheDocument();
   });

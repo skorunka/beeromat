@@ -124,6 +124,19 @@ export default async function BetPage({
       </header>
 
       <TransferList transferables={transferables} transfers={transfers} tally={betTally} />
+
+      {/* Point members who actually played a scheduled match at the
+          formal flow (which auto-settles the beer) — the panel found
+          Bet vs Match easy to confuse. */}
+      <p className="text-muted-foreground mt-8 text-center text-xs">
+        {t.rich('matchHint', {
+          link: (chunks) => (
+            <Link href="/match" className="underline underline-offset-2">
+              {chunks}
+            </Link>
+          ),
+        })}
+      </p>
     </main>
   );
 }

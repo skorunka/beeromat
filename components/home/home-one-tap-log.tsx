@@ -143,9 +143,9 @@ export function HomeOneTapLog({
               <DropdownMenuTrigger
                 aria-label={t('pickAnother')}
                 disabled={isPending}
-                className="hover:bg-primary/90 disabled:opacity-60 flex w-12 shrink-0 items-center justify-center transition-colors"
+                className="hover:bg-primary/90 disabled:opacity-60 flex w-16 shrink-0 items-center justify-center transition-colors"
               >
-                <ChevronDown className="h-5 w-5" aria-hidden />
+                <ChevronDown className="h-6 w-6" aria-hidden />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" sideOffset={4} className="min-w-56">
                 {otherBeers.map((b) => (

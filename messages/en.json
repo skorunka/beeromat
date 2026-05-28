@@ -161,7 +161,9 @@
     "betPicker": {
       "autoLabel": "Auto · {beer}",
       "autoFallback": "Auto · Beer"
-    }
+    },
+    "loserBuys": "Whoever loses buys {count}× beer for the winner.",
+    "loserBuysNamed": "Whoever loses buys {count}× {beer} for the winner."
   },
   "onboarding": {
     "title": "Welcome",

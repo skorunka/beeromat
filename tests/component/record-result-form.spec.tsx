@@ -36,6 +36,7 @@ const seedBeers = [
 function renderForm(opts: {
   betBeerOptions?: Array<{ id: string; name: string }>;
   loserLastBeerName?: string | null;
+  loserBeerCount?: number;
 } = {}) {
   // Use `in opts` checks so an explicit `undefined` or `null` is
   // honored (the `??` fallback would collapse them to defaults).
@@ -50,6 +51,7 @@ function renderForm(opts: {
         sideBLabel="Side B"
         betBeerOptions={beers}
         loserLastBeerName={lastBeer}
+        loserBeerCount={opts.loserBeerCount ?? 1}
       />
     </NextIntlClientProvider>,
   );
@@ -174,5 +176,34 @@ describe('RecordResultForm — bet-beer tile grid (spec 025)', () => {
       .getAllByRole('button')
       .filter((b) => b.hasAttribute('aria-pressed'));
     expect(pickerTiles).toHaveLength(0);
+  });
+
+  describe('loser-buys explainer (usability follow-up)', () => {
+    it('names the selected beer + count for a for-beer match', () => {
+      renderForm({ loserLastBeerName: 'Pilsner', loserBeerCount: 2 });
+      expect(
+        screen.getByText(/whoever loses buys 2× pilsner for the winner/i),
+      ).toBeInTheDocument();
+    });
+
+    it('updates the named beer when a different tile is picked', () => {
+      renderForm({ loserLastBeerName: 'Pilsner', loserBeerCount: 1 });
+      fireEvent.click(screen.getByRole('button', { name: 'Stout' }));
+      expect(
+        screen.getByText(/whoever loses buys 1× stout for the winner/i),
+      ).toBeInTheDocument();
+    });
+
+    it('falls back to the beer-less explainer when no beer name is known', () => {
+      renderForm({ loserLastBeerName: null, loserBeerCount: 1 });
+      expect(
+        screen.getByText(/whoever loses buys 1× beer for the winner/i),
+      ).toBeInTheDocument();
+    });
+
+    it('no explainer for a not-for-beer match (picker absent)', () => {
+      renderForm({ betBeerOptions: undefined });
+      expect(screen.queryByText(/whoever loses buys/i)).not.toBeInTheDocument();
+    });
   });
 });

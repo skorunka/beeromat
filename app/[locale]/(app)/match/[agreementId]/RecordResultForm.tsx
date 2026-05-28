@@ -29,6 +29,11 @@ interface RecordResultFormProps {
   // has no last beer (new member) — falls back to a generic
   // localized "Auto · Pivo" / "Auto · Beer" label.
   loserLastBeerName?: string | null;
+  // Usability follow-up (2026-05-28) — club's per-loss beer count.
+  // Drives the passive "whoever loses buys N× beer" explainer so
+  // the recorder sees the money consequence BEFORE tapping a winner
+  // (no extra tap; the explainer is always visible for for-beer).
+  loserBeerCount?: number;
 }
 
 interface RecentRecord {
@@ -45,6 +50,7 @@ export function RecordResultForm({
   sideBLabel,
   betBeerOptions,
   loserLastBeerName,
+  loserBeerCount = 1,
 }: RecordResultFormProps) {
   const t = useTranslations('match');
   const router = useRouter();
@@ -133,8 +139,22 @@ export function RecordResultForm({
     ? t('betPicker.autoLabel', { beer: loserLastBeerName })
     : t('betPicker.autoFallback');
 
+  // The beer the loser will be charged for, given the current pick.
+  const selectedBeerName = betBeerOverrideId
+    ? betBeerOptions?.find((b) => b.id === betBeerOverrideId)?.name ?? null
+    : loserLastBeerName ?? null;
+  const isForBeer = !!betBeerOptions && betBeerOptions.length > 0;
+
   return (
     <div className="flex flex-col gap-3">
+      {isForBeer ? (
+        <p className="text-muted-foreground text-xs">
+          {selectedBeerName
+            ? t('loserBuysNamed', { count: loserBeerCount, beer: selectedBeerName })
+            : t('loserBuys', { count: loserBeerCount })}
+        </p>
+      ) : null}
+
       {betBeerOptions && betBeerOptions.length > 0 ? (
         <div className="grid grid-cols-2 gap-2">
           <button

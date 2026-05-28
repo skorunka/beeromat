@@ -161,7 +161,9 @@
     "betPicker": {
       "autoLabel": "Auto · {beer}",
       "autoFallback": "Auto · Pivo"
-    }
+    },
+    "loserBuys": "Kdo prohraje, kupuje vítězi {count}× pivo.",
+    "loserBuysNamed": "Kdo prohraje, kupuje vítězi {count}× {beer}."
   },
   "onboarding": {
     "title": "Vítej",

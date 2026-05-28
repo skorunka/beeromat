@@ -140,6 +140,7 @@ export default async function AgreementDetailPage({
           sideBLabel={sideBName}
           betBeerOptions={agreement.forBeer ? betBeerOptions : undefined}
           loserLastBeerName={recorderLastBeer?.name ?? null}
+          loserBeerCount={ctx.club.matchLoserBeerCount}
         />
       ) : isOpen ? (
         <Card className="text-muted-foreground p-4 text-sm">{t('viewerCannotRecord')}</Card>

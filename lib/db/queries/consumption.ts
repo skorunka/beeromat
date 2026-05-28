@@ -17,6 +17,10 @@ import { getBetTransfersForSession, type BetTransferRow } from './bets';
 // member row (when an on-behalf log) alongside the existing CONSUMER
 // join, and pull the logger's avatar fields.
 const loggerMembers = alias(members, 'logger_members');
+// Third alias — the OTHER party of a bet transfer away from the
+// member's own consumption (the loser who picks up the tab). Used to
+// label the winner's transfer_out row ("z vyhrané sázky: {loser}").
+const transferToMembers = alias(members, 'transfer_to_members');
 
 /**
  * Spec 017 — predictive-default lookup for home's one-tap log button.
@@ -140,7 +144,9 @@ export async function getMyTabForSession(args: {
         consumerMemberUserId: members.userId,
         voidId: consumptionVoids.id,
         sourceMatchId: matchBetTransfers.matchId,
+        betTransferId: betTransfers.id,
         betTransferVoidId: betTransferVoids.id,
+        transferToDisplayName: transferToMembers.displayName,
       })
       .from(consumptions)
       .innerJoin(beerTypes, eq(beerTypes.id, consumptions.beerTypeId))
@@ -157,6 +163,7 @@ export async function getMyTabForSession(args: {
       .leftJoin(betTransfers, eq(betTransfers.sourceConsumptionId, consumptions.id))
       .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
       .leftJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
+      .leftJoin(transferToMembers, eq(transferToMembers.id, betTransfers.toMemberId))
       .where(
         and(
           eq(consumptions.memberId, args.memberId),
@@ -199,6 +206,28 @@ export async function getMyTabForSession(args: {
     const inWindow = now - r.createdAt.getTime() <= windowMs;
     // On-behalf: createdByUserId differs from the consumer's user id.
     const isOnBehalf = r.createdByUserId !== r.consumerMemberUserId;
+    // Won-bet: this own consumption has an ACTIVE (non-voided) bet
+    // transfer away from it — the cost moved to the loser, so it must
+    // NOT count toward this member's total (mirrors
+    // effectiveConsumptionTotal). Rendered as a transfer_out credit.
+    const transferredAway = r.betTransferId !== null && r.betTransferVoidId === null;
+    if (transferredAway && !voided) {
+      return {
+        id: r.consumptionId,
+        kind: 'transfer_out' as const,
+        beerTypeName: r.beerTypeName,
+        unitPriceMinor: r.unitPriceMinor,
+        createdAt: r.createdAt,
+        voided: false,
+        canUndo: false,
+        sourceMatchId: r.sourceMatchId,
+        // The OTHER party shown on the winner's row is the loser.
+        loggerDisplayName: r.transferToDisplayName,
+        loggerMemberId: null,
+        loggerAvatarKey: null,
+        loggerAvatarUploadAt: null,
+      };
+    }
     return {
       id: r.consumptionId,
       kind: 'consumption' as const,
@@ -238,8 +267,11 @@ export async function getMyTabForSession(args: {
     (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
   );
 
+  // transfer_out rows are won-bet credits — the cost moved to the
+  // loser, so they don't add to the member's total (parity with
+  // effectiveConsumptionTotal).
   const totalMinor = entries.reduce(
-    (acc, e) => (e.voided ? acc : acc + e.unitPriceMinor),
+    (acc, e) => (e.voided || e.kind === 'transfer_out' ? acc : acc + e.unitPriceMinor),
     0n,
   );
 
@@ -279,7 +311,9 @@ export async function getMemberTabForAdmin(args: {
         createdByUserId: consumptions.createdByUserId,
         voidId: consumptionVoids.id,
         sourceMatchId: matchBetTransfers.matchId,
+        betTransferId: betTransfers.id,
         betTransferVoidId: betTransferVoids.id,
+        transferToDisplayName: transferToMembers.displayName,
       })
       .from(consumptions)
       .innerJoin(beerTypes, eq(beerTypes.id, consumptions.beerTypeId))
@@ -296,6 +330,7 @@ export async function getMemberTabForAdmin(args: {
       .leftJoin(betTransfers, eq(betTransfers.sourceConsumptionId, consumptions.id))
       .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
       .leftJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
+      .leftJoin(transferToMembers, eq(transferToMembers.id, betTransfers.toMemberId))
       .where(
         and(
           eq(consumptions.memberId, args.memberId),
@@ -331,6 +366,23 @@ export async function getMemberTabForAdmin(args: {
   const consumptionEntries: MemberTabEntry[] = consumptionRows.map((r) => {
     const voided = r.voidId !== null;
     const isOnBehalf = r.createdByUserId !== r.consumerMemberUserId;
+    const transferredAway = r.betTransferId !== null && r.betTransferVoidId === null;
+    if (transferredAway && !voided) {
+      return {
+        id: r.consumptionId,
+        kind: 'transfer_out' as const,
+        beerTypeName: r.beerTypeName,
+        unitPriceMinor: r.unitPriceMinor,
+        createdAt: r.createdAt,
+        voided: false,
+        canUndo: false,
+        sourceMatchId: r.sourceMatchId,
+        loggerDisplayName: r.transferToDisplayName,
+        loggerMemberId: null,
+        loggerAvatarKey: null,
+        loggerAvatarUploadAt: null,
+      };
+    }
     return {
       id: r.consumptionId,
       kind: 'consumption' as const,
@@ -368,7 +420,7 @@ export async function getMemberTabForAdmin(args: {
     (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
   );
   const totalMinor = entries.reduce(
-    (acc, e) => (e.voided ? acc : acc + e.unitPriceMinor),
+    (acc, e) => (e.voided || e.kind === 'transfer_out' ? acc : acc + e.unitPriceMinor),
     0n,
   );
 

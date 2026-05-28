@@ -61,6 +61,42 @@ export function TabEntryRow({ entry, currencyCode, locale }: TabEntryRowProps) {
     }
   }
 
+  // Won-bet rows (transfer_out): the member drank this beer but won
+  // the bet, so the cost moved to the loser. Shown for transparency
+  // with the price struck through — it does NOT count toward the
+  // member's total (parity with the balance).
+  if (entry.kind === 'transfer_out') {
+    return (
+      <li className="flex items-center justify-between rounded-md border p-3">
+        <div className="min-w-0">
+          <div className="text-sm font-medium leading-snug">
+            {t('wonBet', {
+              logger: entry.loggerDisplayName ?? '?',
+              beer: entry.beerTypeName,
+            })}
+          </div>
+          <div className="text-muted-foreground text-xs">
+            {timeStr}
+            {entry.sourceMatchId ? (
+              <>
+                {' · '}
+                <Link
+                  href={`/match/${entry.sourceMatchId}` as Route}
+                  className="hover:text-foreground underline-offset-2 hover:underline"
+                >
+                  {t('fromMatch')}
+                </Link>
+              </>
+            ) : null}
+          </div>
+        </div>
+        <div className="text-muted-foreground font-mono text-sm line-through">
+          {formatMoney(entry.unitPriceMinor, currencyCode, locale)}
+        </div>
+      </li>
+    );
+  }
+
   // Lost-bet rows: distinct layout — "z prohrané sázky: X · Beer"
   // as the primary line, no Undo button (transfers aren't undoable
   // from /tab; the match-void path handles it).

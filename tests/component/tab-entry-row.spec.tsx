@@ -104,6 +104,36 @@ describe('TabEntryRow (component layer — spec 019)', () => {
     expect(screen.getByText(/z prohrané sázky: pavel · pilsner/i)).toBeInTheDocument();
   });
 
+  it('won-bet transfer_out: shows "won bet: {logger} pays · {beer}" with a struck-through price', () => {
+    const { container } = renderRow({
+      ...baseEntry,
+      id: 'c-won',
+      kind: 'transfer_out',
+      loggerDisplayName: 'Bob',
+      sourceMatchId: 'm-9',
+    });
+    expect(screen.getByText(/won bet: bob pays · pilsner/i)).toBeInTheDocument();
+    // Price shown but struck through (it's a credit, not a charge).
+    const strike = container.querySelector('.line-through');
+    expect(strike).toBeInTheDocument();
+    // No undo affordance on a transfer row.
+    expect(screen.queryByRole('button', { name: /undo/i })).not.toBeInTheDocument();
+  });
+
+  it('won-bet transfer_out (cs): "z vyhrané sázky: platí Bob · Pilsner"', () => {
+    renderRow(
+      {
+        ...baseEntry,
+        id: 'c-won',
+        kind: 'transfer_out',
+        loggerDisplayName: 'Bob',
+        sourceMatchId: 'm-9',
+      },
+      'cs',
+    );
+    expect(screen.getByText(/z vyhrané sázky: platí bob · pilsner/i)).toBeInTheDocument();
+  });
+
   it('voided consumption: shows the voided badge + applies the dim style', () => {
     const { container } = renderRow({ ...baseEntry, voided: true });
     expect(screen.getByText(/scrapped/i)).toBeInTheDocument();

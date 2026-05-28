@@ -362,7 +362,8 @@
     "empty": "Zatím nic — zapiš si první pivo.",
     "fromMatch": "ze zápasu →",
     "byOther": "od {logger}",
-    "fromBet": "z prohrané sázky: {logger} · {beer}"
+    "fromBet": "z prohrané sázky: {logger} · {beer}",
+    "wonBet": "z vyhrané sázky: platí {logger} · {beer}"
   },
   "settle": {
     "title": "Vyrovnat útratu",

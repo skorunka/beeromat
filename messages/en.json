@@ -362,7 +362,8 @@
     "empty": "Nothing yet — go log your first beer.",
     "fromMatch": "from the match →",
     "byOther": "by {logger}",
-    "fromBet": "lost bet: {logger} · {beer}"
+    "fromBet": "lost bet: {logger} · {beer}",
+    "wonBet": "won bet: {logger} pays · {beer}"
   },
   "settle": {
     "title": "Settle up",

@@ -160,7 +160,24 @@ export async function getMyTabForSession(args: {
         ),
       )
       .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
-      .leftJoin(betTransfers, eq(betTransfers.sourceConsumptionId, consumptions.id))
+      // Join only the ACTIVE (non-voided) transfer away from this
+      // consumption. A consumption may legitimately carry several
+      // bet_transfer rows over time (transfer → void → re-transfer —
+      // see createBetTransferAction), but at most one is active. An
+      // unfiltered join would fan a single consumption into multiple
+      // tab rows (one per historic transfer).
+      .leftJoin(
+        betTransfers,
+        and(
+          eq(betTransfers.sourceConsumptionId, consumptions.id),
+          notExists(
+            db
+              .select()
+              .from(betTransferVoids)
+              .where(eq(betTransferVoids.betTransferId, betTransfers.id)),
+          ),
+        ),
+      )
       .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
       .leftJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
       .leftJoin(transferToMembers, eq(transferToMembers.id, betTransfers.toMemberId))
@@ -327,7 +344,24 @@ export async function getMemberTabForAdmin(args: {
         ),
       )
       .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
-      .leftJoin(betTransfers, eq(betTransfers.sourceConsumptionId, consumptions.id))
+      // Join only the ACTIVE (non-voided) transfer away from this
+      // consumption. A consumption may legitimately carry several
+      // bet_transfer rows over time (transfer → void → re-transfer —
+      // see createBetTransferAction), but at most one is active. An
+      // unfiltered join would fan a single consumption into multiple
+      // tab rows (one per historic transfer).
+      .leftJoin(
+        betTransfers,
+        and(
+          eq(betTransfers.sourceConsumptionId, consumptions.id),
+          notExists(
+            db
+              .select()
+              .from(betTransferVoids)
+              .where(eq(betTransferVoids.betTransferId, betTransfers.id)),
+          ),
+        ),
+      )
       .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
       .leftJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
       .leftJoin(transferToMembers, eq(transferToMembers.id, betTransfers.toMemberId))

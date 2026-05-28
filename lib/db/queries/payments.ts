@@ -1,9 +1,10 @@
 import 'server-only';
 
-import { and, desc, eq, gte, inArray, isNull, lte, sum } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, lte, notExists, sum } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { memberBalance, paymentsTotal } from '@/lib/balance/calculate';
+import { betTransferVoids, betTransfers } from '@/lib/db/schema/bets';
 import { consumptionVoids, consumptions } from '@/lib/db/schema/consumption';
 import { members } from '@/lib/db/schema/members';
 import { payments, paymentStateTransitions } from '@/lib/db/schema/payments';
@@ -112,7 +113,15 @@ export interface MemberBalanceRow {
  * grouped aggregates rather than a per-member fan-out of queries.
  */
 export async function getAllMemberBalances(clubId: string): Promise<MemberBalanceRow[]> {
-  const [memberRows, consumptionTotals, paymentTotals] = await Promise.all([
+  // The effective-consumption total MUST mirror effectiveConsumptionTotal()
+  // (lib/balance/calculate.ts) or this treasurer grid diverges from each
+  // member's own /tab + home balance. The naive "sum consumptions grouped
+  // by consumer" undercount/overcounts the moment a for-beer bet moves a
+  // consumption's weight: the winner (original drinker) keeps showing the
+  // beer they won, the loser shows nothing. So we compute the same two
+  // legs the per-member function does — own-not-transferred-away PLUS
+  // transferred-in — just batched across every member at once.
+  const [memberRows, ownTotals, transferredInTotals, paymentTotals] = await Promise.all([
     db
       .select({
         id: members.id,
@@ -123,15 +132,67 @@ export async function getAllMemberBalances(clubId: string): Promise<MemberBalanc
       })
       .from(members)
       .where(eq(members.clubId, clubId)),
+    // Leg 1: own consumptions, unvoided, NOT actively transferred away.
     db
       .select({
         memberId: consumptions.memberId,
         total: sum(consumptions.unitPriceMinorSnapshot).mapWith(BigInt),
       })
       .from(consumptions)
-      .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
-      .where(and(eq(consumptions.clubId, clubId), isNull(consumptionVoids.id)))
+      .where(
+        and(
+          eq(consumptions.clubId, clubId),
+          notExists(
+            db
+              .select()
+              .from(consumptionVoids)
+              .where(eq(consumptionVoids.consumptionId, consumptions.id)),
+          ),
+          notExists(
+            db
+              .select()
+              .from(betTransfers)
+              .where(
+                and(
+                  eq(betTransfers.sourceConsumptionId, consumptions.id),
+                  notExists(
+                    db
+                      .select()
+                      .from(betTransferVoids)
+                      .where(eq(betTransferVoids.betTransferId, betTransfers.id)),
+                  ),
+                ),
+              ),
+          ),
+        ),
+      )
       .groupBy(consumptions.memberId),
+    // Leg 2: consumptions transferred TO a member by an active transfer.
+    db
+      .select({
+        memberId: betTransfers.toMemberId,
+        total: sum(consumptions.unitPriceMinorSnapshot).mapWith(BigInt),
+      })
+      .from(betTransfers)
+      .innerJoin(consumptions, eq(consumptions.id, betTransfers.sourceConsumptionId))
+      .where(
+        and(
+          eq(betTransfers.clubId, clubId),
+          notExists(
+            db
+              .select()
+              .from(betTransferVoids)
+              .where(eq(betTransferVoids.betTransferId, betTransfers.id)),
+          ),
+          notExists(
+            db
+              .select()
+              .from(consumptionVoids)
+              .where(eq(consumptionVoids.consumptionId, consumptions.id)),
+          ),
+        ),
+      )
+      .groupBy(betTransfers.toMemberId),
     db
       .select({
         memberId: payments.memberId,
@@ -143,7 +204,13 @@ export async function getAllMemberBalances(clubId: string): Promise<MemberBalanc
       .groupBy(payments.memberId, payments.status),
   ]);
 
-  const consumedByMember = new Map(consumptionTotals.map((r) => [r.memberId, r.total ?? 0n]));
+  const consumedByMember = new Map<string, bigint>();
+  for (const r of ownTotals) {
+    consumedByMember.set(r.memberId, (consumedByMember.get(r.memberId) ?? 0n) + (r.total ?? 0n));
+  }
+  for (const r of transferredInTotals) {
+    consumedByMember.set(r.memberId, (consumedByMember.get(r.memberId) ?? 0n) + (r.total ?? 0n));
+  }
   const confirmedByMember = new Map<string, bigint>();
   const claimedByMember = new Map<string, bigint>();
   for (const row of paymentTotals) {

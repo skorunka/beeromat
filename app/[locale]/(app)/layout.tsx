@@ -68,15 +68,11 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
   // AppHeader provides the secondary route to /tab. /log + /tab
   // remain reachable as deep links and via the "Vyber jiné pivo →"
   // home link.
+  // Match is the single bet/match surface (2026-05-28): the casual
+  // "take a drink" settlement that used to live at /bet is now a
+  // section inside the /match hub, so the separate Bet tab is gone.
   const navItems: NavItem[] = [
     { key: 'home', href: '/' as Route },
-    { key: 'bet', href: '/bet' as Route },
-    // /match restored to the bottom nav (2026-05-27). Previously
-    // a deep-link-only page reachable only AFTER a match had been
-    // settled (from home's Match-bet card or /tab "ze zápasu →"
-    // links). No way to create a new agreement from the UI alone —
-    // user demonstrated the gap by asking "where do I arrange a
-    // match?". Match icon (Trophy) sits between Bet and History.
     { key: 'match', href: '/match' as Route },
     { key: 'history', href: '/history' as Route },
     { key: 'account', href: '/account' as Route },

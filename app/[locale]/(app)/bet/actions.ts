@@ -14,7 +14,8 @@ import { drinkSessions } from '@/lib/db/schema/sessions';
 // US6 — inter-member bet settlement. contracts/bets.md.
 
 function revalidateBetViews(): void {
-  revalidatePath('/bet');
+  // The casual bet-settle UI now lives inside the /match hub.
+  revalidatePath('/match');
   revalidatePath('/tab');
   revalidatePath('/');
 }

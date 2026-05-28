@@ -83,7 +83,6 @@
     "upcomingEmpty": "Žádný zápas — naplánuj nový níže.",
     "newMatchHeading": "Nový zápas",
     "newMatchCta": "+ Nový zápas",
-    "settleHint": "Jen vyrovnáváš spontánní sázku (bez naplánovaného zápasu)? <link>Vezmi si parťákovo pití</link>.",
     "backToHub": "Zpět na zápasy",
     "formatLabel": "Formát",
     "formatDoubles": "Čtyřhra",
@@ -440,7 +439,6 @@
   "bet": {
     "title": "Vyrovnat sázku",
     "subtitle": "Prohraná sázka? Vezmi si na svou útratu pivo někoho jiného.",
-    "matchHint": "Hráli jste naplánovaný zápas? <link>Zapiš ho v Zápasech</link> — pivo se vyrovná automaticky.",
     "noSessionTitle": "Žádné kolo neběží",
     "noSessionBody": "Sázky se vyrovnávají v rámci kola — a kolo začne, jakmile někdo zapíše první pivo.",
     "logToStart": "Zapiš pivo a rozjeď to",

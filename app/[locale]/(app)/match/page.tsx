@@ -1,6 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-import { Link } from '@/lib/i18n/navigation';
+import { BetSettleSection } from './BetSettleSection';
 import { NewMatchAgreementForm } from './NewMatchAgreementForm';
 import { UpcomingAgreementsList } from './UpcomingAgreementsList';
 import { requireUnlocked } from '@/lib/auth/session';
@@ -9,10 +9,10 @@ import {
   listOpenAgreements,
 } from '@/lib/db/queries/match-agreements';
 
-// Spec 013 — /match hub: Upcoming agreements list on top, New match
-// form below. The legacy 012 one-step quick-log UI is sunset per
-// FR-017 (full removal happens in US2; for now the agreement flow is
-// the only entry point).
+// /match hub — the single surface for everything bet/match-related
+// (2026-05-28: the standalone /bet "take a drink" page was folded in
+// here). Sections top→bottom: open matches to record, casual bet
+// settlement (take a drink), and the new-match form.
 
 export default async function MatchPage({
   params,
@@ -51,22 +51,21 @@ export default async function MatchPage({
         <UpcomingAgreementsList agreements={agreements} />
       </section>
 
+      <div className="mb-8">
+        <BetSettleSection
+          clubId={ctx.club.id}
+          memberId={ctx.member.id}
+          userId={ctx.user.id}
+          role={ctx.member.role}
+          currencyCode={ctx.club.currencyCode}
+          locale={ctx.club.defaultLocale}
+        />
+      </div>
+
       <section id="new-match" className="flex flex-col gap-3 scroll-mt-4">
         <h2 className="text-sm font-semibold tracking-wide uppercase">{t('newMatchHeading')}</h2>
         <NewMatchAgreementForm members={members} />
       </section>
-
-      {/* Disambiguate from the casual /bet "take a drink" flow — a
-          recurring confusion in the persona panel. */}
-      <p className="text-muted-foreground mt-8 text-center text-xs">
-        {t.rich('settleHint', {
-          link: (chunks) => (
-            <Link href="/bet" className="underline underline-offset-2">
-              {chunks}
-            </Link>
-          ),
-        })}
-      </p>
     </main>
   );
 }

@@ -83,7 +83,6 @@
     "upcomingEmpty": "No matches scheduled — start one below.",
     "newMatchHeading": "New match",
     "newMatchCta": "+ New match",
-    "settleHint": "Just settling a casual bet (no scheduled match)? <link>Take a mate's drink instead</link>.",
     "backToHub": "Back to matches",
     "formatLabel": "Format",
     "formatDoubles": "Doubles",
@@ -440,7 +439,6 @@
   "bet": {
     "title": "Settle a bet",
     "subtitle": "Lost a bet? Take a mate's drink onto your tab.",
-    "matchHint": "Played a scheduled match? <link>Record it in Matches</link> — the beer settles automatically.",
     "noSessionTitle": "Nothing on the go",
     "noSessionBody": "Bets settle within a round — and a round kicks off when someone logs the first beer.",
     "logToStart": "Log a beer to kick things off",

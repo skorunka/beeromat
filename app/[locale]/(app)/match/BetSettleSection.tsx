@@ -1,0 +1,127 @@
+import { getTranslations } from 'next-intl/server';
+
+import { Link } from '@/lib/i18n/navigation';
+import { TransferList, type BetTransferView, type TransferableView } from '@/components/bet/transfer-list';
+import {
+  getBetTransfersForSession,
+  getTransferableConsumptionsForCurrentSession,
+} from '@/lib/db/queries/bets';
+import { roleSatisfies, type Role } from '@/lib/permissions';
+import { formatMoney } from '@/lib/format';
+
+// Casual "settle a bet" — take a winner's drink onto your own tab,
+// for an informal bet with no scheduled match. Folded into the Match
+// hub (2026-05-28) so there is a single place for everything
+// bet/match-related; the standalone /bet page + nav tab were retired.
+//
+// Server component: does the same data fetch the old /bet page did,
+// minus the page shell, and renders inside a <section> on /match.
+
+interface BetSettleSectionProps {
+  clubId: string;
+  memberId: string;
+  userId: string;
+  role: Role;
+  currencyCode: string;
+  locale: string;
+}
+
+export async function BetSettleSection({
+  clubId,
+  memberId,
+  userId,
+  role,
+  currencyCode,
+  locale,
+}: BetSettleSectionProps) {
+  const t = await getTranslations('bet');
+
+  const { session, consumptions } = await getTransferableConsumptionsForCurrentSession({
+    clubId,
+    memberId,
+  });
+
+  // No open round: bets settle within a round, which starts when
+  // someone logs the first beer. Guide to /log rather than dead-end.
+  if (!session) {
+    return (
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-semibold tracking-wide uppercase">{t('title')}</h2>
+        <p className="text-muted-foreground text-sm">{t('noSessionBody')}</p>
+        <Link
+          href="/log"
+          className="text-primary inline-flex min-h-9 items-center text-sm font-medium underline-offset-4 hover:underline"
+        >
+          {t('logToStart')}
+        </Link>
+      </section>
+    );
+  }
+
+  const transferRows = await getBetTransfersForSession({ sessionId: session.id, memberId });
+  const isTreasurer = roleSatisfies(role, 'treasurer');
+
+  const transferables: TransferableView[] = consumptions.map((c) => ({
+    consumptionId: c.consumptionId,
+    beerTypeName: c.beerTypeName,
+    ownerMemberId: c.ownerMemberId,
+    ownerDisplayName: c.ownerDisplayName,
+    ownerAvatarKey: c.ownerAvatarKey,
+    ownerAvatarUploadAt: c.ownerAvatarUploadAt,
+    amountDisplay: formatMoney(c.unitPriceMinor, currencyCode, locale),
+  }));
+
+  // Running tally of drinks the member has taken from bets this round.
+  const myTaken = transferRows.filter((tr) => tr.toMemberId === memberId && !tr.voided);
+  const betTally =
+    myTaken.length > 0
+      ? {
+          count: myTaken.length,
+          totalDisplay: formatMoney(
+            myTaken.reduce((sum, tr) => sum + tr.unitPriceMinorSnapshot, 0n),
+            currencyCode,
+            locale,
+          ),
+        }
+      : null;
+
+  const transfers: BetTransferView[] = transferRows.map((tr) => {
+    const tookByMe = tr.toMemberId === memberId;
+    const counterparty = tookByMe
+      ? {
+          id: tr.fromMemberId,
+          displayName: tr.fromMemberName,
+          avatarKey: tr.fromAvatarKey,
+          avatarUploadAt: tr.fromAvatarUploadAt,
+        }
+      : {
+          id: tr.toMemberId,
+          displayName: tr.toMemberName,
+          avatarKey: tr.toAvatarKey,
+          avatarUploadAt: tr.toAvatarUploadAt,
+        };
+    return {
+      id: tr.id,
+      description: tookByMe
+        ? t('youTook', { name: tr.fromMemberName, beer: tr.beerTypeName })
+        : t('tookYours', { name: tr.toMemberName, beer: tr.beerTypeName }),
+      counterpartyMemberId: counterparty.id,
+      counterpartyDisplayName: counterparty.displayName,
+      counterpartyAvatarKey: counterparty.avatarKey,
+      counterpartyAvatarUploadAt: counterparty.avatarUploadAt,
+      amountDisplay: formatMoney(tr.unitPriceMinorSnapshot, currencyCode, locale),
+      voided: tr.voided,
+      canVoid: !tr.voided && (tr.createdByUserId === userId || isTreasurer),
+    };
+  });
+
+  return (
+    <section className="flex flex-col gap-3">
+      <div>
+        <h2 className="text-sm font-semibold tracking-wide uppercase">{t('title')}</h2>
+        <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
+      </div>
+      <TransferList transferables={transferables} transfers={transfers} tally={betTally} />
+    </section>
+  );
+}

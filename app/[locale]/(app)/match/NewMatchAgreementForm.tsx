@@ -142,6 +142,13 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
   return (
     <Form {...form}>
       <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        {/* Lock the whole setup form while the create action is in
+            flight (prevents edits / double-submit mid-request). A
+            native disabled fieldset cascades to every descendant
+            control — the toggles, the seat-picker triggers, and the
+            submit button are all native <button>s. `contents` keeps
+            the flex layout intact. */}
+        <fieldset disabled={isPending} className="contents">
         {/* Format toggle */}
         <FormField
           control={form.control}
@@ -351,6 +358,7 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
         >
           {isPending ? t('creating') : t('createCta')}
         </Button>
+        </fieldset>
       </form>
     </Form>
   );

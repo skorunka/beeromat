@@ -249,11 +249,20 @@
     "memberBalances": "Útraty všech",
     "stockSection": "Sklad",
     "beerTypesStock": "Piva a sklad",
+    "openMatch": {
+      "one": "Zápas k vyhodnocení: {sideA} vs {sideB}",
+      "many": "{count} zápasů čeká na výsledek",
+      "recordCta": "Zapsat výsledek →",
+      "goToMatches": "Přejít na zápasy →"
+    },
     "matchBet": {
-      "one": "Útrata z dnešního zápasu: {count}× pivo",
-      "many": "Útrata z dnešních zápasů: {count}× pivo",
+      "one": "Z dnešního zápasu: {count}× pivo na tvé útratě",
+      "many": "Z dnešních zápasů: {count}× pivo na tvé útratě",
       "reverseOne": "Vrátit zápas",
-      "reverseMany": "Zobrazit zápasy"
+      "reverseMany": "Zobrazit zápasy",
+      "won": "Vyhrál/a jsi — {count}× pivo dnes na účet 🍺",
+      "viewOne": "Zobrazit zápas",
+      "viewMany": "Zobrazit zápasy"
     },
     "onBehalfReview": {
       "heading": "Zápisy pro tebe",

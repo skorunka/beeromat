@@ -69,3 +69,62 @@ export async function matchBetSummaryForMember(
     sourceMatchIds: rows.map((r) => r.matchId),
   };
 }
+
+export interface WonBeerSummary {
+  wonCount: number;
+  sourceMatchIds: string[];
+}
+
+/**
+ * Winner-side mirror of matchBetSummaryForMember. In a for-beer
+ * auto-settlement the winner is the bet transfer's `fromMemberId`
+ * (their beer's cost moved to the loser). This returns how many
+ * bet-linked beers were won by the member in the past 24h, so home
+ * can give the winner the same closure the loser gets ("🏆 you won
+ * N beer(s) tonight — the loser's covering them").
+ */
+export async function wonBeerSummaryForMember(
+  memberId: string,
+  clubId: string,
+): Promise<WonBeerSummary> {
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  const rows = await db
+    .selectDistinct({ matchId: matchBetTransfers.matchId })
+    .from(betTransfers)
+    .innerJoin(consumptions, eq(consumptions.id, betTransfers.sourceConsumptionId))
+    .innerJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
+    .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
+    .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
+    .where(
+      and(
+        eq(betTransfers.fromMemberId, memberId),
+        eq(betTransfers.clubId, clubId),
+        isNull(consumptionVoids.consumptionId),
+        isNull(betTransferVoids.betTransferId),
+        gte(consumptions.createdAt, cutoff),
+      ),
+    );
+
+  const [countRow] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(betTransfers)
+    .innerJoin(consumptions, eq(consumptions.id, betTransfers.sourceConsumptionId))
+    .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
+    .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
+    .innerJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
+    .where(
+      and(
+        eq(betTransfers.fromMemberId, memberId),
+        eq(betTransfers.clubId, clubId),
+        isNull(consumptionVoids.consumptionId),
+        isNull(betTransferVoids.betTransferId),
+        gte(consumptions.createdAt, cutoff),
+      ),
+    );
+
+  return {
+    wonCount: countRow?.n ?? 0,
+    sourceMatchIds: rows.map((r) => r.matchId),
+  };
+}

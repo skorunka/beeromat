@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { buttonVariants } from '@/components/ui/button';
 import { HomeOneTapLog } from '@/components/home/home-one-tap-log';
 import { MatchBetModule } from '@/components/home/match-bet-module';
+import { OpenMatchPrompt } from '@/components/home/open-match-prompt';
 import { OnBehalfReviewBanner } from '@/components/home/on-behalf-review-banner';
 import { LogForOtherLink } from '@/components/log/log-for-other-link';
 import { db } from '@/lib/db/client';
@@ -13,7 +14,9 @@ import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
 import { getBeerTypeCatalog } from '@/lib/db/queries/catalog';
 import { lastBeerForMember } from '@/lib/db/queries/consumption';
-import { matchBetSummaryForMember } from '@/lib/db/queries/match-bet-summary';
+import { listOpenAgreements } from '@/lib/db/queries/match-agreements';
+import { matchBetSummaryForMember, wonBeerSummaryForMember } from '@/lib/db/queries/match-bet-summary';
+import { joinSideNames } from '@/lib/format/match-sides';
 import { onBehalfReviewSummaryForMember } from '@/lib/db/queries/on-behalf-review';
 import { formatMoney } from '@/lib/format';
 import { members } from '@/lib/db/schema/members';
@@ -37,6 +40,8 @@ export default async function AppHomePage({
     lastBeer,
     catalog,
     betSummary,
+    wonSummary,
+    openAgreements,
     otherMembersCountResult,
     onBehalfSummary,
   ] = await Promise.all([
@@ -44,6 +49,8 @@ export default async function AppHomePage({
     lastBeerForMember(ctx.member.id, ctx.club.id),
     getBeerTypeCatalog(ctx.club.id),
     matchBetSummaryForMember(ctx.member.id, ctx.club.id),
+    wonBeerSummaryForMember(ctx.member.id, ctx.club.id),
+    listOpenAgreements(ctx.club.id),
     db
       .select({ n: sql<number>`count(*)::int` })
       .from(members)
@@ -56,6 +63,19 @@ export default async function AppHomePage({
       ),
     onBehalfReviewSummaryForMember(ctx.member.id, ctx.club.id),
   ]);
+
+  // Open matches the member is actually a participant in — the home
+  // prompt nudges them to record the result. A treasurer's home isn't
+  // cluttered with every club match they're not playing in.
+  const myOpenMatches = openAgreements
+    .filter((a) =>
+      [...a.sides.A, ...a.sides.B].some((s) => s.memberId === ctx.member.id),
+    )
+    .map((a) => ({
+      id: a.id,
+      sideA: joinSideNames(a.sides.A),
+      sideB: joinSideNames(a.sides.B),
+    }));
   // The one-tap-log dropdown only lists in-stock, non-archived beers.
   const inStockCatalog = catalog
     .filter((b) => !b.isArchived && !b.isOutOfStock)
@@ -105,9 +125,13 @@ export default async function AppHomePage({
         }))}
       />
 
+      <OpenMatchPrompt matches={myOpenMatches} />
+
       <MatchBetModule
         betCount={betSummary.betCount}
         sourceMatchIds={betSummary.sourceMatchIds}
+        wonCount={wonSummary.wonCount}
+        wonMatchIds={wonSummary.sourceMatchIds}
       />
 
       <HomeOneTapLog

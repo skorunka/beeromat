@@ -249,11 +249,20 @@
     "memberBalances": "Everyone's tabs",
     "stockSection": "Stock",
     "beerTypesStock": "Beers & stock",
+    "openMatch": {
+      "one": "Match to settle: {sideA} vs {sideB}",
+      "many": "{count} matches waiting for a result",
+      "recordCta": "Record the result →",
+      "goToMatches": "Go to matches →"
+    },
     "matchBet": {
-      "one": "From today's match: {count}× beer",
-      "many": "From today's matches: {count}× beer",
+      "one": "From today's match: {count}× beer on your tab",
+      "many": "From today's matches: {count}× beer on your tab",
       "reverseOne": "Reverse match",
-      "reverseMany": "View matches"
+      "reverseMany": "View matches",
+      "won": "You won — {count}× beer on the house tonight 🍺",
+      "viewOne": "View match",
+      "viewMany": "View matches"
     },
     "onBehalfReview": {
       "heading": "Logged for you",

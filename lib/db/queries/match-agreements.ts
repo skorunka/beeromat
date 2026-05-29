@@ -386,7 +386,9 @@ export async function recordResultTx(args: RecordResultArgs): Promise<RecordResu
           catalog,
         });
 
-        // 4. Find-or-auto-open the drink session.
+        // 4. Find-or-auto-open the drink session. Race-safe via
+        //    onConflictDoNothing + re-select against the partial unique
+        //    index uniq_drink_sessions_club_open (see logBeer note).
         const [openSession] = await tx
           .select({ id: drinkSessions.id })
           .from(drinkSessions)
@@ -395,16 +397,21 @@ export async function recordResultTx(args: RecordResultArgs): Promise<RecordResu
         if (openSession) {
           sessionId = openSession.id;
         } else {
-          const [created] = await tx
+          await tx
             .insert(drinkSessions)
             .values({
               clubId: args.clubId,
               openedByUserId: args.recordedByUserId,
               startedAt: new Date(),
             })
-            .returning();
-          if (!created) throw new Error('recordResultTx: failed to auto-open session');
-          sessionId = created.id;
+            .onConflictDoNothing();
+          const [reselected] = await tx
+            .select({ id: drinkSessions.id })
+            .from(drinkSessions)
+            .where(and(eq(drinkSessions.clubId, args.clubId), isNull(drinkSessions.endedAt)))
+            .limit(1);
+          if (!reselected) throw new Error('recordResultTx: failed to auto-open session');
+          sessionId = reselected.id;
         }
       }
 

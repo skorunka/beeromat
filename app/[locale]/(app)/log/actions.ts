@@ -74,16 +74,24 @@ export async function logBeerAction(input: {
       // The title field stays available for explicit human labels
       // (e.g. a future "Friday match" feature) — null here makes the
       // history fallback ("Round" / "Pivo") kick in.
-      const [created] = await tx
+      //
+      // Race-safe: the partial unique index uniq_drink_sessions_club_open
+      // permits only one open session per club. Two members tapping log
+      // simultaneously (no round open yet) both pass the find above, so
+      // swallow the conflict with onConflictDoNothing and re-select
+      // rather than 500 on the second insert's unique violation.
+      await tx
         .insert(drinkSessions)
         .values({
           clubId: ctx.club.id,
           openedByUserId: ctx.user.id,
           startedAt: new Date(),
         })
-        .returning();
-      if (!created) throw new Error('Failed to auto-open drink session');
-      openSession = created;
+        .onConflictDoNothing();
+      openSession = await tx.query.drinkSessions.findFirst({
+        where: and(eq(drinkSessions.clubId, ctx.club.id), isNull(drinkSessions.endedAt)),
+      });
+      if (!openSession) throw new Error('Failed to auto-open drink session');
     }
 
     // 5. Insert the consumption with price snapshot.
@@ -192,21 +200,24 @@ export async function logBeerOnBehalfAction(input: {
       createdByUserId: ctx.user.id,
     });
 
-    // 5. Get-or-auto-open the drink session.
+    // 5. Get-or-auto-open the drink session. Race-safe via
+    //    onConflictDoNothing + re-select (see logBeerAction note).
     let openSession = await tx.query.drinkSessions.findFirst({
       where: and(eq(drinkSessions.clubId, ctx.club.id), isNull(drinkSessions.endedAt)),
     });
     if (!openSession) {
-      const [created] = await tx
+      await tx
         .insert(drinkSessions)
         .values({
           clubId: ctx.club.id,
           openedByUserId: ctx.user.id,
           startedAt: new Date(),
         })
-        .returning();
-      if (!created) throw new Error('Failed to auto-open drink session');
-      openSession = created;
+        .onConflictDoNothing();
+      openSession = await tx.query.drinkSessions.findFirst({
+        where: and(eq(drinkSessions.clubId, ctx.club.id), isNull(drinkSessions.endedAt)),
+      });
+      if (!openSession) throw new Error('Failed to auto-open drink session');
     }
 
     // 6. Insert the consumption on the TARGET, attributed to the ACTOR.

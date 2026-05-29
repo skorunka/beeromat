@@ -154,6 +154,29 @@ describe('logBeerAction', () => {
     expect(first.ok && second.ok && first.sessionId === second.sessionId).toBe(true);
   });
 
+  it('the find-or-open path keeps exactly one open session per club', async () => {
+    const { user, club, member, beer } = await seed();
+    ctxRef.current = {
+      user: { id: user.id },
+      member: { id: member.id, role: 'member' },
+      club: { id: club.id, consumptionUndoWindowSeconds: 60 },
+    };
+    await logBeerAction({ beerTypeId: beer.id });
+    await logBeerAction({ beerTypeId: beer.id });
+    await logBeerAction({ beerTypeId: beer.id });
+
+    // The onConflictDoNothing + re-select open path (guarded by the
+    // partial unique index uniq_drink_sessions_club_open) must never
+    // produce a second open round.
+    const { drinkSessions } = await import('@/lib/db/schema/sessions');
+    const { and, eq, isNull } = await import('drizzle-orm');
+    const openSessions = await testDb
+      .select()
+      .from(drinkSessions)
+      .where(and(eq(drinkSessions.clubId, club.id), isNull(drinkSessions.endedAt)));
+    expect(openSessions).toHaveLength(1);
+  });
+
   it('balance accumulates across multiple logs', async () => {
     const { user, club, member, beer } = await seed();
     ctxRef.current = {

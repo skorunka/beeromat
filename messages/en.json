@@ -85,7 +85,7 @@
     "newMatchCta": "+ New match",
     "closeRound": {
       "cta": "Close this round",
-      "confirm": "End the round? The casual bet window closes and a new round starts on the next beer. This can't be undone.",
+      "confirm": "End the round? {count, plural, one {# drink} other {# drinks}} logged. The casual bet window closes and a new round starts on the next beer. This can't be undone.",
       "confirmCta": "Close round",
       "cancel": "Keep it open",
       "closed": "Round closed.",
@@ -447,6 +447,7 @@
   "bet": {
     "title": "Settle a bet",
     "subtitle": "Lost a bet? Take a mate's drink onto your tab.",
+    "roundContext": "Round started {started} · {count, plural, one {# drink} other {# drinks}} so far",
     "noSessionTitle": "Nothing on the go",
     "noSessionBody": "Bets settle within a round — and a round kicks off when someone logs the first beer.",
     "logToStart": "Log a beer to kick things off",

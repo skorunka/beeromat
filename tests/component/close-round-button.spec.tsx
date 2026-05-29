@@ -24,10 +24,10 @@ vi.mock('@/app/[locale]/(app)/match/actions', () => ({
   closeRoundAction: () => mockClose(),
 }));
 
-function renderButton() {
+function renderButton(drinkCount = 0) {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages}>
-      <CloseRoundButton />
+      <CloseRoundButton drinkCount={drinkCount} />
     </NextIntlClientProvider>,
   );
 }
@@ -41,10 +41,10 @@ beforeEach(() => {
 
 describe('CloseRoundButton', () => {
   it('requires a confirm step before closing (no action on first tap)', () => {
-    renderButton();
+    renderButton(7);
     fireEvent.click(screen.getByRole('button', { name: /close this round/i }));
-    // Confirm UI shown; action not yet called.
-    expect(screen.getByText(/end the round\?/i)).toBeInTheDocument();
+    // Confirm UI shown with the drink count; action not yet called.
+    expect(screen.getByText(/end the round\? 7 drinks logged/i)).toBeInTheDocument();
     expect(mockClose).not.toHaveBeenCalled();
   });
 

@@ -1,12 +1,15 @@
+import { and, eq, notExists, sql } from 'drizzle-orm';
 import { getTranslations } from 'next-intl/server';
 
 import { Link } from '@/lib/i18n/navigation';
 import { CloseRoundButton } from '@/components/match/close-round-button';
 import { TransferList, type BetTransferView, type TransferableView } from '@/components/bet/transfer-list';
+import { db } from '@/lib/db/client';
 import {
   getBetTransfersForSession,
   getTransferableConsumptionsForCurrentSession,
 } from '@/lib/db/queries/bets';
+import { consumptionVoids, consumptions as consumptionsTable } from '@/lib/db/schema/consumption';
 import { roleSatisfies, type Role } from '@/lib/permissions';
 import { formatMoney } from '@/lib/format';
 
@@ -61,6 +64,29 @@ export async function BetSettleSection({
 
   const transferRows = await getBetTransfersForSession({ sessionId: session.id, memberId });
   const isTreasurer = roleSatisfies(role, 'treasurer');
+
+  // Round context so closing the round is an informed action (the
+  // persona panel flagged "closing is blind"): non-voided drinks
+  // logged in the open round.
+  const [drinkCountRow] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(consumptionsTable)
+    .where(
+      and(
+        eq(consumptionsTable.drinkSessionId, session.id),
+        notExists(
+          db
+            .select()
+            .from(consumptionVoids)
+            .where(eq(consumptionVoids.consumptionId, consumptionsTable.id)),
+        ),
+      ),
+    );
+  const roundDrinkCount = drinkCountRow?.n ?? 0;
+  const roundStarted = new Intl.DateTimeFormat(locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(session.startedAt);
 
   const transferables: TransferableView[] = consumptions.map((c) => ({
     consumptionId: c.consumptionId,
@@ -122,8 +148,11 @@ export async function BetSettleSection({
         <h2 className="text-sm font-semibold tracking-wide uppercase">{t('title')}</h2>
         <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
       </div>
+      <p className="text-muted-foreground text-xs">
+        {t('roundContext', { started: roundStarted, count: roundDrinkCount })}
+      </p>
       <TransferList transferables={transferables} transfers={transfers} tally={betTally} />
-      <CloseRoundButton />
+      <CloseRoundButton drinkCount={roundDrinkCount} />
     </section>
   );
 }

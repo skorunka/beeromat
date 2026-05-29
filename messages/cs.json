@@ -85,7 +85,7 @@
     "newMatchCta": "+ Nový zápas",
     "closeRound": {
       "cta": "Ukončit kolo",
-      "confirm": "Ukončit kolo? Okno pro vyrovnání sázek se zavře a nové kolo začne s dalším pivem. Nelze vrátit.",
+      "confirm": "Ukončit kolo? Zapsáno {count, plural, one {# pivo} few {# piva} other {# piv}}. Okno pro vyrovnání sázek se zavře a nové kolo začne s dalším pivem. Nelze vrátit.",
       "confirmCta": "Ukončit kolo",
       "cancel": "Nechat otevřené",
       "closed": "Kolo ukončeno.",
@@ -447,6 +447,7 @@
   "bet": {
     "title": "Vyrovnat sázku",
     "subtitle": "Prohraná sázka? Vezmi si na svou útratu pivo někoho jiného.",
+    "roundContext": "Kolo začalo {started} · zatím {count, plural, one {# pivo} few {# piva} other {# piv}}",
     "noSessionTitle": "Žádné kolo neběží",
     "noSessionBody": "Sázky se vyrovnávají v rámci kola — a kolo začne, jakmile někdo zapíše první pivo.",
     "logToStart": "Zapiš pivo a rozjeď to",

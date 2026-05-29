@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 // (not a modal) because closing ends the casual-bet window for the
 // round and can't be undone, but it's communal + non-destructive so
 // any member may do it.
-export function CloseRoundButton() {
+export function CloseRoundButton({ drinkCount }: { drinkCount: number }) {
   const t = useTranslations('match.closeRound');
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
@@ -47,7 +47,7 @@ export function CloseRoundButton() {
 
   return (
     <div className="border-border flex flex-col gap-2 rounded-md border p-3">
-      <p className="text-sm">{t('confirm')}</p>
+      <p className="text-sm">{t('confirm', { count: drinkCount })}</p>
       <div className="flex gap-2">
         <Button
           type="button"

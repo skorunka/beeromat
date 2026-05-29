@@ -199,7 +199,31 @@ async function settleOnePair(
 ): Promise<{ transferredCount: number; requestedCount: number }> {
   let transferredCount = 0;
   for (let j = 0; j < args.beerCount; j += 1) {
-    // 1. Insert the winner's consumption row.
+    // 1. Decrement stock FIRST, guarded by `currentStock > 0` (the
+    //    same atomic guard logBeer uses). When the chosen beer runs
+    //    out mid-settlement we STOP — best-effort partial settlement
+    //    (the result's transferredCount < requestedCount and the
+    //    recordedPartial UI copy already expect this). Without the
+    //    guard the decrement would hit the beer_types_stock_non_negative
+    //    CHECK constraint and throw an uncaught 23514, rolling back the
+    //    whole match record — a valid for-beer match would 500 whenever
+    //    the loser owed more beers than the beer's stock.
+    const decremented = await tx
+      .update(beerTypes)
+      .set({ currentStock: sql`${beerTypes.currentStock} - 1` })
+      .where(and(eq(beerTypes.id, args.beerTypeId), sql`${beerTypes.currentStock} > 0`))
+      .returning({ currentStock: beerTypes.currentStock });
+    if (decremented.length === 0) break; // out of stock — settle what we could
+
+    await tx.insert(stockChanges).values({
+      clubId: args.clubId,
+      beerTypeId: args.beerTypeId,
+      delta: -1,
+      kind: 'consumption_decrement',
+      createdByUserId: args.createdByUserId,
+    });
+
+    // 2. Insert the winner's consumption row.
     const [consumption] = await tx
       .insert(consumptions)
       .values({
@@ -212,19 +236,6 @@ async function settleOnePair(
       })
       .returning();
     if (!consumption) throw new Error('settleOnePair: insert consumption failed');
-
-    // 2. Decrement stock + audit row (same path logBeer uses).
-    await tx
-      .update(beerTypes)
-      .set({ currentStock: sql`${beerTypes.currentStock} - 1` })
-      .where(eq(beerTypes.id, args.beerTypeId));
-    await tx.insert(stockChanges).values({
-      clubId: args.clubId,
-      beerTypeId: args.beerTypeId,
-      delta: -1,
-      kind: 'consumption_decrement',
-      createdByUserId: args.createdByUserId,
-    });
 
     // 3. Bet transfer (winner → loser).
     const [transfer] = await tx

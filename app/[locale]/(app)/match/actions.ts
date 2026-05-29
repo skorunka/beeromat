@@ -11,6 +11,7 @@ import {
   recordResultTx,
   reverseResultTx,
 } from '@/lib/db/queries/match-agreements';
+import { closeOpenRoundTx } from '@/lib/db/queries/sessions';
 import { canRecordMatchResult } from '@/lib/permissions';
 import {
   cancelAgreementSchema,
@@ -170,6 +171,27 @@ export async function recordResultAction(rawInput: unknown): Promise<RecordResul
     betBeerOverrideId: parsed.data.betBeerOverrideId,
   });
   if (result.ok) {
+    revalidatePath('/', 'layout');
+  }
+  return result;
+}
+
+export type CloseRoundResult = { ok: true } | { ok: false; code: 'NO_OPEN_ROUND' };
+
+/**
+ * End the club's current round. Any member may close it — it's
+ * communal, non-destructive (data is preserved; the round is just
+ * segmented) end-of-night bookkeeping. The next logged beer opens a
+ * fresh round. After close, the casual "take a drink" window for this
+ * round's drinks is over (bets settle within a round).
+ */
+export async function closeRoundAction(): Promise<CloseRoundResult> {
+  const ctx = await requireUnlocked();
+  const result = await closeOpenRoundTx(ctx.club.id, ctx.user.id);
+  if (result.ok) {
+    revalidatePath('/match');
+    revalidatePath('/tab');
+    revalidatePath('/history');
     revalidatePath('/', 'layout');
   }
   return result;

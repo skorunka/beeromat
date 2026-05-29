@@ -1,6 +1,7 @@
 import { getTranslations } from 'next-intl/server';
 
 import { Link } from '@/lib/i18n/navigation';
+import { CloseRoundButton } from '@/components/match/close-round-button';
 import { TransferList, type BetTransferView, type TransferableView } from '@/components/bet/transfer-list';
 import {
   getBetTransfersForSession,
@@ -122,6 +123,7 @@ export async function BetSettleSection({
         <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
       </div>
       <TransferList transferables={transferables} transfers={transfers} tally={betTally} />
+      <CloseRoundButton />
     </section>
   );
 }

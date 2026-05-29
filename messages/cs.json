@@ -83,6 +83,14 @@
     "upcomingEmpty": "Žádný zápas — naplánuj nový níže.",
     "newMatchHeading": "Nový zápas",
     "newMatchCta": "+ Nový zápas",
+    "closeRound": {
+      "cta": "Ukončit kolo",
+      "confirm": "Ukončit kolo? Okno pro vyrovnání sázek se zavře a nové kolo začne s dalším pivem. Nelze vrátit.",
+      "confirmCta": "Ukončit kolo",
+      "cancel": "Nechat otevřené",
+      "closed": "Kolo ukončeno.",
+      "noOpenRound": "Žádné otevřené kolo k ukončení."
+    },
     "backToHub": "Zpět na zápasy",
     "formatLabel": "Formát",
     "formatDoubles": "Čtyřhra",

@@ -83,6 +83,14 @@
     "upcomingEmpty": "No matches scheduled — start one below.",
     "newMatchHeading": "New match",
     "newMatchCta": "+ New match",
+    "closeRound": {
+      "cta": "Close this round",
+      "confirm": "End the round? The casual bet window closes and a new round starts on the next beer. This can't be undone.",
+      "confirmCta": "Close round",
+      "cancel": "Keep it open",
+      "closed": "Round closed.",
+      "noOpenRound": "No open round to close."
+    },
     "backToHub": "Back to matches",
     "formatLabel": "Format",
     "formatDoubles": "Doubles",

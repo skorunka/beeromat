@@ -53,7 +53,7 @@ export async function BetSettleSection({
         <h2 className="text-sm font-semibold tracking-wide uppercase">{t('title')}</h2>
         <p className="text-muted-foreground text-sm">{t('noSessionBody')}</p>
         <Link
-          href="/log"
+          href="/"
           className="text-primary inline-flex min-h-9 items-center text-sm font-medium underline-offset-4 hover:underline"
         >
           {t('logToStart')}

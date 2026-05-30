@@ -141,15 +141,7 @@ export default async function AppHomePage({
         locale={ctx.club.defaultLocale}
       />
 
-      <div className="flex flex-col items-center gap-1">
-        <Link
-          href={'/log' as Route}
-          className="text-muted-foreground hover:text-foreground inline-flex min-h-9 items-center justify-center text-sm underline-offset-4 hover:underline"
-        >
-          {t('seeAllBeers')}
-        </Link>
-        <LogForOtherLink hasOtherMembers={hasOtherMembers} />
-      </div>
+      <LogForOtherLink hasOtherMembers={hasOtherMembers} />
 
       {owes ? (
         <Link

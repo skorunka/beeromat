@@ -22,6 +22,7 @@ export default async function LogOnBehalfPage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('log.onBehalf');
+  const tCommon = await getTranslations('common');
 
   const [otherMembers, inStockBeers] = await Promise.all([
     listOtherActiveMembers(ctx.club.id, ctx.member.id),
@@ -47,10 +48,10 @@ export default async function LogOnBehalfPage({
       <header className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-bold leading-tight">{t('title')}</h1>
         <Link
-          href="/log"
+          href="/"
           className="text-muted-foreground text-sm underline-offset-4 hover:underline"
         >
-          ← {t('title')}
+          ← {tCommon('backHome')}
         </Link>
       </header>
 

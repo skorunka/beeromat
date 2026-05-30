@@ -71,7 +71,11 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
       a2: '',
       b1: '',
       b2: '',
-      pairingKind: '', // FR-006 + Q4: no implicit default
+      // FR-006 + Q4 originally said "no implicit default"; user
+      // override 2026-05-30 — straight is the common case, pre-select
+      // it so creating a doubles match is one fewer tap. Members can
+      // still flip to "crossed" before submitting.
+      pairingKind: 'straight',
     },
   });
   // Use `useWatch` (subscription-based) instead of `form.watch()` —
@@ -93,12 +97,17 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
       return;
     }
     // Validate the full shape through the same Zod schema the server uses.
+    // Note: the submit button itself is gated on every required seat
+    // being filled (see `canSubmit` below) so this path should not
+    // normally fire — but it stays as defence-in-depth. Coalesce the
+    // toast to ONE message rather than one per Zod issue (the previous
+    // per-issue loop spammed three toasts on an empty doubles form).
     const input = buildInput(values);
     const parsed = createAgreementSchema.safeParse(input);
     if (!parsed.success) {
-      for (const issue of parsed.error.issues) {
-        toast.error(t.has(issue.message) ? t(issue.message) : t('errors.generic'));
-      }
+      const first = parsed.error.issues[0];
+      const msg = first && t.has(first.message) ? t(first.message) : t('errors.generic');
+      toast.error(msg);
       return;
     }
 
@@ -324,7 +333,19 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
                       className="h-14 flex-col text-xs leading-tight"
                     >
                       <span className="text-sm font-semibold">{t('pairingStraight')}</span>
-                      <span className="text-muted-foreground">A1↔B1, A2↔B2</span>
+                      {/* Subtitle contrast: muted-foreground is grey on
+                          the amber primary fill and disappears. Use a
+                          translucent primary-foreground when selected so
+                          it stays readable on the amber background. */}
+                      <span
+                        className={
+                          field.value === 'straight'
+                            ? 'text-primary-foreground/80'
+                            : 'text-muted-foreground'
+                        }
+                      >
+                        A1↔B1, A2↔B2
+                      </span>
                     </Button>
                     <Button
                       type="button"
@@ -333,7 +354,15 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
                       className="h-14 flex-col text-xs leading-tight"
                     >
                       <span className="text-sm font-semibold">{t('pairingCrossed')}</span>
-                      <span className="text-muted-foreground">A1↔B2, A2↔B1</span>
+                      <span
+                        className={
+                          field.value === 'crossed'
+                            ? 'text-primary-foreground/80'
+                            : 'text-muted-foreground'
+                        }
+                      >
+                        A1↔B2, A2↔B1
+                      </span>
                     </Button>
                   </div>
                 </FormControl>
@@ -352,7 +381,12 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
         <Button
           type="submit"
           size="lg"
-          disabled={isPending || (format === 'doubles' && !pairingKind)}
+          disabled={
+            isPending ||
+            !seatA1 ||
+            !seatB1 ||
+            (format === 'doubles' && (!seatA2 || !seatB2 || !pairingKind))
+          }
           isPending={isPending}
           className="h-14 text-base"
         >

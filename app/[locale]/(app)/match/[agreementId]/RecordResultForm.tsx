@@ -4,14 +4,20 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
-import { Trophy } from 'lucide-react';
+import { Beer, ChevronDown, Trophy } from 'lucide-react';
 
 import {
   recordResultAction,
   reverseResultAction,
 } from '@/app/[locale]/(app)/match/actions';
 import { Button } from '@/components/ui/button';
-import { BeerTile } from '@/components/log/beer-tile';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface RecordResultFormProps {
   agreementId: string;
@@ -155,29 +161,41 @@ export function RecordResultForm({
         </p>
       ) : null}
 
-      {betBeerOptions && betBeerOptions.length > 0 ? (
-        <div className="grid grid-cols-2 gap-2">
-          <button
+      {isForBeer ? (
+        // Compact dropdown picker (mirrors the home one-tap chevron):
+        // the tile grid took a full mid-screen block; the dropdown
+        // shows the current pick on one row and reveals the full list
+        // on tap. Auto is the default; tapping any other beer sets
+        // betBeerOverrideId.
+        <DropdownMenu>
+          <DropdownMenuTrigger
             type="button"
-            aria-pressed={betBeerOverrideId === null}
-            onClick={() => setBetBeerOverrideId(null)}
-            className={`flex h-16 items-center justify-center rounded-md border px-3 text-base font-medium transition-colors ${
-              betBeerOverrideId === null
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'border-input bg-background hover:bg-accent'
-            }`}
+            className="border-input bg-background hover:bg-accent flex h-11 w-full items-center justify-between gap-2 rounded-md border px-3 text-left text-sm"
           >
-            <span className="truncate">{autoLabel}</span>
-          </button>
-          {betBeerOptions.map((b) => (
-            <BeerTile
-              key={b.id}
-              beer={b}
-              selected={betBeerOverrideId === b.id}
-              onClick={() => setBetBeerOverrideId(b.id)}
-            />
-          ))}
-        </div>
+            <span className="inline-flex min-w-0 items-center gap-2">
+              <Beer className="h-4 w-4 shrink-0" aria-hidden />
+              <span className="truncate font-medium">
+                {betBeerOverrideId === null
+                  ? autoLabel
+                  : betBeerOptions!.find((b) => b.id === betBeerOverrideId)?.name ?? autoLabel}
+              </span>
+            </span>
+            <ChevronDown className="h-4 w-4 shrink-0 opacity-60" aria-hidden />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" sideOffset={4} className="min-w-(--anchor-width)">
+            <DropdownMenuRadioGroup
+              value={betBeerOverrideId ?? ''}
+              onValueChange={(v) => setBetBeerOverrideId(v === '' ? null : v)}
+            >
+              <DropdownMenuRadioItem value="">{autoLabel}</DropdownMenuRadioItem>
+              {betBeerOptions!.map((b) => (
+                <DropdownMenuRadioItem key={b.id} value={b.id}>
+                  {b.name}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       ) : null}
 
       <p className="text-muted-foreground text-sm">{t('whoWon')}</p>

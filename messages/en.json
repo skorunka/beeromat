@@ -120,6 +120,7 @@
     "recordedHeading": "{side} won",
     "recordedAt": "Recorded {time}",
     "reversedToast": "Result reversed.",
+    "reverseCta": "Reverse this match",
     "cancelledNote": "This match was cancelled.",
     "viewerCannotRecord": "Only the players (or a treasurer) can record the result.",
     "editMatchSummary": "Edit or cancel match",

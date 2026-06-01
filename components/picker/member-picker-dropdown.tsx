@@ -92,10 +92,13 @@ export function MemberPickerDropdown({
         </span>
         <ChevronDown className="h-4 w-4 shrink-0 opacity-60" aria-hidden />
       </DropdownMenuTrigger>
+      {/* Items sized for fingers: min-h-12 (48px) + text-base. base-ui's
+          default ~32px is fine on desktop but a poor tap target on a
+          phone — same fix as the bet-beer dropdown. */}
       <DropdownMenuContent
         align="start"
         sideOffset={4}
-        className="min-w-(--anchor-width)"
+        className="min-w-(--anchor-width) p-1"
       >
         <DropdownMenuRadioGroup
           value={value ?? CLEAR_VALUE}
@@ -104,7 +107,7 @@ export function MemberPickerDropdown({
             setOpen(false);
           }}
         >
-          <DropdownMenuRadioItem value={CLEAR_VALUE}>
+          <DropdownMenuRadioItem value={CLEAR_VALUE} className="min-h-12 py-3 text-base">
             <span className="text-muted-foreground">—</span>
           </DropdownMenuRadioItem>
           {members.map((m) => {
@@ -116,6 +119,7 @@ export function MemberPickerDropdown({
                 key={m.id}
                 value={m.id}
                 disabled={isDisabled}
+                className="min-h-12 py-3 text-base"
               >
                 <MemberAvatar
                   size="inline"

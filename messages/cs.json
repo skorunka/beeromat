@@ -120,6 +120,7 @@
     "recordedHeading": "Vyhrál/a {side}",
     "recordedAt": "Zapsáno {time}",
     "reversedToast": "Výsledek zrušen.",
+    "reverseCta": "Vrátit tento zápas",
     "cancelledNote": "Tento zápas byl zrušen.",
     "viewerCannotRecord": "Výsledek mohou zapsat jen hráči (nebo pokladník).",
     "editMatchSummary": "Upravit nebo zrušit zápas",

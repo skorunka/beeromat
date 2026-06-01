@@ -10,11 +10,13 @@ import { db } from '@/lib/db/client';
 import { beerTypes } from '@/lib/db/schema/catalog';
 import { lastBeerForMember } from '@/lib/db/queries/consumption';
 import {
+  UNDO_WINDOW_MS,
   getAgreement,
   listActiveClubMembers,
 } from '@/lib/db/queries/match-agreements';
 import { joinSideNames } from '@/lib/format/match-sides';
 import { canRecordMatchResult } from '@/lib/permissions';
+import { ReverseMatchButton } from '@/components/match/reverse-match-button';
 
 import { EditAgreementForm } from './EditAgreementForm';
 import { RecordResultForm } from './RecordResultForm';
@@ -131,6 +133,16 @@ export default async function AgreementDetailPage({
             {t('recordedAt', { time: agreement.resultRecordedAt!.toLocaleString(locale) })}
           </p>
         </Card>
+      ) : null}
+
+      {/* Reverse a recorded result inside the 5-min undo window. The
+          home MatchBetModule's "Reverse match" link sends users here;
+          without this button the page was a dead-end. */}
+      {isRecorded &&
+      viewerCanRecord &&
+      agreement.resultRecordedAt &&
+      Date.now() - agreement.resultRecordedAt.getTime() <= UNDO_WINDOW_MS ? (
+        <ReverseMatchButton agreementId={agreement.id} />
       ) : null}
 
       {isOpen && viewerCanRecord ? (

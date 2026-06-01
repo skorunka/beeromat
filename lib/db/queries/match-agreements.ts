@@ -518,7 +518,7 @@ export type ReverseResultResult =
   | { ok: false; code: 'NOT_RECORDED' }
   | { ok: false; code: 'UNDO_WINDOW_EXPIRED' };
 
-const UNDO_WINDOW_MS = 5 * 60 * 1000;
+export const UNDO_WINDOW_MS = 5 * 60 * 1000;
 
 export async function reverseResultTx(args: ReverseResultArgs): Promise<ReverseResultResult> {
   return db.transaction(async (tx) => {

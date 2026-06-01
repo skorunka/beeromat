@@ -170,6 +170,7 @@ export default async function AppHomePage({
         groups={roundGroups}
         currencyCode={ctx.club.currencyCode}
         locale={ctx.club.defaultLocale}
+        now={new Date()}
       />
 
       {/* Quick settle — prominent full-width button right under the

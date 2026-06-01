@@ -2,7 +2,8 @@ import { useTranslations } from 'next-intl';
 import { Dices } from 'lucide-react';
 
 import { Card } from '@/components/ui/card';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatRelativeDay, isSameDay } from '@/lib/format';
+import { cn } from '@/lib/utils';
 import type { BeerBreakdownGroup } from '@/lib/tab/group-beer-breakdown';
 
 // Spec 028 — per-day, per-beer breakdown on home + /tab. Each tennis-
@@ -15,21 +16,25 @@ interface TabBeerBreakdownProps {
   groups: BeerBreakdownGroup[];
   currencyCode: string;
   locale: string;
+  /** Reference "now" for the today/yesterday labels + today highlight. */
+  now?: Date;
 }
 
-export function TabBeerBreakdown({ groups, currencyCode, locale }: TabBeerBreakdownProps) {
+export function TabBeerBreakdown({
+  groups,
+  currencyCode,
+  locale,
+  now = new Date(),
+}: TabBeerBreakdownProps) {
   const t = useTranslations('tab.breakdown');
+  const tc = useTranslations('common');
   if (groups.length === 0) return null;
 
   // Grand total across all groups — shown prominently in the heading
   // row so the amount to settle is the most visible thing on the card.
   const totalMinor = groups.reduce((acc, g) => acc + g.subtotalMinor, 0n);
 
-  const dayFmt = new Intl.DateTimeFormat(locale, {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'numeric',
-  });
+  const relativeLabels = { today: tc('today'), yesterday: tc('yesterday') };
 
   // Chunk the (already day-desc-sorted) groups into day sections.
   const days: { dayKey: string; date: Date; groups: BeerBreakdownGroup[] }[] = [];
@@ -47,10 +52,27 @@ export function TabBeerBreakdown({ groups, currencyCode, locale }: TabBeerBreakd
           {formatMoney(totalMinor, currencyCode, locale)}
         </span>
       </div>
-      {days.map((day) => (
-        <div key={day.dayKey} className="flex flex-col gap-1.5">
-          <div className="text-muted-foreground text-xs font-medium capitalize">
-            {dayFmt.format(day.date)}
+      {days.map((day) => {
+        // Today's section gets a primary accent (left bar + tint + 🍺)
+        // so "what I've had today" is the first thing the eye lands on
+        // — the date alone doesn't tell you whether it's today.
+        const today = isSameDay(day.date, now);
+        return (
+        <div
+          key={day.dayKey}
+          className={cn(
+            'flex flex-col gap-1.5',
+            today && 'border-primary bg-primary/5 -mx-2 rounded-lg border-l-2 px-2 py-1.5',
+          )}
+        >
+          <div
+            className={cn(
+              'flex items-center gap-1 text-xs font-medium capitalize',
+              today ? 'text-primary font-semibold' : 'text-muted-foreground',
+            )}
+          >
+            {today ? <span aria-hidden>🍺</span> : null}
+            {formatRelativeDay(day.date, now, locale, relativeLabels)}
           </div>
           {day.groups.map((g) => (
             <div
@@ -77,7 +99,8 @@ export function TabBeerBreakdown({ groups, currencyCode, locale }: TabBeerBreakd
             </div>
           ))}
         </div>
-      ))}
+        );
+      })}
     </Card>
   );
 }

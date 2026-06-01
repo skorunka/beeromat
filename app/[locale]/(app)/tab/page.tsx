@@ -67,6 +67,7 @@ export default async function TabPage({
         groups={breakdownGroups}
         currencyCode={ctx.club.currencyCode}
         locale={ctx.club.defaultLocale}
+        now={new Date()}
       />
 
       {owes ? (

@@ -9,7 +9,7 @@ import { SessionTitleInlineEdit } from '@/components/session/session-title-inlin
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getSessionDetail } from '@/lib/db/queries/consumption';
-import { formatDayLabel, formatMoney } from '@/lib/format';
+import { formatDayLabel, formatMoney, formatRelativeDay } from '@/lib/format';
 
 // US8 — drill-down into one session: consumptions + bet transfers.
 export default async function SessionDetailPage({
@@ -23,6 +23,7 @@ export default async function SessionDetailPage({
   const ctx = await requireUnlocked();
   const t = await getTranslations('history');
   const tBet = await getTranslations('bet');
+  const tc = await getTranslations('common');
   const detail = await getSessionDetail({
     clubId: ctx.club.id,
     sessionId,
@@ -34,7 +35,8 @@ export default async function SessionDetailPage({
 
   const { currencyCode, defaultLocale } = ctx.club;
   const timeFmt = new Intl.DateTimeFormat(defaultLocale, { timeStyle: 'short' });
-  const dateFmt = new Intl.DateTimeFormat(defaultLocale, { dateStyle: 'medium' });
+  const now = new Date();
+  const relativeLabels = { today: tc('today'), yesterday: tc('yesterday') };
 
   return (
     <main className="mx-auto max-w-md p-5">
@@ -52,7 +54,7 @@ export default async function SessionDetailPage({
           </Link>
         </div>
         <p className="text-muted-foreground text-sm">
-          {dateFmt.format(detail.session.startedAt)}
+          {formatRelativeDay(detail.session.startedAt, now, defaultLocale, relativeLabels, 'date')}
           {detail.session.endedAt ? '' : ` · ${t('stillOpen')}`}
         </p>
       </header>

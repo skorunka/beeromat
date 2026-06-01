@@ -55,3 +55,38 @@ export function formatDayLabel(date: Date, locale: string): string {
     month: 'numeric',
   }).format(date);
 }
+
+/** Calendar-day key (UTC) — matches the breakdown's day bucketing. */
+function dayKeyUTC(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+/** True when `date` falls on the same UTC calendar day as `now`. */
+export function isSameDay(date: Date, now: Date): boolean {
+  return dayKeyUTC(date) === dayKeyUTC(now);
+}
+
+/**
+ * Human day label relative to `now`: the "today"/"yesterday" words for
+ * those two days, otherwise a fallback — the weekday+date label
+ * ('day', default, for session headers like "pondělí 1. 6.") or a
+ * medium date with year ('date', for history lists where pinning down
+ * the exact day of an older session still matters). The today/
+ * yesterday words are passed in so the helper stays locale-agnostic.
+ */
+export function formatRelativeDay(
+  date: Date,
+  now: Date,
+  locale: string,
+  labels: { today: string; yesterday: string },
+  fallback: 'day' | 'date' = 'day',
+): string {
+  const key = dayKeyUTC(date);
+  if (key === dayKeyUTC(now)) return labels.today;
+  const yesterday = new Date(now.getTime() - 86_400_000);
+  if (key === dayKeyUTC(yesterday)) return labels.yesterday;
+  if (fallback === 'date') {
+    return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(date);
+  }
+  return formatDayLabel(date, locale);
+}

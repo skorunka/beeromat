@@ -6,10 +6,19 @@ import { TabBeerBreakdown } from '@/components/tab/tab-beer-breakdown';
 import type { BeerBreakdownGroup } from '@/lib/tab/group-beer-breakdown';
 import enMessages from '@/messages/en.json';
 
-function renderBreakdown(groups: BeerBreakdownGroup[], locale: 'en' | 'cs' = 'en') {
+// A fixed "now" far from the fixture dates so the relative-day labels
+// don't turn the weekday headers into "Today"/"Yesterday" in the
+// existing assertions. The today/yesterday tests pass their own now.
+const FIXED_NOW = new Date('2026-08-15T12:00:00Z');
+
+function renderBreakdown(
+  groups: BeerBreakdownGroup[],
+  locale: 'en' | 'cs' = 'en',
+  now: Date = FIXED_NOW,
+) {
   return render(
     <NextIntlClientProvider locale={locale} messages={enMessages}>
-      <TabBeerBreakdown groups={groups} currencyCode="CZK" locale={locale} />
+      <TabBeerBreakdown groups={groups} currencyCode="CZK" locale={locale} now={now} />
     </NextIntlClientProvider>,
   );
 }
@@ -86,5 +95,43 @@ describe('TabBeerBreakdown', () => {
   it('renders nothing when there are no groups', () => {
     const { container } = renderBreakdown([]);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("labels today's section 'Today' (with the 🍺 marker) instead of the date", () => {
+    const day = new Date('2026-06-01T18:00:00Z');
+    renderBreakdown(
+      [group({ dayKey: '2026-06-01', representativeDate: day })],
+      'en',
+      new Date('2026-06-01T20:00:00Z'),
+    );
+    expect(screen.getByText('Today')).toBeInTheDocument();
+    expect(screen.getByText('🍺')).toBeInTheDocument();
+    // The weekday/date label is replaced, not appended.
+    expect(screen.queryByText(/Monday/)).toBeNull();
+  });
+
+  it("labels yesterday's section 'Yesterday' and does not mark it as today", () => {
+    renderBreakdown(
+      [group({ dayKey: '2026-06-01', representativeDate: new Date('2026-06-01T18:00:00Z') })],
+      'en',
+      new Date('2026-06-02T09:00:00Z'),
+    );
+    expect(screen.getByText('Yesterday')).toBeInTheDocument();
+    expect(screen.queryByText('🍺')).toBeNull();
+  });
+
+  it('only highlights the today section when multiple days are present', () => {
+    renderBreakdown(
+      [
+        group({ dayKey: '2026-06-02', representativeDate: new Date('2026-06-02T18:00:00Z'), beerTypeName: 'Pilsner' }),
+        group({ dayKey: '2026-06-01', representativeDate: new Date('2026-06-01T18:00:00Z'), beerTypeName: 'Bernard' }),
+      ],
+      'en',
+      new Date('2026-06-02T20:00:00Z'),
+    );
+    // Today + yesterday labels, exactly one 🍺 marker (today only).
+    expect(screen.getByText('Today')).toBeInTheDocument();
+    expect(screen.getByText('Yesterday')).toBeInTheDocument();
+    expect(screen.getAllByText('🍺')).toHaveLength(1);
   });
 });

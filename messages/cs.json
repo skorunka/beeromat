@@ -14,6 +14,8 @@
     "back": "Zpět",
     "backHome": "Domů",
     "close": "Zavřít",
+    "today": "dnes",
+    "yesterday": "včera",
     "brand": "beeromat"
   },
   "nav": {
@@ -90,12 +92,12 @@
       "failed": "Zápas se nepodařilo zopakovat. Zkus to znovu."
     },
     "closeRound": {
-      "cta": "Ukončit kolo",
-      "confirm": "Ukončit kolo? Zapsáno {count, plural, one {# pivo} few {# piva} other {# piv}}. Okno pro vyrovnání sázek se zavře a nové kolo začne s dalším pivem. Nelze vrátit.",
-      "confirmCta": "Ukončit kolo",
+      "cta": "Ukončit posezení",
+      "confirm": "Ukončit posezení? Zapsáno {count, plural, one {# pivo} few {# piva} other {# piv}}. Okno pro vyrovnání sázek se zavře a nové posezení začne s dalším pivem. Nelze vrátit.",
+      "confirmCta": "Ukončit posezení",
       "cancel": "Nechat otevřené",
-      "closed": "Kolo ukončeno.",
-      "noOpenRound": "Žádné otevřené kolo k ukončení."
+      "closed": "Posezení ukončeno.",
+      "noOpenRound": "Žádné otevřené posezení k ukončení."
     },
     "backToHub": "Zpět na zápasy",
     "formatLabel": "Formát",
@@ -389,8 +391,8 @@
   },
   "tab": {
     "title": "Moje útrata",
-    "noOpenSession": "Žádné kolo neběží",
-    "sessionTotal": "Tohle kolo",
+    "noOpenSession": "Žádné posezení neběží",
+    "sessionTotal": "Tohle posezení",
     "voided": "zrušeno",
     "empty": "Zatím nic — zapiš si první pivo.",
     "fromMatch": "ze zápasu →",
@@ -463,19 +465,19 @@
   "bet": {
     "title": "Vyrovnat sázku",
     "subtitle": "Prohraná sázka? Vezmi si na svou útratu pivo někoho jiného.",
-    "roundContext": "Kolo začalo {started} · zatím {count, plural, one {# pivo} few {# piva} other {# piv}}",
+    "roundContext": "Posezení začalo {started} · zatím {count, plural, one {# pivo} few {# piva} other {# piv}}",
     "drinksYouCanTake": "Pití, co si můžeš vzít",
-    "noOtherDrinks": "Nikdo další si tohle kolo nezapsal pití.",
+    "noOtherDrinks": "Nikdo další si na tomhle posezení nezapsal pití.",
     "transferToMe": "Beru si ho",
-    "betsThisSession": "Sázky tohohle kola",
-    "tally": "Ze sázek tohle kolo: {count, plural, one {# pivo} few {# piva} other {# piv}} · {amount}",
+    "betsThisSession": "Sázky z tohohle posezení",
+    "tally": "Ze sázek na tomhle posezení: {count, plural, one {# pivo} few {# piva} other {# piv}} · {amount}",
     "youTook": "Bereš {beer} od {name}",
     "tookYours": "{name} bere tvoje {beer}",
     "undone": "zrušeno",
     "undo": "Vrátit",
     "transferred": "A je to na tvojí útratě.",
     "alreadyTransferred": "Tohle už si někdo vzal.",
-    "outOfScope": "Tohle pití je ze starého kola.",
+    "outOfScope": "Tohle pití je ze starého posezení.",
     "selfTransfer": "Vzít si můžeš jen pití někoho jiného.",
     "transferFailed": "Nepovedlo se to — zkus to prosím znovu.",
     "undoneToast": "Vráceno.",
@@ -485,19 +487,19 @@
   },
   "history": {
     "title": "Historie",
-    "drinkSession": "Kolo",
+    "drinkSession": "Posezení",
     "open": "právě teď",
-    "noSessions": "Zatím nic — tvoje kola se objeví tady.",
+    "noSessions": "Zatím nic — tvoje posezení se objeví tady.",
     "stillOpen": "ještě běží",
-    "yourTotal": "Tvoje útrata za tohle kolo",
+    "yourTotal": "Tvoje útrata za tohle posezení",
     "yourDrinks": "Vypito",
-    "noDrinksInSession": "V tomhle kole žádné pití.",
+    "noDrinksInSession": "Na tomhle posezení žádné pití.",
     "betTransfers": "Výměny sázek"
   },
   "session": {
     "title": {
-      "placeholder": "Pojmenuj tohle kolo",
-      "editAriaLabel": "Upravit název kola",
+      "placeholder": "Pojmenuj tohle posezení",
+      "editAriaLabel": "Upravit název posezení",
       "saveError": "Nepovedlo se uložit. Zkus to znovu.",
       "tooLong": "Maximálně {max} znaků"
     }

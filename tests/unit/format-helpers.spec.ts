@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { initials } from '@/lib/avatars/initials';
-import { formatMoney, formatMoneyCompact } from '@/lib/format';
+import { formatMoney, formatMoneyCompact, formatRelativeDay, isSameDay } from '@/lib/format';
 import { joinSideNames } from '@/lib/format/match-sides';
 
 // Three pure-function modules covered together: the money formatters
@@ -52,6 +52,42 @@ describe('formatMoneyCompact — no fractional digits for tight UI surfaces', ()
 
   it('zero formats as bare 0 with the currency symbol', () => {
     expect(formatMoneyCompact(0n, 'CZK', 'cs')).toMatch(/^0[\s ]Kč$/);
+  });
+});
+
+describe('isSameDay — UTC calendar-day comparison', () => {
+  it('true for two instants on the same UTC day', () => {
+    expect(isSameDay(new Date('2026-06-01T00:01:00Z'), new Date('2026-06-01T23:59:00Z'))).toBe(true);
+  });
+
+  it('false across a day boundary', () => {
+    expect(isSameDay(new Date('2026-06-01T23:59:00Z'), new Date('2026-06-02T00:01:00Z'))).toBe(false);
+  });
+});
+
+describe('formatRelativeDay — today / yesterday / fallback', () => {
+  const labels = { today: 'dnes', yesterday: 'včera' };
+  const now = new Date('2026-06-02T20:00:00Z');
+
+  it('returns the today word for the same day', () => {
+    expect(formatRelativeDay(new Date('2026-06-02T08:00:00Z'), now, 'cs', labels)).toBe('dnes');
+  });
+
+  it('returns the yesterday word for the previous day', () => {
+    expect(formatRelativeDay(new Date('2026-06-01T08:00:00Z'), now, 'cs', labels)).toBe('včera');
+  });
+
+  it("falls back to the weekday+date label ('day') for older days", () => {
+    const out = formatRelativeDay(new Date('2026-05-20T08:00:00Z'), now, 'cs', labels);
+    expect(out).not.toBe('dnes');
+    expect(out).not.toBe('včera');
+    // Weekday-bearing label, no year.
+    expect(out).not.toMatch(/2026/);
+  });
+
+  it("falls back to a medium date with year for older days when fallback='date'", () => {
+    const out = formatRelativeDay(new Date('2026-05-20T08:00:00Z'), now, 'cs', labels, 'date');
+    expect(out).toMatch(/2026/);
   });
 });
 

@@ -7,7 +7,7 @@ import { SessionTitleInlineEdit } from '@/components/session/session-title-inlin
 import { StopRowNavigation } from '@/components/history/stop-row-navigation';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getSessionHistory } from '@/lib/db/queries/consumption';
-import { formatDayLabel, formatMoney } from '@/lib/format';
+import { formatDayLabel, formatMoney, formatRelativeDay } from '@/lib/format';
 
 // US8 — cross-session history: every session the member drank in.
 export default async function HistoryPage({
@@ -20,9 +20,11 @@ export default async function HistoryPage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('history');
+  const tc = await getTranslations('common');
   const sessions = await getSessionHistory({ clubId: ctx.club.id, memberId: ctx.member.id });
   const { currencyCode, defaultLocale } = ctx.club;
-  const dateFmt = new Intl.DateTimeFormat(defaultLocale, { dateStyle: 'medium' });
+  const now = new Date();
+  const relativeLabels = { today: tc('today'), yesterday: tc('yesterday') };
 
   return (
     <main className="mx-auto max-w-md p-5">
@@ -49,7 +51,7 @@ export default async function HistoryPage({
                     />
                   </StopRowNavigation>
                   <div className="text-muted-foreground text-xs">
-                    {dateFmt.format(s.startedAt)}
+                    {formatRelativeDay(s.startedAt, now, defaultLocale, relativeLabels, 'date')}
                     {s.endedAt ? '' : ` · ${t('open')}`}
                   </div>
                 </div>

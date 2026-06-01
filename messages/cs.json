@@ -395,7 +395,7 @@
     "fromBet": "z prohrané sázky: {logger} · {beer}",
     "wonBet": "z vyhrané sázky: platí {logger} · {beer}",
     "breakdown": {
-      "heading": "Co sis dal/a",
+      "heading": "Tvoje piva",
       "lostBet": "prohraná sázka"
     }
   },

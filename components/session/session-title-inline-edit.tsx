@@ -135,7 +135,17 @@ export function SessionTitleInlineEdit({
         <button
           type="button"
           aria-label={tc('cancel')}
-          onMouseDown={(e) => e.preventDefault()}
+          // Mark cancelled in the pointer-down (fires BEFORE the input's
+          // blur) so that on touch — where preventDefault may not retain
+          // focus — the blur-saves-on-exit rule sees the cancel intent
+          // and discards instead of saving the draft.
+          onMouseDown={(e) => {
+            e.preventDefault();
+            cancelledRef.current = true;
+          }}
+          onPointerDown={() => {
+            cancelledRef.current = true;
+          }}
           onClick={cancelEdit}
           className="text-muted-foreground hover:bg-accent flex h-11 w-11 shrink-0 items-center justify-center rounded-md"
         >

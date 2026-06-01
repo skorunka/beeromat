@@ -98,6 +98,41 @@ describe('SessionTitleInlineEdit (component layer — spec 022)', () => {
     expect(btn).toHaveTextContent('Wed doubles');
   });
 
+  it('Cancel discards even when a blur fires first (touch race)', async () => {
+    // On touch, tapping Cancel can fire the input's blur (→ commit)
+    // before onClick. The Cancel button marks cancelled in pointerDown
+    // (before blur) so the blur-saves-on-exit rule discards instead.
+    renderEdit('Original');
+    fireEvent.click(screen.getByRole('button', { name: /edit round name/i }));
+    const input = await screen.findByRole('textbox');
+    fireEvent.change(input, { target: { value: 'WRONG' } });
+
+    const cancelBtn = screen.getByRole('button', { name: /cancel/i });
+    fireEvent.pointerDown(cancelBtn); // lands before the blur
+    fireEvent.blur(input); // must NOT save
+    fireEvent.click(cancelBtn);
+
+    expect(mockSetSessionTitleAction).not.toHaveBeenCalled();
+    const btn = await screen.findByRole('button', { name: /edit round name/i });
+    expect(btn).toHaveTextContent('Original');
+  });
+
+  it('Save button commits the edited value via the action', async () => {
+    mockSetSessionTitleAction.mockResolvedValue({ ok: true, title: 'Saved' });
+    renderEdit(null);
+    fireEvent.click(screen.getByRole('button', { name: /edit round name/i }));
+    const input = await screen.findByRole('textbox');
+    fireEvent.change(input, { target: { value: 'Saved' } });
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    await waitFor(() => {
+      expect(mockSetSessionTitleAction).toHaveBeenCalledWith({
+        sessionId: 'session-1',
+        title: 'Saved',
+      });
+    });
+  });
+
   it('input maxLength clamps at 60 (cap from schema)', async () => {
     renderEdit(null);
     fireEvent.click(screen.getByRole('button', { name: /edit round name/i }));

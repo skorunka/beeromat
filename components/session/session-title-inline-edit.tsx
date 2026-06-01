@@ -100,7 +100,7 @@ export function SessionTitleInlineEdit({
 
   if (editing) {
     return (
-      <span className={cn('inline-flex w-full items-center gap-1.5', className)}>
+      <span className={cn('flex w-full min-w-0 items-center gap-1.5', className)}>
         <input
           ref={inputRef}
           type="text"
@@ -120,25 +120,22 @@ export function SessionTitleInlineEdit({
           placeholder={t('placeholder')}
           aria-label={t('editAriaLabel')}
           enterKeyHint="done"
-          // text-base (16px) so iOS Safari doesn't zoom on focus; a
-          // proper bordered h-11 box rather than a hairline underline
-          // so it's tappable + obviously editable on a phone.
+          // text-base (16px) so iOS Safari doesn't zoom on focus;
+          // font-normal so the box reads as a field, not inheriting the
+          // bold/large weight of the heading it replaces. A quiet
+          // neutral border with a soft focus ring — not a loud glow.
           className={cn(
-            'border-input bg-background h-11 min-w-0 flex-1 rounded-md border px-2.5',
-            'text-base leading-none outline-none',
-            'focus:border-primary focus:ring-primary/40 focus:ring-2',
+            'border-input bg-background h-10 min-w-0 flex-1 rounded-lg border px-3',
+            'text-base font-normal leading-none outline-none',
+            'focus:border-primary focus:ring-1 focus:ring-primary/30',
           )}
         />
-        {/* Explicit Cancel + Save: blur-to-save is invisible and
-            unreliable on touch. onMouseDown preventDefault keeps focus
-            on the input so the tap doesn't fire a competing blur. */}
+        {/* Matched 40px Cancel/Save controls (icon-only, balanced).
+            Explicit because blur-to-save is invisible on touch.
+            pointerDown marks cancelled BEFORE any competing blur. */}
         <button
           type="button"
           aria-label={tc('cancel')}
-          // Mark cancelled in the pointer-down (fires BEFORE the input's
-          // blur) so that on touch — where preventDefault may not retain
-          // focus — the blur-saves-on-exit rule sees the cancel intent
-          // and discards instead of saving the draft.
           onMouseDown={(e) => {
             e.preventDefault();
             cancelledRef.current = true;
@@ -147,18 +144,18 @@ export function SessionTitleInlineEdit({
             cancelledRef.current = true;
           }}
           onClick={cancelEdit}
-          className="text-muted-foreground hover:bg-accent flex h-11 w-11 shrink-0 items-center justify-center rounded-md"
+          className="border-input text-muted-foreground hover:bg-accent flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border"
         >
-          <X aria-hidden className="h-5 w-5" />
+          <X aria-hidden className="h-4 w-4" />
         </button>
         <button
           type="button"
           aria-label={tc('save')}
           onMouseDown={(e) => e.preventDefault()}
           onClick={commit}
-          className="bg-primary text-primary-foreground flex h-11 w-11 shrink-0 items-center justify-center rounded-md"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors"
         >
-          <Check aria-hidden className="h-5 w-5" />
+          <Check aria-hidden className="h-4 w-4" />
         </button>
       </span>
     );
@@ -171,16 +168,16 @@ export function SessionTitleInlineEdit({
         onClick={startEdit}
         aria-label={t('editAriaLabel')}
         className={cn(
-          'group -mx-1.5 inline-flex max-w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-left',
-          'min-h-9 truncate focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
+          'group -mx-1 inline-flex max-w-full items-center gap-1.5 rounded-md px-1 py-0.5 text-left',
+          'min-h-8 truncate focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
         )}
       >
         <span className="truncate">{title ?? fallbackLabel}</span>
-        {/* No hover on touch — keep the pencil visible (in a faint
-            chip) so the title reads as editable. */}
+        {/* A quiet pencil — enough to read as editable without a heavy
+            chip competing with the title. */}
         <Pencil
           aria-hidden
-          className="text-muted-foreground bg-muted h-6 w-6 shrink-0 rounded-md p-1 opacity-80 group-hover:opacity-100"
+          className="text-muted-foreground h-3.5 w-3.5 shrink-0 opacity-50 group-hover:opacity-90"
         />
       </button>
       {isPending ? <BeerSpinner className="h-3.5 w-3.5" /> : null}

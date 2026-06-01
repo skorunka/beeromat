@@ -55,7 +55,7 @@ export default async function HistoryPage({
                     {s.endedAt ? '' : ` · ${t('open')}`}
                   </div>
                 </div>
-                <div className="font-mono text-sm font-semibold">
+                <div className="shrink-0 font-mono text-sm font-semibold">
                   {formatMoney(s.myTotalMinor, currencyCode, defaultLocale)}
                 </div>
               </Card>

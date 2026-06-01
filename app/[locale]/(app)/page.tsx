@@ -4,6 +4,8 @@ import { Link } from '@/lib/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { buttonVariants } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { roleSatisfies } from '@/lib/permissions';
 import { HomeOneTapLog } from '@/components/home/home-one-tap-log';
 import { MatchBetModule } from '@/components/home/match-bet-module';
 import { OpenMatchPrompt } from '@/components/home/open-match-prompt';
@@ -14,7 +16,7 @@ import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
 import { getBeerTypeCatalog } from '@/lib/db/queries/catalog';
 import { lastBeerForMember } from '@/lib/db/queries/consumption';
-import { listOpenAgreements } from '@/lib/db/queries/match-agreements';
+import { listOpenAgreementsForMember } from '@/lib/db/queries/match-agreements';
 import { matchBetSummaryForMember, wonBeerSummaryForMember } from '@/lib/db/queries/match-bet-summary';
 import { joinSideNames } from '@/lib/format/match-sides';
 import { onBehalfReviewSummaryForMember } from '@/lib/db/queries/on-behalf-review';
@@ -50,7 +52,7 @@ export default async function AppHomePage({
     getBeerTypeCatalog(ctx.club.id),
     matchBetSummaryForMember(ctx.member.id, ctx.club.id),
     wonBeerSummaryForMember(ctx.member.id, ctx.club.id),
-    listOpenAgreements(ctx.club.id),
+    listOpenAgreementsForMember(ctx.club.id, ctx.member.id),
     db
       .select({ n: sql<number>`count(*)::int` })
       .from(members)
@@ -64,18 +66,12 @@ export default async function AppHomePage({
     onBehalfReviewSummaryForMember(ctx.member.id, ctx.club.id),
   ]);
 
-  // Open matches the member is actually a participant in — the home
-  // prompt nudges them to record the result. A treasurer's home isn't
-  // cluttered with every club match they're not playing in.
-  const myOpenMatches = openAgreements
-    .filter((a) =>
-      [...a.sides.A, ...a.sides.B].some((s) => s.memberId === ctx.member.id),
-    )
-    .map((a) => ({
-      id: a.id,
-      sideA: joinSideNames(a.sides.A),
-      sideB: joinSideNames(a.sides.B),
-    }));
+  // Project for the OpenMatchPrompt component.
+  const myOpenMatches = openAgreements.map((a) => ({
+    id: a.id,
+    sideA: joinSideNames(a.sides.A),
+    sideB: joinSideNames(a.sides.B),
+  }));
   // The one-tap-log dropdown only lists in-stock, non-archived beers.
   const inStockCatalog = catalog
     .filter((b) => !b.isArchived && !b.isOutOfStock)
@@ -140,6 +136,26 @@ export default async function AppHomePage({
         currencyCode={ctx.club.currencyCode}
         locale={ctx.club.defaultLocale}
       />
+
+      {/* Onboarding nudge for a fresh club with no beers: the one-tap
+          button above renders disabled but gives no clue what to do
+          about it. Stock-managers+ get a direct link to seed the
+          catalog; everyone else gets a "ask your admin" hint. */}
+      {catalog.length === 0 ? (
+        roleSatisfies(ctx.member.role, 'stock_manager') ? (
+          <Card className="border-primary/30 flex flex-col gap-2 p-4 text-sm">
+            <p>{t('emptyCatalogAdmin')}</p>
+            <Link
+              href={'/admin/beer-types' as Route}
+              className="text-primary inline-flex min-h-9 items-center text-sm font-medium underline-offset-4 hover:underline"
+            >
+              {t('emptyCatalogAdminCta')}
+            </Link>
+          </Card>
+        ) : (
+          <p className="text-muted-foreground text-center text-sm">{t('emptyCatalogMember')}</p>
+        )
+      ) : null}
 
       <LogForOtherLink hasOtherMembers={hasOtherMembers} />
 

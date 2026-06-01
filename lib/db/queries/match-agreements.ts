@@ -738,6 +738,22 @@ export interface OpenAgreementSummary {
   };
 }
 
+/**
+ * Open agreements the given member is an actual participant in.
+ * Drives the home "match to record" prompt — a treasurer's home
+ * isn't cluttered with every open club match they're not playing in.
+ * Same shape as listOpenAgreements, just filtered to the member.
+ */
+export async function listOpenAgreementsForMember(
+  clubId: string,
+  memberId: string,
+): Promise<OpenAgreementSummary[]> {
+  const all = await listOpenAgreements(clubId);
+  return all.filter((a) =>
+    [...a.sides.A, ...a.sides.B].some((s) => s.memberId === memberId),
+  );
+}
+
 export async function listOpenAgreements(clubId: string): Promise<OpenAgreementSummary[]> {
   const rows = await db
     .select({

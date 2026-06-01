@@ -1,5 +1,17 @@
 <!-- SPECKIT START -->
-Most recently shipped: spec 027 (recreate-last-match — one-tap
+Most recently shipped: spec 028 (tab-beer-breakdown — per-beer
+breakdown on /tab grouped by (beer type, day), "{beer} ×{count} ·
+{subtotal}", sorted by subtotal desc / day newest-first. Pure
+helper `lib/tab/group-beer-breakdown.ts:groupTabEntriesByBeer`
+over the existing getMyTabForSession entries — counted predicate
+identical to the tab total (non-voided, non-transfer_out;
+transfer_in included) → breakdown total == tab total by
+construction. `TabBeerBreakdown` component (uses useTranslations,
+sync) rendered above the existing chronological list, which keeps
+per-beer undo. No new query, no schema change. Unit test (helper,
+9 cases) + component test (6). /settle + /history breakdowns
+deferred to BACKLOG. specs/028-tab-beer-breakdown/ has the full
+artifacts), then spec 027 (recreate-last-match — one-tap
 "Recreate last match" on the /match hub. Resolves the MEMBER's
 most recent participated agreement (any state —
 open/recorded/cancelled) via new `lastAgreementForMember` query,

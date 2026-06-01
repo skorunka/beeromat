@@ -393,7 +393,10 @@
     "fromMatch": "from the match →",
     "byOther": "by {logger}",
     "fromBet": "lost bet: {logger} · {beer}",
-    "wonBet": "won bet: {logger} pays · {beer}"
+    "wonBet": "won bet: {logger} pays · {beer}",
+    "breakdown": {
+      "heading": "What you've had"
+    }
   },
   "settle": {
     "title": "Settle up",

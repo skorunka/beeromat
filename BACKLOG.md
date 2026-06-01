@@ -8,6 +8,15 @@ When one matures, run `/speckit-specify` and the item moves into
 
 ## UX
 
+- **Beer breakdown on /settle + /history.** Spec 028 shipped the
+  per-beer breakdown ("Pilsner ×3 · 120 Kč") on /tab only. Follow-ups:
+  (a) /settle — show the breakdown at the literal payment moment;
+  scope is the full outstanding balance which may span multiple
+  unsettled sessions, so the grouping needs a cross-session source
+  (bigger than the single-round /tab case). (b) /history/[sessionId]
+  — reuse groupTabEntriesByBeer over a past session's entries (small;
+  same helper). Both deferred from 028.
+
 - **Per-row "repeat this match".** Spec 027 shipped one-tap recreate
   of the member's *single* last match on the /match hub. Follow-up:
   a "repeat" affordance on each row of the Upcoming list / agreement

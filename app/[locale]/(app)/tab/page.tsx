@@ -5,12 +5,14 @@ import { Link } from '@/lib/i18n/navigation';
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { SessionTitleInlineEdit } from '@/components/session/session-title-inline-edit';
+import { TabBeerBreakdown } from '@/components/tab/tab-beer-breakdown';
 import { TabEntryRow } from '@/components/tab/tab-entry-row';
 import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
 import { getMyTabForSession } from '@/lib/db/queries/consumption';
 import { getOpenSessionForClub } from '@/lib/db/queries/sessions';
 import { formatMoney } from '@/lib/format';
+import { groupTabEntriesByBeer } from '@/lib/tab/group-beer-breakdown';
 
 export default async function TabPage({
   params,
@@ -35,6 +37,9 @@ export default async function TabPage({
     memberBalance(ctx.member.id),
   ]);
   const owes = outstandingBalanceMinor > 0n;
+  // Spec 028 — per-beer breakdown of this round's tab (pure transform
+  // of the entries already loaded; sums to tab.totalMinor).
+  const breakdownGroups = groupTabEntriesByBeer(tab.entries);
 
   return (
     <main className="mx-auto max-w-md p-5">
@@ -58,6 +63,12 @@ export default async function TabPage({
           {formatMoney(tab.totalMinor, ctx.club.currencyCode, ctx.club.defaultLocale)}
         </div>
       </Card>
+
+      <TabBeerBreakdown
+        groups={breakdownGroups}
+        currencyCode={ctx.club.currencyCode}
+        locale={ctx.club.defaultLocale}
+      />
 
       {owes ? (
         <Link

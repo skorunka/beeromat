@@ -393,7 +393,10 @@
     "fromMatch": "ze zápasu →",
     "byOther": "od {logger}",
     "fromBet": "z prohrané sázky: {logger} · {beer}",
-    "wonBet": "z vyhrané sázky: platí {logger} · {beer}"
+    "wonBet": "z vyhrané sázky: platí {logger} · {beer}",
+    "breakdown": {
+      "heading": "Co sis dal/a"
+    }
   },
   "settle": {
     "title": "Vyrovnat útratu",

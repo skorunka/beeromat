@@ -19,6 +19,7 @@ function group(over: Partial<BeerBreakdownGroup> = {}): BeerBreakdownGroup {
     beerTypeName: 'Pilsner Urquell',
     dayKey: '2026-06-01',
     representativeDate: new Date('2026-06-01T18:00:00Z'),
+    origin: 'drank',
     count: 3,
     subtotalMinor: 12000n,
     ...over,
@@ -35,7 +36,6 @@ describe('TabBeerBreakdown', () => {
     expect(screen.getByText('×3')).toBeInTheDocument();
     expect(screen.getByText('Bernard 10°')).toBeInTheDocument();
     expect(screen.getByText('×2')).toBeInTheDocument();
-    // en locale + CZK renders "CZK 120.00".
     expect(screen.getByText(/120\.00/)).toBeInTheDocument();
     expect(screen.getByText(/60\.00/)).toBeInTheDocument();
   });
@@ -45,28 +45,39 @@ describe('TabBeerBreakdown', () => {
     expect(screen.getByText(enMessages.tab.breakdown.heading)).toBeInTheDocument();
   });
 
-  it('summed subtotals equal the grand total (180 Kč)', () => {
-    const groups = [
-      group({ beerTypeName: 'Pilsner', count: 3, subtotalMinor: 12000n }),
-      group({ beerTypeName: 'Bernard', count: 2, subtotalMinor: 6000n }),
-    ];
-    renderBreakdown(groups);
-    expect(groups.reduce((a, g) => a + g.subtotalMinor, 0n)).toBe(18000n);
+  it('always shows a day header (weekday + date)', () => {
+    const { container } = renderBreakdown([
+      group({ representativeDate: new Date('2026-06-01T18:00:00Z') }), // Monday Jun 1
+    ]);
+    expect(container.textContent).toMatch(/Monday/);
+  });
+
+  it('renders separate day sections, newest first', () => {
+    const { container } = renderBreakdown([
+      group({ dayKey: '2026-06-03', representativeDate: new Date('2026-06-03T18:00:00Z'), beerTypeName: 'Pilsner' }),
+      group({ dayKey: '2026-06-01', representativeDate: new Date('2026-06-01T18:00:00Z'), beerTypeName: 'Bernard' }),
+    ]);
+    expect(container.textContent).toMatch(/Wednesday/); // Jun 3
+    expect(container.textContent).toMatch(/Monday/); // Jun 1
+  });
+
+  it('marks a lost-bet group with the lost-bet note', () => {
+    renderBreakdown([
+      group({ beerTypeName: 'Pilsner', origin: 'drank', count: 2, subtotalMinor: 8000n }),
+      group({ beerTypeName: 'Pilsner', origin: 'lost_bet', count: 1, subtotalMinor: 4000n }),
+    ]);
+    expect(screen.getByText(new RegExp(enMessages.tab.breakdown.lostBet, 'i'))).toBeInTheDocument();
+  });
+
+  it('does not mark drank-only groups with the lost-bet note', () => {
+    renderBreakdown([group({ origin: 'drank' })]);
+    expect(screen.queryByText(new RegExp(enMessages.tab.breakdown.lostBet, 'i'))).toBeNull();
   });
 
   it('renders a single-group breakdown (count 1)', () => {
     renderBreakdown([group({ beerTypeName: 'Kozel', count: 1, subtotalMinor: 3500n })]);
     expect(screen.getByText('Kozel')).toBeInTheDocument();
     expect(screen.getByText('×1')).toBeInTheDocument();
-  });
-
-  it('shows per-day sub-headings only when the round spans multiple days', () => {
-    const { container } = renderBreakdown([
-      group({ dayKey: '2026-06-02', representativeDate: new Date('2026-06-02T18:00:00Z'), beerTypeName: 'Pilsner' }),
-      group({ dayKey: '2026-06-01', representativeDate: new Date('2026-06-01T18:00:00Z'), beerTypeName: 'Bernard' }),
-    ]);
-    expect(container.textContent).toMatch(/Jun 2, 2026/);
-    expect(container.textContent).toMatch(/Jun 1, 2026/);
   });
 
   it('renders nothing when there are no groups', () => {

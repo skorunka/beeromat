@@ -1,14 +1,15 @@
 import { useTranslations } from 'next-intl';
+import { Dices } from 'lucide-react';
 
 import { Card } from '@/components/ui/card';
 import { formatMoney } from '@/lib/format';
 import type { BeerBreakdownGroup } from '@/lib/tab/group-beer-breakdown';
 
-// Spec 028 — per-beer breakdown on /tab. Read-only summary above the
-// chronological list: "{beer} ×{count} · {subtotal}", grouped by
-// beer type (and day when the round spans multiple days). Renders
-// nothing when there are no groups. Uses useTranslations (works in
-// both server + client, like TabEntryRow) so it stays sync + testable.
+// Spec 028 — per-day, per-beer breakdown on home + /tab. Each tennis-
+// and-beer evening is a day section headed by weekday + date; within
+// it, "{beer} ×{count} · {subtotal}" lines. Lost-bet beers (paid but
+// not drunk) are marked with a Dices icon + note. Renders nothing
+// when there are no groups. Uses useTranslations (sync, testable).
 
 interface TabBeerBreakdownProps {
   groups: BeerBreakdownGroup[];
@@ -20,12 +21,13 @@ export function TabBeerBreakdown({ groups, currencyCode, locale }: TabBeerBreakd
   const t = useTranslations('tab.breakdown');
   if (groups.length === 0) return null;
 
-  // Per-day sub-headings only matter when the round spans >1 day.
-  const multiDay = new Set(groups.map((g) => g.dayKey)).size > 1;
-  const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
+  const dayFmt = new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'numeric',
+  });
 
-  // Preserve the helper's sort (day desc, subtotal desc) while
-  // chunking into day sections for the multi-day case.
+  // Chunk the (already day-desc-sorted) groups into day sections.
   const days: { dayKey: string; date: Date; groups: BeerBreakdownGroup[] }[] = [];
   for (const g of groups) {
     const last = days[days.length - 1];
@@ -34,31 +36,39 @@ export function TabBeerBreakdown({ groups, currencyCode, locale }: TabBeerBreakd
   }
 
   return (
-    <Card className="mb-6 flex flex-col gap-3 p-4">
+    <Card className="flex flex-col gap-4 p-4">
       <h2 className="text-sm font-semibold tracking-wide uppercase">{t('heading')}</h2>
-      <div className="flex flex-col gap-3">
-        {days.map((day) => (
-          <div key={day.dayKey} className="flex flex-col gap-1">
-            {multiDay ? (
-              <div className="text-muted-foreground text-xs">{dateFmt.format(day.date)}</div>
-            ) : null}
-            {day.groups.map((g) => (
-              <div
-                key={`${g.dayKey}-${g.beerTypeName}`}
-                className="flex items-baseline justify-between gap-2"
-              >
-                <span className="min-w-0 truncate">
-                  {g.beerTypeName}{' '}
-                  <span className="text-muted-foreground">×{g.count}</span>
-                </span>
-                <span className="font-mono text-sm tabular-nums">
-                  {formatMoney(g.subtotalMinor, currencyCode, locale)}
-                </span>
-              </div>
-            ))}
+      {days.map((day) => (
+        <div key={day.dayKey} className="flex flex-col gap-1.5">
+          <div className="text-muted-foreground text-xs font-medium capitalize">
+            {dayFmt.format(day.date)}
           </div>
-        ))}
-      </div>
+          {day.groups.map((g) => (
+            <div
+              key={`${g.dayKey}-${g.origin}-${g.beerTypeName}`}
+              className="flex items-baseline justify-between gap-2"
+            >
+              <span className="inline-flex min-w-0 items-baseline gap-1.5">
+                {g.origin === 'lost_bet' ? (
+                  <Dices
+                    className="text-muted-foreground h-3.5 w-3.5 shrink-0 self-center"
+                    aria-hidden
+                  />
+                ) : null}
+                <span className="min-w-0 truncate">
+                  {g.beerTypeName} <span className="text-muted-foreground">×{g.count}</span>
+                  {g.origin === 'lost_bet' ? (
+                    <span className="text-muted-foreground text-xs"> · {t('lostBet')}</span>
+                  ) : null}
+                </span>
+              </span>
+              <span className="font-mono text-sm tabular-nums">
+                {formatMoney(g.subtotalMinor, currencyCode, locale)}
+              </span>
+            </div>
+          ))}
+        </div>
+      ))}
     </Card>
   );
 }

@@ -17,6 +17,15 @@
 - Q: Group sort order? → A: Biggest subtotal first; multi-day rounds newest day first.
 - Q: A bet-picked-up beer in the breakdown? → A: Grouped under its beer type by name (no separate "from bets" group).
 
+### Session 2026-06-01 (refinement)
+
+The breakdown is for the daily play-tennis-and-drink habit, not an abstract "round". Revised:
+
+- **Primary surface is HOME (the landing page)**, not /tab. After logging from home, the member sees this evening's running breakdown and a prominent quick-settle button to call it a day. (/tab keeps the same breakdown component as a secondary surface; the helper is shared.)
+- **Group and head by the actual DAY** (weekday name + date, e.g. "pondělí 1. 6."), always shown — each day section is one tennis evening. If the member doesn't settle before leaving and returns another day, the breakdown shows per-day sections (newest first).
+- **Lost-bet beers are a distinct origin** within the day (NOT merged into the drank count — this supersedes the earlier Q4 answer). They render with a dice icon + a "lost bet" note so the member sees "you pay for this but didn't drink it". They still count toward the day subtotal and the grand total.
+- Within a day: drank beers first, then lost-bet beers, each by subtotal desc.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Beer breakdown before settling (Priority: P1)

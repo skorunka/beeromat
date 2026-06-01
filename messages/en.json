@@ -395,7 +395,8 @@
     "fromBet": "lost bet: {logger} · {beer}",
     "wonBet": "won bet: {logger} pays · {beer}",
     "breakdown": {
-      "heading": "What you've had"
+      "heading": "What you've had",
+      "lostBet": "lost bet"
     }
   },
   "settle": {

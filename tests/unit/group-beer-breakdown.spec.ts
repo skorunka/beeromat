@@ -78,15 +78,16 @@ describe('groupTabEntriesByBeer', () => {
     expect(groups[0]!.count).toBe(1);
   });
 
-  it('includes transfer_in (lost-bet) beers in their beer-type group', () => {
+  it('keeps transfer_in (lost-bet) beers as a SEPARATE origin group, drank first', () => {
     const entries = [
       entry({ beerTypeName: 'Pilsner', unitPriceMinor: 4000n, kind: 'consumption' }),
       entry({ beerTypeName: 'Pilsner', unitPriceMinor: 4000n, kind: 'transfer_in' }),
     ];
     const groups = groupTabEntriesByBeer(entries);
-    expect(groups).toHaveLength(1);
-    expect(groups[0]!.count).toBe(2);
-    expect(groups[0]!.subtotalMinor).toBe(8000n);
+    expect(groups).toHaveLength(2);
+    // drank Pilsner before lost-bet Pilsner (same day).
+    expect(groups[0]).toMatchObject({ beerTypeName: 'Pilsner', origin: 'drank', count: 1 });
+    expect(groups[1]).toMatchObject({ beerTypeName: 'Pilsner', origin: 'lost_bet', count: 1 });
   });
 
   it('buckets per (type, day); newest day first', () => {

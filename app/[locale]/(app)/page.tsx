@@ -10,14 +10,17 @@ import { HomeOneTapLog } from '@/components/home/home-one-tap-log';
 import { MatchBetModule } from '@/components/home/match-bet-module';
 import { OpenMatchPrompt } from '@/components/home/open-match-prompt';
 import { OnBehalfReviewBanner } from '@/components/home/on-behalf-review-banner';
+import { TabBeerBreakdown } from '@/components/tab/tab-beer-breakdown';
 import { LogForOtherLink } from '@/components/log/log-for-other-link';
 import { db } from '@/lib/db/client';
 import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
 import { getBeerTypeCatalog } from '@/lib/db/queries/catalog';
-import { lastBeerForMember } from '@/lib/db/queries/consumption';
+import { getMyTabForSession, lastBeerForMember } from '@/lib/db/queries/consumption';
+import { getOpenSessionForClub } from '@/lib/db/queries/sessions';
 import { listOpenAgreementsForMember } from '@/lib/db/queries/match-agreements';
 import { matchBetSummaryForMember, wonBeerSummaryForMember } from '@/lib/db/queries/match-bet-summary';
+import { groupTabEntriesByBeer } from '@/lib/tab/group-beer-breakdown';
 import { joinSideNames } from '@/lib/format/match-sides';
 import { onBehalfReviewSummaryForMember } from '@/lib/db/queries/on-behalf-review';
 import { formatMoney } from '@/lib/format';
@@ -65,6 +68,20 @@ export default async function AppHomePage({
       ),
     onBehalfReviewSummaryForMember(ctx.member.id, ctx.club.id),
   ]);
+
+  // Spec 028 — this round's beer breakdown, shown on home so the
+  // member sees what they've had this evening right after logging,
+  // and can settle when they call it a day. Scoped to the open round.
+  const openSession = await getOpenSessionForClub(ctx.club.id);
+  const tab = openSession
+    ? await getMyTabForSession({
+        memberId: ctx.member.id,
+        userId: ctx.user.id,
+        session: openSession,
+        undoWindowSeconds: ctx.club.consumptionUndoWindowSeconds,
+      })
+    : null;
+  const roundGroups = tab ? groupTabEntriesByBeer(tab.entries) : [];
 
   // Project for the OpenMatchPrompt component.
   const myOpenMatches = openAgreements.map((a) => ({
@@ -157,16 +174,29 @@ export default async function AppHomePage({
         )
       ) : null}
 
-      <LogForOtherLink hasOtherMembers={hasOtherMembers} />
+      {/* This round's beer breakdown — "Pilsner ×3 · 120 Kč" — so the
+          member sees what they've had this evening right after logging.
+          Round-scoped (current open session); renders nothing when the
+          round has no countable beers yet. */}
+      <TabBeerBreakdown
+        groups={roundGroups}
+        currencyCode={ctx.club.currencyCode}
+        locale={ctx.club.defaultLocale}
+      />
 
+      {/* Quick settle — prominent full-width button right under the
+          round breakdown so calling it a day is one tap. Only when
+          the member owes. */}
       {owes ? (
         <Link
           href={'/settle' as Route}
-          className={buttonVariants({ variant: 'outline', size: 'default', className: 'self-center' })}
+          className={buttonVariants({ size: 'lg', className: 'h-14 w-full text-base' })}
         >
           {t('settleCta')}
         </Link>
       ) : null}
+
+      <LogForOtherLink hasOtherMembers={hasOtherMembers} />
     </main>
   );
 }

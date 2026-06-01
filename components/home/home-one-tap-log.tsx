@@ -147,12 +147,16 @@ export function HomeOneTapLog({
               >
                 <ChevronDown className="h-6 w-6" aria-hidden />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={4} className="min-w-56">
+              <DropdownMenuContent align="end" sideOffset={4} className="min-w-56 p-1">
                 {otherBeers.map((b) => (
-                  <DropdownMenuItem key={b.id} onClick={() => logBeer(b)}>
-                    <Beer aria-hidden />
+                  <DropdownMenuItem
+                    key={b.id}
+                    onClick={() => logBeer(b)}
+                    className="min-h-12 gap-2 py-3 text-base"
+                  >
+                    <Beer className="h-5 w-5" aria-hidden />
                     <span className="flex-1 truncate">{b.name}</span>
-                    <span className="text-muted-foreground text-xs tabular-nums">
+                    <span className="text-muted-foreground text-sm tabular-nums">
                       {formatMoneyCompact(b.unitPriceMinor, currencyCode, locale)}
                     </span>
                   </DropdownMenuItem>
@@ -189,12 +193,16 @@ export function HomeOneTapLog({
         {triggerLabel}
         <ChevronDown className={cn('h-4 w-4', isPending && 'opacity-0')} aria-hidden />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="center" sideOffset={4} className="min-w-56">
+      <DropdownMenuContent align="center" sideOffset={4} className="min-w-56 p-1">
         {catalog.map((b) => (
-          <DropdownMenuItem key={b.id} onClick={() => logBeer(b)}>
-            <Beer aria-hidden />
+          <DropdownMenuItem
+            key={b.id}
+            onClick={() => logBeer(b)}
+            className="min-h-12 gap-2 py-3 text-base"
+          >
+            <Beer className="h-5 w-5" aria-hidden />
             <span className="flex-1 truncate">{b.name}</span>
-            <span className="text-muted-foreground text-xs tabular-nums">
+            <span className="text-muted-foreground text-sm tabular-nums">
               {formatMoneyCompact(b.unitPriceMinor, currencyCode, locale)}
             </span>
           </DropdownMenuItem>

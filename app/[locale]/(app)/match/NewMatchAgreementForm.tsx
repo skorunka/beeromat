@@ -164,7 +164,6 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
           name="format"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('formatLabel')}</FormLabel>
               <FormControl>
                 <div className="grid grid-cols-2 gap-2">
                   <Button

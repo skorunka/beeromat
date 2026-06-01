@@ -1,7 +1,6 @@
 import { and, eq, notExists, sql } from 'drizzle-orm';
 import { getTranslations } from 'next-intl/server';
 
-import { Link } from '@/lib/i18n/navigation';
 import { CloseRoundButton } from '@/components/match/close-round-button';
 import { TransferList, type BetTransferView, type TransferableView } from '@/components/bet/transfer-list';
 import { db } from '@/lib/db/client';
@@ -45,22 +44,11 @@ export async function BetSettleSection({
     memberId,
   });
 
-  // No open round: bets settle within a round, which starts when
-  // someone logs the first beer. Guide to /log rather than dead-end.
-  if (!session) {
-    return (
-      <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold tracking-wide uppercase">{t('title')}</h2>
-        <p className="text-muted-foreground text-sm">{t('noSessionBody')}</p>
-        <Link
-          href="/"
-          className="text-primary inline-flex min-h-9 items-center text-sm font-medium underline-offset-4 hover:underline"
-        >
-          {t('logToStart')}
-        </Link>
-      </section>
-    );
-  }
+  // No open round → nothing to settle here. Hide the section entirely
+  // rather than show a kolo-explainer empty state with a "go log a
+  // beer" link — Match is for match/bet work, not for nudging into
+  // the log flow.
+  if (!session) return null;
 
   const transferRows = await getBetTransfersForSession({ sessionId: session.id, memberId });
   const isTreasurer = roleSatisfies(role, 'treasurer');

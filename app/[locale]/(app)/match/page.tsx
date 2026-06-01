@@ -31,19 +31,21 @@ export default async function MatchPage({
 
   return (
     <main className="mx-auto max-w-md p-5">
-      <header className="mb-6 flex items-start justify-between gap-3">
-        <div>
+      <header className="mb-6">
+        <div className="flex items-center justify-between gap-3">
           <h1 className="text-2xl font-bold">{t('hubTitle')}</h1>
-          <p className="text-muted-foreground mt-1 text-sm">{t('hubSubtitle')}</p>
+          {/* Jump straight to the form so creating a match never means
+              scrolling past a long Upcoming list (usability follow-up). */}
+          <a
+            href="#new-match"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 shrink-0 items-center rounded-md px-3 text-sm font-medium"
+          >
+            {t('newMatchCta')}
+          </a>
         </div>
-        {/* Jump straight to the form so creating a match never means
-            scrolling past a long Upcoming list (usability follow-up). */}
-        <a
-          href="#new-match"
-          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 shrink-0 items-center rounded-md px-3 text-sm font-medium"
-        >
-          {t('newMatchCta')}
-        </a>
+        {/* Subtitle spans the full row below so it never wraps next to
+            the New-match button. */}
+        <p className="text-muted-foreground mt-1 text-sm">{t('hubSubtitle')}</p>
       </header>
 
       <section className="mb-8 flex flex-col gap-3">

@@ -170,26 +170,35 @@ export function RecordResultForm({
         <DropdownMenu>
           <DropdownMenuTrigger
             type="button"
-            className="border-input bg-background hover:bg-accent flex h-11 w-full items-center justify-between gap-2 rounded-md border px-3 text-left text-sm"
+            className="border-input bg-background hover:bg-accent flex h-12 w-full items-center justify-between gap-2 rounded-md border px-3 text-left text-base"
           >
             <span className="inline-flex min-w-0 items-center gap-2">
-              <Beer className="h-4 w-4 shrink-0" aria-hidden />
+              <Beer className="h-5 w-5 shrink-0" aria-hidden />
               <span className="truncate font-medium">
                 {betBeerOverrideId === null
                   ? autoLabel
                   : betBeerOptions!.find((b) => b.id === betBeerOverrideId)?.name ?? autoLabel}
               </span>
             </span>
-            <ChevronDown className="h-4 w-4 shrink-0 opacity-60" aria-hidden />
+            <ChevronDown className="h-5 w-5 shrink-0 opacity-60" aria-hidden />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" sideOffset={4} className="min-w-(--anchor-width)">
+          {/* Items sized for fingers: min-h-12 (48px) + text-base; the
+              base-ui RadioItem defaults to ~32px which is fine on
+              desktop but a poor tap target on a phone. */}
+          <DropdownMenuContent align="start" sideOffset={4} className="min-w-(--anchor-width) p-1">
             <DropdownMenuRadioGroup
               value={betBeerOverrideId ?? ''}
               onValueChange={(v) => setBetBeerOverrideId(v === '' ? null : v)}
             >
-              <DropdownMenuRadioItem value="">{autoLabel}</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="" className="min-h-12 py-3 text-base">
+                {autoLabel}
+              </DropdownMenuRadioItem>
               {betBeerOptions!.map((b) => (
-                <DropdownMenuRadioItem key={b.id} value={b.id}>
+                <DropdownMenuRadioItem
+                  key={b.id}
+                  value={b.id}
+                  className="min-h-12 py-3 text-base"
+                >
                   {b.name}
                 </DropdownMenuRadioItem>
               ))}

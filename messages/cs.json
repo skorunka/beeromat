@@ -398,7 +398,7 @@
     "fromBet": "z prohrané sázky: {logger} · {beer}",
     "wonBet": "z vyhrané sázky: platí {logger} · {beer}",
     "breakdown": {
-      "heading": "Tvoje piva",
+      "heading": "Tvá útrata",
       "lostBet": "prohraná sázka"
     }
   },
@@ -490,7 +490,7 @@
     "noSessions": "Zatím nic — tvoje kola se objeví tady.",
     "stillOpen": "ještě běží",
     "yourTotal": "Tvoje útrata za tohle kolo",
-    "yourDrinks": "Tvoje pití",
+    "yourDrinks": "Vypito",
     "noDrinksInSession": "V tomhle kole žádné pití.",
     "betTransfers": "Výměny sázek"
   },

@@ -107,9 +107,11 @@ export function MemberPickerDropdown({
             setOpen(false);
           }}
         >
-          <DropdownMenuRadioItem value={CLEAR_VALUE} className="min-h-12 py-3 text-base">
-            <span className="text-muted-foreground">—</span>
-          </DropdownMenuRadioItem>
+          {/* No "clear" (—) row: it read as a confusing pre-selected
+              blank ("is this a bug?"). Until a member is picked nothing
+              is checked and the trigger shows the placeholder, making
+              it clear you must choose someone. A seat can't be left
+              empty on submit anyway, so clear-to-none had no real use. */}
           {members.map((m) => {
             // Disable only if explicitly disabled AND not the current value
             // (re-picking the same option must remain available).

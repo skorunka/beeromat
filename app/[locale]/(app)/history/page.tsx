@@ -7,7 +7,7 @@ import { SessionTitleInlineEdit } from '@/components/session/session-title-inlin
 import { StopRowNavigation } from '@/components/history/stop-row-navigation';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getSessionHistory } from '@/lib/db/queries/consumption';
-import { formatMoney } from '@/lib/format';
+import { formatDayLabel, formatMoney } from '@/lib/format';
 
 // US8 — cross-session history: every session the member drank in.
 export default async function HistoryPage({
@@ -44,7 +44,7 @@ export default async function HistoryPage({
                     <SessionTitleInlineEdit
                       sessionId={s.id}
                       currentTitle={s.title}
-                      fallbackLabel={t('drinkSession')}
+                      fallbackLabel={formatDayLabel(s.startedAt, defaultLocale)}
                       className="font-medium"
                     />
                   </StopRowNavigation>

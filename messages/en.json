@@ -398,7 +398,7 @@
     "fromBet": "lost bet: {logger} · {beer}",
     "wonBet": "won bet: {logger} pays · {beer}",
     "breakdown": {
-      "heading": "What you've had",
+      "heading": "Your tab",
       "lostBet": "lost bet"
     }
   },
@@ -490,7 +490,7 @@
     "noSessions": "Nothing yet — your rounds will show up here.",
     "stillOpen": "still on",
     "yourTotal": "Your total this round",
-    "yourDrinks": "Your drinks",
+    "yourDrinks": "Drunk",
     "noDrinksInSession": "No drinks logged this round.",
     "betTransfers": "Bet swaps"
   },

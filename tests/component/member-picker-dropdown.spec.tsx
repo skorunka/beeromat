@@ -73,23 +73,21 @@ describe('MemberPickerDropdown — trigger states (spec 024)', () => {
 });
 
 describe('MemberPickerDropdown — popup interactions (spec 024)', () => {
-  it('opens the popup on trigger click and shows one item per member + a clear item', async () => {
+  it('opens the popup on trigger click and shows exactly one item per member (no clear row)', async () => {
     renderDropdown();
     fireEvent.click(screen.getByRole('button', { name: /seat a1/i }));
 
     await waitFor(() => {
       // Base-ui Menu uses role="menuitemradio" for RadioItem.
-      const items = screen.queryAllByRole('menuitemradio');
-      // 3 members + 1 clear option = 4.
-      expect(items.length).toBeGreaterThanOrEqual(4);
+      // Exactly 3 members — the confusing "—" clear row was removed.
+      expect(screen.queryAllByRole('menuitemradio').length).toBe(3);
     });
 
-    // Member names render.
     expect(screen.getByText('Pavel')).toBeInTheDocument();
     expect(screen.getByText('Tereza')).toBeInTheDocument();
     expect(screen.getByText('Standa')).toBeInTheDocument();
-    // Clear option visible (the "—" sentinel).
-    expect(screen.getByText('—')).toBeInTheDocument();
+    // No clear ("—") row.
+    expect(screen.queryByText('—')).not.toBeInTheDocument();
   });
 
   it('fires onChange(id) when a member option is selected', async () => {
@@ -102,19 +100,6 @@ describe('MemberPickerDropdown — popup interactions (spec 024)', () => {
 
     await waitFor(() => {
       expect(onChange).toHaveBeenCalledWith('m-photo');
-    });
-  });
-
-  it('fires onChange(null) when the clear "—" option is selected', async () => {
-    const onChange = vi.fn();
-    renderDropdown({ value: 'm-glyph', onChange });
-    fireEvent.click(screen.getByRole('button', { name: /seat a1/i }));
-
-    const clearOption = await screen.findByRole('menuitemradio', { name: '—' });
-    fireEvent.click(clearOption);
-
-    await waitFor(() => {
-      expect(onChange).toHaveBeenCalledWith(null);
     });
   });
 

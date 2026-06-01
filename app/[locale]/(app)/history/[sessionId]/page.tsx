@@ -9,7 +9,7 @@ import { SessionTitleInlineEdit } from '@/components/session/session-title-inlin
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getSessionDetail } from '@/lib/db/queries/consumption';
-import { formatMoney } from '@/lib/format';
+import { formatDayLabel, formatMoney } from '@/lib/format';
 
 // US8 — drill-down into one session: consumptions + bet transfers.
 export default async function SessionDetailPage({
@@ -44,7 +44,7 @@ export default async function SessionDetailPage({
             <SessionTitleInlineEdit
               sessionId={detail.session.id}
               currentTitle={detail.session.title}
-              fallbackLabel={t('drinkSession')}
+              fallbackLabel={formatDayLabel(detail.session.startedAt, defaultLocale)}
             />
           </h1>
           <Link href={'/history' as Route} className="text-primary shrink-0 text-sm underline">

@@ -11,7 +11,7 @@ import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
 import { getMyTabForSession } from '@/lib/db/queries/consumption';
 import { getOpenSessionForClub } from '@/lib/db/queries/sessions';
-import { formatMoney } from '@/lib/format';
+import { formatDayLabel, formatMoney } from '@/lib/format';
 import { groupTabEntriesByBeer } from '@/lib/tab/group-beer-breakdown';
 
 export default async function TabPage({
@@ -25,7 +25,6 @@ export default async function TabPage({
   const ctx = await requireUnlocked();
   const t = await getTranslations('tab');
   const tHome = await getTranslations('home');
-  const tHistory = await getTranslations('history');
   const session = await getOpenSessionForClub(ctx.club.id);
   const [tab, outstandingBalanceMinor] = await Promise.all([
     getMyTabForSession({
@@ -49,7 +48,7 @@ export default async function TabPage({
           <SessionTitleInlineEdit
             sessionId={tab.session.id}
             currentTitle={tab.session.title}
-            fallbackLabel={tHistory('drinkSession')}
+            fallbackLabel={formatDayLabel(tab.session.startedAt, ctx.club.defaultLocale)}
             className="text-muted-foreground text-sm"
           />
         ) : (

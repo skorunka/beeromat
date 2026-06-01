@@ -41,8 +41,9 @@ describe('BeerPickerDropdown', () => {
       expect(screen.queryAllByRole('menuitemradio').length).toBe(3);
     });
     expect(screen.getByText('Pilsner Urquell')).toBeInTheDocument();
-    expect(screen.getByText(/40\.00/)).toBeInTheDocument(); // en + CZK → "CZK 40.00"
-    expect(screen.getByText(/30\.00/)).toBeInTheDocument();
+    // Whole amounts → adaptive precision drops decimals: en + CZK → "CZK 40".
+    expect(screen.getByText(/CZK[\s ]?40$/)).toBeInTheDocument();
+    expect(screen.getByText(/CZK[\s ]?30$/)).toBeInTheDocument();
   });
 
   it('disables an out-of-stock option', async () => {

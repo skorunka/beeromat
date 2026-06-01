@@ -24,17 +24,17 @@ describe('formatMoney — full Intl.NumberFormat output', () => {
     expect(formatMoney(12345n, 'USD', 'en')).toBe('$123.45');
   });
 
-  it('zero amount still formats as 0,00 Kč', () => {
+  it('whole amount drops decimals (adaptive)', () => {
     const result = formatMoney(0n, 'CZK', 'cs');
-    expect(result).toMatch(/^0,00[\s ]Kč$/);
+    expect(result).toMatch(/^0[\s ]Kč$/);
   });
 
-  it('handles bigint amounts beyond Number.MAX_SAFE_INTEGER without precision loss in division', () => {
+  it('handles large whole bigint amounts (no decimals)', () => {
     // (Within reason — Number(bigint) is the precision boundary,
     // but for amounts that fit safely in a double we get the
     // exact value back.)
     const result = formatMoney(99999900n, 'CZK', 'cs');
-    expect(result).toMatch(/999[\s  .]999,00[\s ]Kč$/);
+    expect(result).toMatch(/999[\s  .]999[\s ]Kč$/);
   });
 });
 

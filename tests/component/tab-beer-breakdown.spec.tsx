@@ -36,8 +36,11 @@ describe('TabBeerBreakdown', () => {
     expect(screen.getByText('×3')).toBeInTheDocument();
     expect(screen.getByText('Bernard 10°')).toBeInTheDocument();
     expect(screen.getByText('×2')).toBeInTheDocument();
-    expect(screen.getByText(/120\.00/)).toBeInTheDocument();
-    expect(screen.getByText(/60\.00/)).toBeInTheDocument();
+    // Whole amounts → adaptive precision drops decimals (en CZK → "CZK 120").
+    expect(screen.getByText(/CZK[\s ]?120$/)).toBeInTheDocument();
+    expect(screen.getByText(/CZK[\s ]?60$/)).toBeInTheDocument();
+    // Grand total is shown prominently in the heading row (180).
+    expect(screen.getByText(/CZK[\s ]?180$/)).toBeInTheDocument();
   });
 
   it('renders the section heading', () => {

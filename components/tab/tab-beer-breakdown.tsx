@@ -21,6 +21,10 @@ export function TabBeerBreakdown({ groups, currencyCode, locale }: TabBeerBreakd
   const t = useTranslations('tab.breakdown');
   if (groups.length === 0) return null;
 
+  // Grand total across all groups — shown prominently in the heading
+  // row so the amount to settle is the most visible thing on the card.
+  const totalMinor = groups.reduce((acc, g) => acc + g.subtotalMinor, 0n);
+
   const dayFmt = new Intl.DateTimeFormat(locale, {
     weekday: 'long',
     day: 'numeric',
@@ -37,7 +41,12 @@ export function TabBeerBreakdown({ groups, currencyCode, locale }: TabBeerBreakd
 
   return (
     <Card className="flex flex-col gap-4 p-4">
-      <h2 className="text-sm font-semibold tracking-wide uppercase">{t('heading')}</h2>
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 className="text-sm font-semibold tracking-wide uppercase">{t('heading')}</h2>
+        <span className="text-2xl font-bold tabular-nums">
+          {formatMoney(totalMinor, currencyCode, locale)}
+        </span>
+      </div>
       {days.map((day) => (
         <div key={day.dayKey} className="flex flex-col gap-1.5">
           <div className="text-muted-foreground text-xs font-medium capitalize">

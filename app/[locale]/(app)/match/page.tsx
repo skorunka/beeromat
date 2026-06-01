@@ -3,11 +3,14 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { BetSettleSection } from './BetSettleSection';
 import { NewMatchAgreementForm } from './NewMatchAgreementForm';
 import { UpcomingAgreementsList } from './UpcomingAgreementsList';
+import { RecreateLastMatchButton } from '@/components/match/recreate-last-match-button';
 import { requireUnlocked } from '@/lib/auth/session';
 import {
+  lastAgreementForMember,
   listActiveClubMembers,
   listOpenAgreements,
 } from '@/lib/db/queries/match-agreements';
+import { joinSideNames } from '@/lib/format/match-sides';
 
 // /match hub — the single surface for everything bet/match-related
 // (2026-05-28: the standalone /bet "take a drink" page was folded in
@@ -24,9 +27,10 @@ export default async function MatchPage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('match');
-  const [agreements, members] = await Promise.all([
+  const [agreements, members, lastMatch] = await Promise.all([
     listOpenAgreements(ctx.club.id),
     listActiveClubMembers(ctx.club.id),
+    lastAgreementForMember(ctx.club.id, ctx.member.id),
   ]);
 
   return (
@@ -47,6 +51,17 @@ export default async function MatchPage({
             the New-match button. */}
         <p className="text-muted-foreground mt-1 text-sm">{t('hubSubtitle')}</p>
       </header>
+
+      {/* Spec 027 — one-tap recreate of the member's last matchup.
+          Rendered only when they have a prior match to clone. */}
+      {lastMatch ? (
+        <div className="mb-6">
+          <RecreateLastMatchButton
+            sideA={joinSideNames(lastMatch.sides.A)}
+            sideB={joinSideNames(lastMatch.sides.B)}
+          />
+        </div>
+      ) : null}
 
       <section className="mb-8 flex flex-col gap-3">
         <h2 className="text-sm font-semibold tracking-wide uppercase">{t('upcomingHeading')}</h2>

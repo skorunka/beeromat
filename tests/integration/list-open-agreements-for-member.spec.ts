@@ -36,7 +36,7 @@ async function seedClubAndPlayers() {
       .returning();
     return u!;
   }
-  async function member(name: string, u: { id: string }) {
+  async function member(name: string, u: { id: string; email: string }) {
     const [m] = await testDb
       .insert(members)
       .values({

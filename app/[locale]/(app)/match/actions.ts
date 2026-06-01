@@ -1,18 +1,24 @@
 'use server';
 
+import { and, eq, inArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 import { requireUnlocked } from '@/lib/auth/session';
+import { db } from '@/lib/db/client';
+import { members } from '@/lib/db/schema/members';
 import {
   cancelAgreementTx,
   createAgreementTx,
   editAgreementTx,
   getAgreement,
+  lastAgreementForMember,
   recordResultTx,
   reverseResultTx,
+  type OpenAgreementSummary,
 } from '@/lib/db/queries/match-agreements';
 import { closeOpenRoundTx } from '@/lib/db/queries/sessions';
 import { canRecordMatchResult } from '@/lib/permissions';
+import type { CreateAgreementInput } from '@/lib/validation/match-agreement';
 import {
   cancelAgreementSchema,
   createAgreementSchema,
@@ -223,6 +229,73 @@ export async function reverseResultAction(rawInput: unknown): Promise<ReverseRes
   if (result.ok) {
     revalidatePath('/', 'layout');
   }
+  return result;
+}
+
+// Spec 027 — Recreate last match. Clones the acting member's most
+// recent agreement (any state) into a new OPEN agreement. Takes NO
+// input: the source is re-resolved server-side so it always clones
+// the genuinely-latest match (no client-trusted lineup, no IDOR, no
+// stale-vs-latest race).
+export type RecreateLastMatchResult =
+  | { ok: true; agreementId: string }
+  | { ok: false; code: 'NO_LAST_MATCH' }
+  | { ok: false; code: 'STALE_PARTICIPANT'; memberName: string | null }
+  | { ok: false; code: 'DUPLICATE_MEMBER' }
+  | { ok: false; code: 'MEMBER_NOT_IN_CLUB' };
+
+// Map a resolved agreement summary into the create-agreement input.
+function summaryToCreateInput(summary: OpenAgreementSummary): CreateAgreementInput {
+  const seat = (side: 'A' | 'B', n: 1 | 2): string =>
+    summary.sides[side].find((s) => s.seat === n)!.memberId;
+  if (summary.format === 'singles') {
+    return {
+      format: 'singles',
+      forBeer: summary.forBeer,
+      sides: { A: { seat1: seat('A', 1) }, B: { seat1: seat('B', 1) } },
+    };
+  }
+  return {
+    format: 'doubles',
+    forBeer: summary.forBeer,
+    pairingKind: (summary.pairingKind ?? 'straight') as 'straight' | 'crossed',
+    sides: {
+      A: { seat1: seat('A', 1), seat2: seat('A', 2) },
+      B: { seat1: seat('B', 1), seat2: seat('B', 2) },
+    },
+  };
+}
+
+export async function recreateLastMatchAction(): Promise<RecreateLastMatchResult> {
+  const ctx = await requireUnlocked();
+
+  // Re-resolve the source server-side (never trust a client lineup).
+  const last = await lastAgreementForMember(ctx.club.id, ctx.member.id);
+  if (!last) return { ok: false, code: 'NO_LAST_MATCH' };
+
+  // Active-participant guard. createAgreementTx validates club
+  // membership but NOT active status — a deactivated-but-still-in-club
+  // player would pass it and produce a match with a blocked
+  // participant. Block here with a clear, named error (FR-007).
+  const participantIds = [...last.sides.A, ...last.sides.B].map((s) => s.memberId);
+  const activeRows = await db
+    .select({ id: members.id, isActive: members.isActive })
+    .from(members)
+    .where(and(eq(members.clubId, ctx.club.id), inArray(members.id, participantIds)));
+  const activeIds = new Set(activeRows.filter((r) => r.isActive).map((r) => r.id));
+  const staleSeat = [...last.sides.A, ...last.sides.B].find(
+    (s) => !activeIds.has(s.memberId),
+  );
+  if (staleSeat) {
+    return { ok: false, code: 'STALE_PARTICIPANT', memberName: staleSeat.displayName };
+  }
+
+  const result = await createAgreementTx({
+    clubId: ctx.club.id,
+    createdByUserId: ctx.user.id,
+    input: summaryToCreateInput(last),
+  });
+  if (result.ok) revalidatePath('/match');
   return result;
 }
 

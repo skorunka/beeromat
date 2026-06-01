@@ -1,5 +1,20 @@
 <!-- SPECKIT START -->
-No spec currently in flight. Post-026 polish + correctness
+Most recently shipped: spec 027 (recreate-last-match — one-tap
+"Recreate last match" on the /match hub. Resolves the MEMBER's
+most recent participated agreement (any state —
+open/recorded/cancelled) via new `lastAgreementForMember` query,
+labels the button with the matchup ("Recreate: Franta + Pepa vs
+Honza + Standa"), and on tap clones lineup/format/for-beer/pairing
+into a new OPEN agreement via `recreateLastMatchAction` → existing
+createAgreementTx. The action re-resolves the source server-side
+(no client-trusted lineup) and adds an active-participant guard
+the shared tx lacks (STALE_PARTICIPANT — createAgreementTx checks
+club membership but not is_active). Renders only when the member
+has a prior match. No schema change. Per-row "repeat arbitrary
+match" deferred to BACKLOG. specs/027-recreate-last-match/ carries
+the full plan/data-model/contracts/tasks.
+
+Post-026 polish + correctness
 sweep (2026-05-27 evening, several small commits without a
 formal spec dir): Match entry restored to bottom nav (was
 deep-link-only); SessionTitleInlineEdit on /history list

@@ -83,6 +83,12 @@
     "upcomingEmpty": "Žádný zápas — naplánuj nový níže.",
     "newMatchHeading": "Nový zápas",
     "newMatchCta": "+ Nový zápas",
+    "recreate": {
+      "label": "Zopakovat:",
+      "created": "Zápas zopakován.",
+      "staleParticipant": "Nelze zopakovat — {name} už není v klubu.",
+      "failed": "Zápas se nepodařilo zopakovat. Zkus to znovu."
+    },
     "closeRound": {
       "cta": "Ukončit kolo",
       "confirm": "Ukončit kolo? Zapsáno {count, plural, one {# pivo} few {# piva} other {# piv}}. Okno pro vyrovnání sázek se zavře a nové kolo začne s dalším pivem. Nelze vrátit.",

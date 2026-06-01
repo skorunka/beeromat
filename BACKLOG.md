@@ -8,6 +8,15 @@ When one matures, run `/speckit-specify` and the item moves into
 
 ## UX
 
+- **Per-row "repeat this match".** Spec 027 shipped one-tap recreate
+  of the member's *single* last match on the /match hub. Follow-up:
+  a "repeat" affordance on each row of the Upcoming list / agreement
+  history so any *arbitrary* past matchup can be cloned, not just the
+  most recent. Reuses the same clone path (createAgreementTx + the
+  active-participant guard); would generalise `recreateLastMatchAction`
+  to take a source `agreementId` (server-validated as club-scoped +
+  member-visible). Deferred from 027 (out of scope).
+
 - ~~**Persistent "I owe X to the club" badge on every page.**~~
   **— Shipped 2026-05-26.** AppHeader now renders a small amber
   `<BalanceBadge />` pill between the club name and the user-menu

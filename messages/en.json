@@ -83,6 +83,12 @@
     "upcomingEmpty": "No matches scheduled — start one below.",
     "newMatchHeading": "New match",
     "newMatchCta": "+ New match",
+    "recreate": {
+      "label": "Recreate:",
+      "created": "Match recreated.",
+      "staleParticipant": "Can't recreate — {name} is no longer in the club.",
+      "failed": "Couldn't recreate the match. Try again."
+    },
     "closeRound": {
       "cta": "Close this round",
       "confirm": "End the round? {count, plural, one {# drink} other {# drinks}} logged. The casual bet window closes and a new round starts on the next beer. This can't be undone.",

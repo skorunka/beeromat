@@ -754,6 +754,78 @@ export async function listOpenAgreementsForMember(
   );
 }
 
+/**
+ * Spec 027 — the member's most-recently-created match agreement they
+ * were a participant in, in any state (open / recorded / cancelled),
+ * club-scoped. Drives the /match "Recreate last match" control: we
+ * clone the LINEUP, so the prior result is irrelevant — any state is
+ * a valid template. Returns null when the member has never played.
+ *
+ * Note: reuses the OpenAgreementSummary shape even though the source
+ * may be recorded/cancelled — only the lineup/format/forBeer/pairing
+ * fields are consumed by the recreate flow.
+ */
+export async function lastAgreementForMember(
+  clubId: string,
+  memberId: string,
+): Promise<OpenAgreementSummary | null> {
+  // 1. Newest agreement (any state) this member appears in. A member
+  //    occupies at most one seat per agreement (duplicate-member is
+  //    blocked at create), so the join yields one row per agreement.
+  const [latest] = await db
+    .select({ id: matchAgreements.id })
+    .from(matchAgreements)
+    .innerJoin(
+      matchAgreementSides,
+      eq(matchAgreementSides.agreementId, matchAgreements.id),
+    )
+    .where(
+      and(eq(matchAgreements.clubId, clubId), eq(matchAgreementSides.memberId, memberId)),
+    )
+    .orderBy(desc(matchAgreements.createdAt))
+    .limit(1);
+  if (!latest) return null;
+
+  // 2. Full lineup for that agreement (all seats, not just the
+  //    member's), assembled into the OpenAgreementSummary shape.
+  const rows = await db
+    .select({
+      id: matchAgreements.id,
+      format: matchAgreements.format,
+      forBeer: matchAgreements.forBeer,
+      pairingKind: matchAgreements.pairingKind,
+      createdAt: matchAgreements.createdAt,
+      side: matchAgreementSides.side,
+      seat: matchAgreementSides.seat,
+      memberId: members.id,
+      displayName: members.displayName,
+    })
+    .from(matchAgreements)
+    .innerJoin(matchAgreementSides, eq(matchAgreementSides.agreementId, matchAgreements.id))
+    .innerJoin(members, eq(members.id, matchAgreementSides.memberId))
+    .where(eq(matchAgreements.id, latest.id))
+    .orderBy(asc(matchAgreementSides.side), asc(matchAgreementSides.seat));
+
+  if (rows.length === 0) return null;
+  const first = rows[0]!;
+  const summary: OpenAgreementSummary = {
+    id: first.id,
+    format: first.format,
+    forBeer: first.forBeer,
+    pairingKind: first.pairingKind as PairingKind | null,
+    createdAt: first.createdAt,
+    sides: { A: [], B: [] },
+  };
+  for (const r of rows) {
+    summary.sides[r.side as Side].push({
+      memberId: r.memberId,
+      displayName: r.displayName,
+      seat: r.seat as Seat,
+    });
+  }
+  return summary;
+}
+
 export async function listOpenAgreements(clubId: string): Promise<OpenAgreementSummary[]> {
   const rows = await db
     .select({

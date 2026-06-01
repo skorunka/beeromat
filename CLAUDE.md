@@ -1,4 +1,19 @@
 <!-- SPECKIT START -->
+Most recently shipped: spec 029 (inline-log-for-other — home's
+"log for someone else" is now an inline collapse/expand control
+instead of a link to /log/for. Expands to MemberPickerDropdown +
+new common `components/picker/beer-picker-dropdown.tsx` + Log;
+logs via existing logBeerOnBehalfAction → celebrate + toast +
+router.refresh() (round breakdown updates in place, NO navigation);
+selections persist for fast round-logging. Home loads
+listOtherActiveMembers (replaced the count query) + renders only
+when other members exist. /log/for kept as deep-link fallback;
+unused LogForOtherLink removed. beer-picker-dropdown added to the
+i18n-check EXCLUDED set (same =>/generic regex false-positive as
+member-picker-dropdown; strings via props). Component tests for
+both new components. No schema change. Dedupe of the 3 beer
+dropdowns onto the shared one is a BACKLOG follow-up.
+
 Most recently shipped: spec 028 (tab-beer-breakdown — per-beer
 breakdown on /tab grouped by (beer type, day), "{beer} ×{count} ·
 {subtotal}", sorted by subtotal desc / day newest-first. Pure

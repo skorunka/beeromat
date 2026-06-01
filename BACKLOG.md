@@ -8,6 +8,15 @@ When one matures, run `/speckit-specify` and the item moves into
 
 ## UX
 
+- **Dedupe beer dropdowns onto the shared BeerPickerDropdown.** Spec
+  029 introduced `components/picker/beer-picker-dropdown.tsx` (the
+  common select-style beer dropdown) for the inline on-behalf log.
+  Follow-up: the home one-tap chevron (`home-one-tap-log.tsx`) and
+  the match bet-beer picker (`RecordResultForm.tsx`) each have their
+  own inline beer dropdown — migrate them where the interaction fits
+  (the one-tap chevron logs on tap rather than holding a value, so it
+  may need a variant).
+
 - **Beer breakdown on /settle + /history.** Spec 028 shipped the
   per-beer breakdown ("Pilsner ×3 · 120 Kč") on /tab only. Follow-ups:
   (a) /settle — show the breakdown at the literal payment moment;

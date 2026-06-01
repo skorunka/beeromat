@@ -42,6 +42,11 @@ const EXCLUDED = new Set([
   // (same root cause as pin-input.tsx). File audited: every user-
   // facing string (placeholder, ariaLabel) comes in via props.
   'components/picker/member-picker-dropdown.tsx',
+  // beer-picker-dropdown.tsx — the `value ? beers.find((b) => …)`
+  // ternary's `=>` trips the JSX_TEXT regex (reads `>` as a tag
+  // close). File audited: every user-facing string (placeholder,
+  // ariaLabel) comes in via props; prices format through formatMoney.
+  'components/picker/beer-picker-dropdown.tsx',
 ]);
 
 // ── shared ───────────────────────────────────────────────────────────

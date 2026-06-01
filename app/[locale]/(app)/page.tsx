@@ -1,5 +1,4 @@
 import type { Route } from 'next';
-import { and, eq, ne, sql } from 'drizzle-orm';
 import { Link } from '@/lib/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
@@ -11,12 +10,12 @@ import { MatchBetModule } from '@/components/home/match-bet-module';
 import { OpenMatchPrompt } from '@/components/home/open-match-prompt';
 import { OnBehalfReviewBanner } from '@/components/home/on-behalf-review-banner';
 import { TabBeerBreakdown } from '@/components/tab/tab-beer-breakdown';
-import { LogForOtherLink } from '@/components/log/log-for-other-link';
-import { db } from '@/lib/db/client';
+import { HomeLogForOther } from '@/components/home/home-log-for-other';
 import { requireUnlocked } from '@/lib/auth/session';
 import { memberBalance } from '@/lib/balance/calculate';
 import { getBeerTypeCatalog } from '@/lib/db/queries/catalog';
 import { getMyTabForSession, lastBeerForMember } from '@/lib/db/queries/consumption';
+import { listOtherActiveMembers } from '@/lib/db/queries/members';
 import { getOpenSessionForClub } from '@/lib/db/queries/sessions';
 import { listOpenAgreementsForMember } from '@/lib/db/queries/match-agreements';
 import { matchBetSummaryForMember, wonBeerSummaryForMember } from '@/lib/db/queries/match-bet-summary';
@@ -24,7 +23,6 @@ import { groupTabEntriesByBeer } from '@/lib/tab/group-beer-breakdown';
 import { joinSideNames } from '@/lib/format/match-sides';
 import { onBehalfReviewSummaryForMember } from '@/lib/db/queries/on-behalf-review';
 import { formatMoney } from '@/lib/format';
-import { members } from '@/lib/db/schema/members';
 
 // Spec 017 — home as the single action surface for the daily core
 // loop. Primary CTA = one-tap log of the member's last beer. Balance
@@ -47,7 +45,7 @@ export default async function AppHomePage({
     betSummary,
     wonSummary,
     openAgreements,
-    otherMembersCountResult,
+    otherMembers,
     onBehalfSummary,
   ] = await Promise.all([
     memberBalance(ctx.member.id),
@@ -56,16 +54,7 @@ export default async function AppHomePage({
     matchBetSummaryForMember(ctx.member.id, ctx.club.id),
     wonBeerSummaryForMember(ctx.member.id, ctx.club.id),
     listOpenAgreementsForMember(ctx.club.id, ctx.member.id),
-    db
-      .select({ n: sql<number>`count(*)::int` })
-      .from(members)
-      .where(
-        and(
-          eq(members.clubId, ctx.club.id),
-          eq(members.isActive, true),
-          ne(members.id, ctx.member.id),
-        ),
-      ),
+    listOtherActiveMembers(ctx.club.id, ctx.member.id),
     onBehalfReviewSummaryForMember(ctx.member.id, ctx.club.id),
   ]);
 
@@ -99,7 +88,6 @@ export default async function AppHomePage({
       isArchived: b.isArchived,
       unitPriceMinor: b.unitPriceMinor,
     }));
-  const hasOtherMembers = (otherMembersCountResult[0]?.n ?? 0) > 0;
   const owes = balanceMinor > 0n;
   const balanceFormatted = formatMoney(
     balanceMinor,
@@ -196,7 +184,14 @@ export default async function AppHomePage({
         </Link>
       ) : null}
 
-      <LogForOtherLink hasOtherMembers={hasOtherMembers} />
+      {otherMembers.length > 0 ? (
+        <HomeLogForOther
+          members={otherMembers}
+          beers={inStockCatalog}
+          currencyCode={ctx.club.currencyCode}
+          locale={ctx.club.defaultLocale}
+        />
+      ) : null}
     </main>
   );
 }

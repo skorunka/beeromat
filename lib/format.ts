@@ -48,12 +48,27 @@ export function formatMoneyCompact(
  * (editable) session title so an unnamed round reads as the
  * tennis-and-beer day it happened on, rather than a generic "Round".
  */
+// Intl.DateTimeFormat construction is comparatively expensive; cache
+// instances by (locale, shape) so list renders (history, breakdown)
+// reuse one formatter per shape instead of allocating one per row.
+const dateFormatters = new Map<string, Intl.DateTimeFormat>();
+function dateFormatter(locale: string, shape: 'day' | 'mediumDate'): Intl.DateTimeFormat {
+  const key = `${locale}:${shape}`;
+  let fmt = dateFormatters.get(key);
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat(
+      locale,
+      shape === 'day'
+        ? { weekday: 'long', day: 'numeric', month: 'numeric' }
+        : { dateStyle: 'medium' },
+    );
+    dateFormatters.set(key, fmt);
+  }
+  return fmt;
+}
+
 export function formatDayLabel(date: Date, locale: string): string {
-  return new Intl.DateTimeFormat(locale, {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'numeric',
-  }).format(date);
+  return dateFormatter(locale, 'day').format(date);
 }
 
 /** Calendar-day key (UTC) — matches the breakdown's day bucketing. */
@@ -86,7 +101,7 @@ export function formatRelativeDay(
   const yesterday = new Date(now.getTime() - 86_400_000);
   if (key === dayKeyUTC(yesterday)) return labels.yesterday;
   if (fallback === 'date') {
-    return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(date);
+    return dateFormatter(locale, 'mediumDate').format(date);
   }
   return formatDayLabel(date, locale);
 }

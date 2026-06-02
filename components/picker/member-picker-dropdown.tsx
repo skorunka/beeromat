@@ -101,9 +101,13 @@ export function MemberPickerDropdown({
         className="min-w-(--anchor-width) p-1"
       >
         <DropdownMenuRadioGroup
+          // CLEAR_VALUE ('') is the "nothing selected" sentinel for the
+          // controlled group (no item checked until a member is picked).
+          // Since the clear row is gone, every selectable item carries a
+          // real member id, so onChange always receives a non-empty id.
           value={value ?? CLEAR_VALUE}
           onValueChange={(v) => {
-            onChange(v === CLEAR_VALUE ? null : v);
+            onChange(v);
             setOpen(false);
           }}
         >

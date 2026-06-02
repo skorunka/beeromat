@@ -27,18 +27,20 @@ import { env } from '@/lib/env';
 const SEED_MEMBER_COUNT = 50;
 const SEED_EMAIL_DOMAIN = 'seed.beeromat.local';
 
-// 8 beers + 2 soft drinks. price in minor units (haléř).
-const BEERS: { name: string; priceMinor: bigint }[] = [
-  { name: 'Pilsner Urquell', priceMinor: 4500n },
-  { name: 'Kozel 11°', priceMinor: 3800n },
-  { name: 'Bernard 12°', priceMinor: 4200n },
-  { name: 'Gambrinus 10°', priceMinor: 3200n },
-  { name: 'Radegast 12°', priceMinor: 3600n },
-  { name: 'Staropramen 10°', priceMinor: 3400n },
-  { name: 'Svijany 11°', priceMinor: 4000n },
-  { name: 'Budvar 12°', priceMinor: 4400n },
-  { name: 'Kofola', priceMinor: 2800n }, // soft drink
-  { name: 'Voda', priceMinor: 1500n }, // soft drink
+// 8 beers + 2 soft drinks. Prices in minor units (haléř); buyPrice is
+// the wholesale purchase price (~55-60% of sell) so margin reporting
+// has realistic data.
+const BEERS: { name: string; priceMinor: bigint; buyPriceMinor: bigint }[] = [
+  { name: 'Pilsner Urquell', priceMinor: 4500n, buyPriceMinor: 2700n },
+  { name: 'Kozel 11°', priceMinor: 3800n, buyPriceMinor: 2200n },
+  { name: 'Bernard 12°', priceMinor: 4200n, buyPriceMinor: 2500n },
+  { name: 'Gambrinus 10°', priceMinor: 3200n, buyPriceMinor: 1800n },
+  { name: 'Radegast 12°', priceMinor: 3600n, buyPriceMinor: 2100n },
+  { name: 'Staropramen 10°', priceMinor: 3400n, buyPriceMinor: 2000n },
+  { name: 'Svijany 11°', priceMinor: 4000n, buyPriceMinor: 2400n },
+  { name: 'Budvar 12°', priceMinor: 4400n, buyPriceMinor: 2600n },
+  { name: 'Kofola', priceMinor: 2800n, buyPriceMinor: 1400n }, // soft drink
+  { name: 'Voda', priceMinor: 1500n, buyPriceMinor: 600n }, // soft drink
 ];
 
 const FIRST_NAMES = [
@@ -145,6 +147,7 @@ async function main(): Promise<void> {
       clubId: club.id,
       name: b.name,
       unitPriceMinor: b.priceMinor,
+      buyPriceMinor: b.buyPriceMinor,
       currentStock: 100,
       displayOrder: i,
       createdByUserId: adminUserId,

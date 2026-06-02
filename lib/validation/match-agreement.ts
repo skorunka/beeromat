@@ -53,12 +53,16 @@ export const createAgreementSchema = z
       forBeer: z.boolean({ error: 'match.errors.forBeerRequired' }),
       sides: singlesSidesSchema,
       pairingKind: z.undefined({ error: 'match.errors.pairingNotAllowed' }).optional(),
+      // Spec 030 — the beer the match is for (chosen at create when
+      // forBeer). Null/omitted otherwise; delivery falls back if unset.
+      betBeerTypeId: z.string().uuid().nullable().optional(),
     }),
     z.object({
       format: z.literal('doubles'),
       forBeer: z.boolean({ error: 'match.errors.forBeerRequired' }),
       sides: doublesSidesSchema,
       pairingKind: pairingKindSchema,
+      betBeerTypeId: z.string().uuid().nullable().optional(),
     }),
   ])
   .superRefine((data, ctx) => {

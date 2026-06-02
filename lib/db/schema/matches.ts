@@ -3,6 +3,7 @@ import { sql } from 'drizzle-orm';
 
 import { users } from './auth';
 import { betTransfers } from './bets';
+import { beerTypes } from './catalog';
 import { clubs } from './clubs';
 import { members } from './members';
 
@@ -33,6 +34,10 @@ export const matchAgreements = pgTable(
     format: matchFormat().notNull(),
     forBeer: boolean().notNull(),
     pairingKind: matchPairingKind(),
+    // Spec 030 — the beer the match is played for, chosen at create when
+    // forBeer. Copied onto each match_bet_debt as the delivery default.
+    // NULL for friendly matches and pre-030 agreements.
+    betBeerTypeId: uuid().references(() => beerTypes.id, { onDelete: 'set null' }),
     winningSide: text(),
     resultRecordedAt: timestamp({ withTimezone: true }),
     resultRecordedByUserId: uuid().references(() => users.id, { onDelete: 'set null' }),

@@ -12,3 +12,4 @@ export * from './consumption';
 export * from './payments';
 export * from './bets';
 export * from './matches';
+export * from './match-bet-debts';

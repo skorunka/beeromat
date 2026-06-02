@@ -44,6 +44,38 @@ describe('createAgreementSchema — spec 013', () => {
     expect(r.success).toBe(true);
   });
 
+  // Spec 030 — optional bet beer chosen at create.
+  it('accepts a betBeerTypeId uuid (singles, for beer)', () => {
+    const r = createAgreementSchema.safeParse({
+      format: 'singles',
+      forBeer: true,
+      sides: { A: { seat1: A }, B: { seat1: B } },
+      betBeerTypeId: C,
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it('accepts null betBeerTypeId (friendly / no beer chosen)', () => {
+    const r = createAgreementSchema.safeParse({
+      format: 'doubles',
+      forBeer: false,
+      sides: { A: { seat1: A, seat2: B }, B: { seat1: C, seat2: D } },
+      pairingKind: 'straight',
+      betBeerTypeId: null,
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it('rejects a non-uuid betBeerTypeId', () => {
+    const r = createAgreementSchema.safeParse({
+      format: 'singles',
+      forBeer: true,
+      sides: { A: { seat1: A }, B: { seat1: B } },
+      betBeerTypeId: 'not-a-uuid',
+    });
+    expect(r.success).toBe(false);
+  });
+
   it('doubles MUST have a pairingKind (FR-006: no implicit default)', () => {
     const r = createAgreementSchema.safeParse({
       format: 'doubles',

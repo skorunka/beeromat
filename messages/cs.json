@@ -184,7 +184,21 @@
       "autoFallback": "Auto · Pivo"
     },
     "loserBuys": "Kdo prohraje, kupuje vítězi {count}× pivo.",
-    "loserBuysNamed": "Kdo prohraje, kupuje vítězi {count}× {beer}."
+    "loserBuysNamed": "Kdo prohraje, kupuje vítězi {count}× {beer}.",
+    "winnerSingular": "Vítěz: {name}",
+    "winnerPlural": "Vítězové: {name}",
+    "toSettleHeading": "Sázky k vyrovnání",
+    "betBeerLabel": "O jaké pivo?"
+  },
+  "matchBet": {
+    "oweBeer": "Dlužíš pivo — {name}",
+    "owedBeer": "Dluží ti pivo — {name}",
+    "deliver": "Předáno",
+    "deliverConfirm": "Předat {beer} pro {name}?",
+    "settledToast": "Vyrovnáno — {beer} na útratě {name}.",
+    "alreadySettled": "Tahle sázka už je vyrovnaná.",
+    "beerPlaceholder": "Vyber pivo",
+    "nothingToSettle": "Žádné sázky k vyrovnání."
   },
   "onboarding": {
     "title": "Vítej",

@@ -184,7 +184,21 @@
       "autoFallback": "Auto · Beer"
     },
     "loserBuys": "Whoever loses buys {count}× beer for the winner.",
-    "loserBuysNamed": "Whoever loses buys {count}× {beer} for the winner."
+    "loserBuysNamed": "Whoever loses buys {count}× {beer} for the winner.",
+    "winnerSingular": "Winner: {name}",
+    "winnerPlural": "Winners: {name}",
+    "toSettleHeading": "Bets to settle",
+    "betBeerLabel": "For which beer?"
+  },
+  "matchBet": {
+    "oweBeer": "You owe {name} a beer",
+    "owedBeer": "{name} owes you a beer",
+    "deliver": "Delivered",
+    "deliverConfirm": "Hand over {beer} to {name}?",
+    "settledToast": "Settled — {beer} on {name}'s tab.",
+    "alreadySettled": "That bet is already settled.",
+    "beerPlaceholder": "Pick a beer",
+    "nothingToSettle": "No bets to settle."
   },
   "onboarding": {
     "title": "Welcome",

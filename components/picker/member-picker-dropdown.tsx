@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 import {
   DropdownMenu,
@@ -60,14 +61,30 @@ export function MemberPickerDropdown({
   ariaLabel,
   className,
 }: MemberPickerDropdownProps) {
+  const t = useTranslations('common');
   const picked = value ? members.find((m) => m.id === value) ?? null : null;
   // Spec follow-up — close the popup as soon as a value is picked.
   // base-ui's RadioItem doesn't auto-close (designed for "select-
   // then-review"); our UX wants tap-and-go.
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+
+  const showSearch = members.length >= 8;
+  const q = query.trim().toLowerCase();
+  // Hide non-matches with `hidden` rather than removing them — keeps
+  // base-ui's RadioGroup children set stable (mutating it while open
+  // trips its reconciliation).
+  const matches = (name: string) => !q || name.toLowerCase().includes(q);
+  const anyVisible = members.some((m) => matches(m.displayName));
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setQuery('');
+      }}
+    >
       <DropdownMenuTrigger
         aria-label={ariaLabel}
         className={cn(
@@ -100,6 +117,22 @@ export function MemberPickerDropdown({
         sideOffset={4}
         className="min-w-(--anchor-width) p-1"
       >
+        {showSearch ? (
+          <input
+            type="search"
+            autoFocus
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            // Let arrows/enter/escape reach the menu; keep typing keys
+            // from triggering its built-in typeahead.
+            onKeyDown={(e) => {
+              if (e.key.length === 1 || e.key === 'Backspace') e.stopPropagation();
+            }}
+            placeholder={t('searchMember')}
+            aria-label={t('searchMember')}
+            className="border-input bg-background focus:border-primary mb-1 h-9 w-full rounded-md border px-2 text-sm outline-none"
+          />
+        ) : null}
         <DropdownMenuRadioGroup
           // CLEAR_VALUE ('') is the "nothing selected" sentinel for the
           // controlled group (no item checked until a member is picked).
@@ -125,7 +158,7 @@ export function MemberPickerDropdown({
                 key={m.id}
                 value={m.id}
                 disabled={isDisabled}
-                className="min-h-12 py-3 text-base"
+                className={cn('min-h-12 py-3 text-base', !matches(m.displayName) && 'hidden')}
               >
                 <MemberAvatar
                   size="inline"
@@ -138,6 +171,11 @@ export function MemberPickerDropdown({
             );
           })}
         </DropdownMenuRadioGroup>
+        {showSearch && q && !anyVisible ? (
+          <p className="text-muted-foreground px-2 py-3 text-center text-sm">
+            {t('noMembersFound')}
+          </p>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

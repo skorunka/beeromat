@@ -1,8 +1,10 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { NextIntlClientProvider } from 'next-intl';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { MemberPickerDropdown } from '@/components/picker/member-picker-dropdown';
 import type { MemberOption } from '@/components/picker/types';
+import enMessages from '@/messages/en.json';
 
 // Spec 024 T010 — component test for the dropdown-shape picker.
 
@@ -33,14 +35,16 @@ function renderDropdown(opts: {
   placeholder?: string;
 } = {}) {
   return render(
-    <MemberPickerDropdown
-      members={opts.members ?? [photoMember, glyphMember, plainMember]}
-      value={opts.value ?? null}
-      onChange={opts.onChange ?? (() => {})}
-      disabledIds={opts.disabledIds}
-      placeholder={opts.placeholder ?? 'Pick a seat'}
-      ariaLabel="Seat A1"
-    />,
+    <NextIntlClientProvider locale="en" messages={enMessages}>
+      <MemberPickerDropdown
+        members={opts.members ?? [photoMember, glyphMember, plainMember]}
+        value={opts.value ?? null}
+        onChange={opts.onChange ?? (() => {})}
+        disabledIds={opts.disabledIds}
+        placeholder={opts.placeholder ?? 'Pick a seat'}
+        ariaLabel="Seat A1"
+      />
+    </NextIntlClientProvider>,
   );
 }
 

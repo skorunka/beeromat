@@ -29,7 +29,12 @@ export function FilterList({ items, placeholder, emptyText, threshold = 8 }: Fil
   const [query, setQuery] = useState('');
   const showSearch = items.length >= threshold;
   const q = query.trim().toLowerCase();
-  const filtered = q ? items.filter((i) => i.searchText.toLowerCase().includes(q)) : items;
+  // Render EVERY row and just hide non-matches with `hidden`. Removing
+  // rows from the set while they contain client components (e.g. the
+  // member kebab menu) trips React's "children should not have changed"
+  // reconciliation error — a stable set + visibility toggle avoids it.
+  const matches = (searchText: string) => !q || searchText.toLowerCase().includes(q);
+  const anyVisible = items.some((i) => matches(i.searchText));
 
   return (
     <div className="flex flex-col gap-2">
@@ -43,11 +48,13 @@ export function FilterList({ items, placeholder, emptyText, threshold = 8 }: Fil
         />
       ) : null}
       <ul className="flex flex-col gap-2">
-        {filtered.map((i) => (
-          <li key={i.key}>{i.node}</li>
+        {items.map((i) => (
+          <li key={i.key} className={matches(i.searchText) ? undefined : 'hidden'}>
+            {i.node}
+          </li>
         ))}
       </ul>
-      {showSearch && filtered.length === 0 ? (
+      {showSearch && q && !anyVisible ? (
         <p className="text-muted-foreground py-4 text-center text-sm">{emptyText}</p>
       ) : null}
     </div>

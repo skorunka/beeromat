@@ -1,8 +1,10 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { NextIntlClientProvider } from 'next-intl';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { MemberPickerGrid } from '@/components/picker/member-picker-grid';
 import type { MemberOption } from '@/components/picker/types';
+import enMessages from '@/messages/en.json';
 
 // Spec 024 T005 — component test for the tile-shape member picker.
 
@@ -33,12 +35,14 @@ function renderGrid(opts: {
   onChange?: (id: string | null) => void;
 } = {}) {
   return render(
-    <MemberPickerGrid
-      members={opts.members ?? [photoMember, glyphMember, plainMember]}
-      value={opts.value ?? null}
-      onChange={opts.onChange ?? (() => {})}
-      ariaLabel="Pick a member"
-    />,
+    <NextIntlClientProvider locale="en" messages={enMessages}>
+      <MemberPickerGrid
+        members={opts.members ?? [photoMember, glyphMember, plainMember]}
+        value={opts.value ?? null}
+        onChange={opts.onChange ?? (() => {})}
+        ariaLabel="Pick a member"
+      />
+    </NextIntlClientProvider>,
   );
 }
 

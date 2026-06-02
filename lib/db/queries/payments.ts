@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { and, desc, eq, gte, inArray, lte, notExists, sum } from 'drizzle-orm';
+import { and, count, desc, eq, gte, inArray, lte, notExists, sum } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { memberBalance, paymentsTotal } from '@/lib/balance/calculate';
@@ -53,6 +53,18 @@ export interface PendingClaimFilters {
   memberId?: string;
   minAmountMinor?: bigint;
   maxAmountMinor?: bigint;
+}
+
+/**
+ * Count of payments awaiting treasurer confirmation (status `claimed`)
+ * for the club. Powers the "K potvrzení" badge on the admin hub.
+ */
+export async function countPendingClaims(clubId: string): Promise<number> {
+  const [row] = await db
+    .select({ n: count() })
+    .from(payments)
+    .where(and(eq(payments.clubId, clubId), eq(payments.status, 'claimed')));
+  return row?.n ?? 0;
 }
 
 /**

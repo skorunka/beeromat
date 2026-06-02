@@ -707,6 +707,11 @@ export async function cancelAgreementTx(
           eq(matchAgreements.clubId, args.clubId),
           isNull(matchAgreements.resultRecordedAt),
           isNull(matchAgreements.cancelledAt),
+          // A reversed agreement (recorded then undone) carries reversed_at
+          // as its audit trail; the chk_match_agreements_cancel_xor_result
+          // constraint forbids cancelling it. Guard here so the action
+          // returns NOT_CANCELLABLE instead of letting the DB 500.
+          isNull(matchAgreements.reversedAt),
         ),
       )
       .returning({ id: matchAgreements.id });

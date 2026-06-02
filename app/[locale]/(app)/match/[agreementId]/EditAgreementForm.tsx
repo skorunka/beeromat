@@ -29,6 +29,13 @@ import {
 interface EditAgreementFormProps {
   agreementId: string;
   members: MemberOption[];
+  /**
+   * Whether the agreement can be cancelled. A reversed agreement
+   * (recorded then undone) carries reversed_at and the DB constraint
+   * forbids cancelling it — so the page passes false and we hide the
+   * cancel button (re-record is the path forward, not cancel).
+   */
+  canCancel: boolean;
   initial: {
     format: 'singles' | 'doubles';
     forBeer: boolean;
@@ -69,7 +76,12 @@ function buildInput(values: FormValues): CreateAgreementInput {
   };
 }
 
-export function EditAgreementForm({ agreementId, members, initial }: EditAgreementFormProps) {
+export function EditAgreementForm({
+  agreementId,
+  members,
+  canCancel,
+  initial,
+}: EditAgreementFormProps) {
   const t = useTranslations('match');
   const router = useRouter();
   const [isSaving, startSave] = useTransition();
@@ -344,16 +356,18 @@ export function EditAgreementForm({ agreementId, members, initial }: EditAgreeme
           >
             {isSaving ? t('savingEdit') : t('saveEdit')}
           </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            disabled={isCancelling}
-            isPending={isCancelling}
-            onClick={onCancel}
-            className="h-12"
-          >
-            {isCancelling ? t('cancelling') : t('cancelMatch')}
-          </Button>
+          {canCancel ? (
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isCancelling}
+              isPending={isCancelling}
+              onClick={onCancel}
+              className="h-12"
+            >
+              {isCancelling ? t('cancelling') : t('cancelMatch')}
+            </Button>
+          ) : null}
         </div>
       </form>
     </Form>

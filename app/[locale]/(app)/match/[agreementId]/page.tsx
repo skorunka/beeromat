@@ -167,6 +167,7 @@ export default async function AgreementDetailPage({
             <EditAgreementForm
               agreementId={agreement.id}
               members={members}
+              canCancel={agreement.reversedAt == null}
               initial={{
                 format: agreement.format,
                 forBeer: agreement.forBeer,

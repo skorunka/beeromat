@@ -583,4 +583,46 @@ describe('editAgreementTx + cancelAgreementTx — spec 013 US4', () => {
     expect(c2.ok).toBe(false);
     if (!c2.ok) expect(c2.code).toBe('NOT_CANCELLABLE');
   });
+
+  it('cancel after reverse rejects NOT_CANCELLABLE (no chk_cancel_xor_result 500)', async () => {
+    // Regression: record → reverse leaves reversed_at set + result null.
+    // The cancel guard must include reversed_at IS NULL, else the UPDATE
+    // matches and the DB CHECK constraint throws instead of a clean code.
+    const { club, user, memberA, memberB } = await seedFourMembers();
+    const created = await createAgreementTx({
+      clubId: club.id,
+      createdByUserId: user.id,
+      input: {
+        format: 'singles',
+        forBeer: false,
+        sides: { A: { seat1: memberA.id }, B: { seat1: memberB.id } },
+      },
+    });
+    if (!created.ok) throw new Error();
+    await recordResultTx({
+      agreementId: created.agreementId,
+      clubId: club.id,
+      recordedByUserId: user.id,
+      winningSide: 'A',
+    });
+    const rev = await reverseResultTx({
+      agreementId: created.agreementId,
+      clubId: club.id,
+      reversedByUserId: user.id,
+    });
+    expect(rev.ok).toBe(true);
+
+    const c = await cancelAgreementTx({
+      agreementId: created.agreementId,
+      clubId: club.id,
+      cancelledByUserId: user.id,
+    });
+    expect(c.ok).toBe(false);
+    if (!c.ok) expect(c.code).toBe('NOT_CANCELLABLE');
+
+    // Row untouched: still reversed, not cancelled.
+    const agreement = await testDb.select().from(matchAgreements);
+    expect(agreement[0]?.cancelledAt).toBeNull();
+    expect(agreement[0]?.reversedAt).not.toBeNull();
+  });
 });

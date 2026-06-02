@@ -1,4 +1,15 @@
 <!-- SPECKIT START -->
+Currently planning: spec 030 (match-bet-iou — deferring match-bet
+settlement into visible "beer IOUs" settled on delivery; plan at
+specs/030-match-bet-iou/plan.md, data-model + contracts alongside).
+Recording a for-beer result creates a pending match_bet_debt per
+loser↔winner pair (no money/stock); the bet beer is picked at match
+create (new match_agreements.bet_beer_type_id) and overridable at
+delivery; either party taps "Předáno" → reuse the existing settle
+path (winner consumption + bet_transfer→loser) → debt settled. The
+casual "take someone's drink" box (bet/actions.ts + transfer-list)
+is removed; result heading becomes Vítěz/Vítězové. Not yet built.
+
 Most recently shipped: spec 029 (inline-log-for-other — home's
 "log for someone else" is now an inline collapse/expand control
 instead of a link to /log/for. Expands to MemberPickerDropdown +

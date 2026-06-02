@@ -4,10 +4,9 @@ import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Card } from '@/components/ui/card';
-import { MemberAvatar } from '@/components/ui/member-avatar';
 import { SessionTitleInlineEdit } from '@/components/session/session-title-inline-edit';
 import { TabBeerBreakdown } from '@/components/tab/tab-beer-breakdown';
-import { avatarUploadUrl } from '@/lib/avatars/upload-url';
+import { TabEntryRow } from '@/components/tab/tab-entry-row';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getSessionDetail } from '@/lib/db/queries/consumption';
 import { formatDayLabel, formatMoney, formatRelativeDay } from '@/lib/format';
@@ -24,7 +23,6 @@ export default async function SessionDetailPage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('history');
-  const tBet = await getTranslations('bet');
   const tc = await getTranslations('common');
   const detail = await getSessionDetail({
     clubId: ctx.club.id,
@@ -36,7 +34,6 @@ export default async function SessionDetailPage({
   if (!detail) notFound();
 
   const { currencyCode, defaultLocale } = ctx.club;
-  const timeFmt = new Intl.DateTimeFormat(defaultLocale, { timeStyle: 'short' });
   const now = new Date();
   const relativeLabels = { today: tc('today'), yesterday: tc('yesterday') };
   // Spec 028 follow-up — same per-beer breakdown as /tab, reusing the
@@ -85,27 +82,20 @@ export default async function SessionDetailPage({
         </div>
       )}
 
+      {/* Spec 030 — render entries with the shared TabEntryRow (same as
+          /tab) so won-bet beers show as "z vyhrané sázky: platí {loser}"
+          (struck-through, non-counting) and lost-bet beers as "z prohrané
+          sázky". Replaces the old plain list + separate bet-transfers
+          section (which rendered won beers as ordinary drinks). */}
       <h2 className="mb-2 text-sm font-medium">{t('yourDrinks')}</h2>
-      <ul className="mb-6 flex flex-col gap-2">
+      <ul className="flex flex-col gap-2">
         {detail.entries.map((e) => (
-          <li key={e.id}>
-            <Card
-              className={`flex flex-row items-center justify-between gap-3 p-3 ${
-                e.voided ? 'opacity-50' : ''
-              }`}
-            >
-            <div>
-              <div className="font-medium">{e.beerTypeName}</div>
-              <div className="text-muted-foreground text-xs">
-                {timeFmt.format(e.createdAt)}
-                {e.voided ? ` · ${tBet('undone')}` : ''}
-              </div>
-            </div>
-            <div className="font-mono text-sm">
-              {formatMoney(e.unitPriceMinor, currencyCode, defaultLocale)}
-            </div>
-            </Card>
-          </li>
+          <TabEntryRow
+            key={`${e.kind}-${e.id}`}
+            entry={e}
+            currencyCode={currencyCode}
+            locale={defaultLocale}
+          />
         ))}
         {detail.entries.length === 0 ? (
           <li className="text-muted-foreground p-3 text-center text-sm">
@@ -113,58 +103,6 @@ export default async function SessionDetailPage({
           </li>
         ) : null}
       </ul>
-
-      {detail.transfers.length > 0 ? (
-        <>
-          <h2 className="mb-2 text-sm font-medium">{t('betTransfers')}</h2>
-          <ul className="flex flex-col gap-2">
-            {detail.transfers.map((tr) => {
-              const tookByMe = tr.toMemberId === ctx.member.id;
-              const counterparty = tookByMe
-                ? {
-                    id: tr.fromMemberId,
-                    name: tr.fromMemberName,
-                    avatarKey: tr.fromAvatarKey,
-                    avatarUploadAt: tr.fromAvatarUploadAt,
-                  }
-                : {
-                    id: tr.toMemberId,
-                    name: tr.toMemberName,
-                    avatarKey: tr.toAvatarKey,
-                    avatarUploadAt: tr.toAvatarUploadAt,
-                  };
-              return (
-                <li key={tr.id}>
-                  <Card
-                    className={`flex flex-row items-center justify-between gap-3 p-3 ${
-                      tr.voided ? 'opacity-50' : ''
-                    }`}
-                  >
-                  <div className="flex min-w-0 items-center gap-2 text-sm">
-                    <MemberAvatar
-                      size="inline"
-                      avatarKey={counterparty.avatarKey}
-                      displayName={counterparty.name}
-                      uploadUrl={avatarUploadUrl(counterparty.id, counterparty.avatarUploadAt)}
-                    />
-                    <span className="min-w-0 truncate">
-                      {tookByMe
-                        ? tBet('youTook', { name: tr.fromMemberName, beer: tr.beerTypeName })
-                        : tBet('tookYours', { name: tr.toMemberName, beer: tr.beerTypeName })}
-                      {tr.voided ? ` · ${tBet('undone')}` : ''}
-                    </span>
-                  </div>
-                  <div className="font-mono text-sm">
-                    {tookByMe ? '+' : '−'}
-                    {formatMoney(tr.unitPriceMinorSnapshot, currencyCode, defaultLocale)}
-                  </div>
-                  </Card>
-                </li>
-              );
-            })}
-          </ul>
-        </>
-      ) : null}
     </main>
   );
 }

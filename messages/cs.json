@@ -488,29 +488,6 @@
     "undone": "Vráceno.",
     "undoFailed": "Nepovedlo se to — zkus to prosím znovu."
   },
-  "bet": {
-    "title": "Vyrovnat sázku",
-    "subtitle": "Prohraná sázka? Vezmi si na svou útratu pivo někoho jiného.",
-    "roundContext": "Posezení začalo {started} · zatím {count, plural, one {# pivo} few {# piva} other {# piv}}",
-    "drinksYouCanTake": "Pití, co si můžeš vzít",
-    "noOtherDrinks": "Nikdo další si na tomhle posezení nezapsal pití.",
-    "transferToMe": "Beru si ho",
-    "betsThisSession": "Sázky z tohohle posezení",
-    "tally": "Ze sázek na tomhle posezení: {count, plural, one {# pivo} few {# piva} other {# piv}} · {amount}",
-    "youTook": "Bereš {beer} od {name}",
-    "tookYours": "{name} bere tvoje {beer}",
-    "undone": "zrušeno",
-    "undo": "Vrátit",
-    "transferred": "A je to na tvojí útratě.",
-    "alreadyTransferred": "Tohle už si někdo vzal.",
-    "outOfScope": "Tohle pití je ze starého posezení.",
-    "selfTransfer": "Vzít si můžeš jen pití někoho jiného.",
-    "transferFailed": "Nepovedlo se to — zkus to prosím znovu.",
-    "undoneToast": "Vráceno.",
-    "alreadyVoided": "Tohle už je vrácené.",
-    "voidForbidden": "Vrátit to může jen ten, kdo to převedl (nebo pokladník).",
-    "undoFailed": "Nepovedlo se to — zkus to prosím znovu."
-  },
   "history": {
     "title": "Historie",
     "drinkSession": "Posezení",
@@ -519,8 +496,7 @@
     "stillOpen": "ještě běží",
     "yourTotal": "Tvoje útrata za tohle posezení",
     "yourDrinks": "Vypito",
-    "noDrinksInSession": "Na tomhle posezení žádné pití.",
-    "betTransfers": "Výměny sázek"
+    "noDrinksInSession": "Na tomhle posezení žádné pití."
   },
   "session": {
     "title": {

@@ -11,7 +11,6 @@ import { consumptionVoids, consumptions } from '@/lib/db/schema/consumption';
 import { matchBetTransfers, matches } from '@/lib/db/schema/matches';
 import { members } from '@/lib/db/schema/members';
 import { drinkSessions, type DrinkSession } from '@/lib/db/schema/sessions';
-import { getBetTransfersForSession, type BetTransferRow } from './bets';
 
 // Spec 023 — second alias on `members` so we can join the LOGGER's
 // member row (when an on-behalf log) alongside the existing CONSUMER
@@ -594,14 +593,15 @@ export async function getSessionHistory(args: {
 export interface SessionDetail {
   session: DrinkSession;
   entries: MemberTabEntry[];
-  transfers: BetTransferRow[];
   totalMinor: bigint;
 }
 
 /**
  * Drill-down into one session for a member: their consumption line
- * items, the bet transfers they were party to, and their effective
- * total (contracts/consumption.md → getSessionDetail). US8.
+ * items (incl. won/lost-bet transfer rows, rendered via TabEntryRow)
+ * and their effective total (contracts/consumption.md → getSessionDetail).
+ * US8. Spec 030 — the separate bet-transfers list was removed; transfer
+ * rows now live inline in `entries`.
  */
 export async function getSessionDetail(args: {
   clubId: string;
@@ -615,16 +615,15 @@ export async function getSessionDetail(args: {
   });
   if (!session) return null;
 
-  const [tab, transfers, totalMinor] = await Promise.all([
+  const [tab, totalMinor] = await Promise.all([
     getMyTabForSession({
       memberId: args.memberId,
       userId: args.userId,
       session,
       undoWindowSeconds: args.undoWindowSeconds,
     }),
-    getBetTransfersForSession({ sessionId: args.sessionId, memberId: args.memberId }),
     effectiveConsumptionTotal(args.memberId, args.sessionId),
   ]);
 
-  return { session, entries: tab.entries, transfers, totalMinor };
+  return { session, entries: tab.entries, totalMinor };
 }

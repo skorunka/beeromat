@@ -488,29 +488,6 @@
     "undone": "Undone.",
     "undoFailed": "That didn't work — give it another go."
   },
-  "bet": {
-    "title": "Settle a bet",
-    "subtitle": "Lost a bet? Take a mate's drink onto your tab.",
-    "roundContext": "Round started {started} · {count, plural, one {# drink} other {# drinks}} so far",
-    "drinksYouCanTake": "Drinks you can take on",
-    "noOtherDrinks": "Nobody else has logged a drink this round.",
-    "transferToMe": "I'll take it",
-    "betsThisSession": "Bets this round",
-    "tally": "From bets this round: {count, plural, one {# drink} other {# drinks}} · {amount}",
-    "youTook": "You took {name}'s {beer}",
-    "tookYours": "{name} took your {beer}",
-    "undone": "undone",
-    "undo": "Undo",
-    "transferred": "Onto your tab it goes.",
-    "alreadyTransferred": "Someone's already taken that one.",
-    "outOfScope": "That drink's from an old round.",
-    "selfTransfer": "You can only take someone else's drink.",
-    "transferFailed": "That didn't work — give it another go.",
-    "undoneToast": "Undone.",
-    "alreadyVoided": "That's already been undone.",
-    "voidForbidden": "Only whoever made the swap (or a treasurer) can undo it.",
-    "undoFailed": "That didn't work — give it another go."
-  },
   "history": {
     "title": "History",
     "drinkSession": "Round",
@@ -519,8 +496,7 @@
     "stillOpen": "still on",
     "yourTotal": "Your total this round",
     "yourDrinks": "Drunk",
-    "noDrinksInSession": "No drinks logged this round.",
-    "betTransfers": "Bet swaps"
+    "noDrinksInSession": "No drinks logged this round."
   },
   "session": {
     "title": {

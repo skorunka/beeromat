@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
+import { X } from 'lucide-react';
 
 import { markPaidOtherMethodAction } from '@/app/[locale]/(app)/settle/actions';
 import { Button } from '@/components/ui/button';
@@ -89,6 +90,20 @@ export function PaidOtherMethod({ defaultAmountMinor, currencyCode }: PaidOtherM
 
   return (
     <Card className="p-4">
+      {/* Collapse back to the link. Its own header row (not an absolute
+          corner ✕) so it doesn't overlap the full-width amount field.
+          Themed to match the home on-behalf control + shared Dialog
+          close: muted-foreground, crisp stroke. */}
+      <div className="mb-3 flex justify-end">
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          aria-label={tCommon('close')}
+          className="text-muted-foreground hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-md"
+        >
+          <X className="size-[1.1rem]" strokeWidth={2.5} aria-hidden />
+        </button>
+      </div>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}

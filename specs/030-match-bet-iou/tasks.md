@@ -4,6 +4,21 @@ description: "Task list for spec 030 — deferred match-bet settlement (beer IOU
 
 # Tasks: Deferred match-bet settlement (beer IOU / dlužné pivo)
 
+> **Implementation status (2026-06-02):** SHIPPED across three commits on
+> `main`. Done: Phase 1–2 (schema/migration/helpers/i18n), US1 (record→
+> pending debts + home IOU UI + query), US2 (deliverBeerDebtTx + action +
+> deliver control), US3 (create-form beer picker), US4 (Vítěz/Vítězové
+> heading), US5 (casual box removed from UI + hub "Sázky k vyrovnání"
+> list), plus reverse-voids-debts (T036) and the test migrations (T010/
+> T035 via migration + deletion). Gates all green: typecheck, lint,
+> unit 203, integration 252, component, i18n, forms, build.
+> **Deferred to BACKLOG** (noted in CLAUDE.md): deep removal of the
+> now-dead casual `createBetTransferAction` + `lib/db/queries/bets.ts`
+> casual query + their 3 integration tests, and the casual `bet.*` i18n
+> key cleanup — left as dead-but-green code so the bet query layer +
+> those tests stay stable. Live quickstart (T040) pending a clean dev
+> restart.
+
 **Input**: Design documents from `specs/030-match-bet-iou/`
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/beer-iou.md, quickstart.md
 **Tests**: REQUIRED (Constitution VIII — every behaviour change lands with tests). Layers: unit + integration + component; no E2E (rig dormant — see plan.md).

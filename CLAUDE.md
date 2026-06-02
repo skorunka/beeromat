@@ -1,14 +1,27 @@
 <!-- SPECKIT START -->
-Currently planning: spec 030 (match-bet-iou — deferring match-bet
-settlement into visible "beer IOUs" settled on delivery; plan at
-specs/030-match-bet-iou/plan.md, data-model + contracts alongside).
-Recording a for-beer result creates a pending match_bet_debt per
-loser↔winner pair (no money/stock); the bet beer is picked at match
-create (new match_agreements.bet_beer_type_id) and overridable at
-delivery; either party taps "Předáno" → reuse the existing settle
-path (winner consumption + bet_transfer→loser) → debt settled. The
-casual "take someone's drink" box (bet/actions.ts + transfer-list)
-is removed; result heading becomes Vítěz/Vítězové. Not yet built.
+Most recently shipped: spec 030 (match-bet-iou — match bets no longer
+auto-settle at result time. recordResultTx creates a PENDING
+match_bet_debt per loser↔winner pair (no money/stock); both parties
+see the IOU ("Dluží ti pivo {x}" / "Dlužíš pivo {x}") on home + the
+/match "Sázky k vyrovnání" list. Either party taps "Předáno" →
+deliverBeerDebtTx (lib/db/queries/match-bet-debts.ts) books the cost
+via the existing consumption + bet_transfer path (all-or-nothing,
+optimistic-claim on status pending→settled, idempotent) → loser pays,
+winner unchanged, debt settled. Bet beer chosen at match create
+(match_agreements.bet_beer_type_id, new picker on
+NewMatchAgreementForm when forBeer) and overridable at delivery.
+reverseResultTx voids still-pending debts (no money) / unwinds
+delivered ones. Result heading → Vítěz/Vítězové. The casual
+"Vyrovnat sázku / take someone's drink" box was removed
+(BetSettleSection + components/bet/transfer-list deleted); the casual
+createBetTransferAction + lib/db/queries/bets.ts casual query + their
+integration tests remain as dead-but-green code (deeper removal +
+casual bet.* i18n key cleanup is a BACKLOG follow-up). New shared
+components/match/beer-iou-row.tsx (deliver control); home
+match-bet-module rewired to render IOUs. Migration
+0011_marvelous_wallflower. Full SDD artifacts in
+specs/030-match-bet-iou/. BACKLOG after 030: dead-casual-code +
+casual-i18n removal; a "your bets" ledger view; unsettled-IOU nudges.
 
 Most recently shipped: spec 029 (inline-log-for-other — home's
 "log for someone else" is now an inline collapse/expand control

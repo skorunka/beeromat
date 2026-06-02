@@ -8,7 +8,7 @@ import { users } from '@/lib/db/schema/auth';
 import { betTransfers, betTransferVoids } from '@/lib/db/schema/bets';
 import { beerTypes } from '@/lib/db/schema/catalog';
 import { consumptionVoids, consumptions } from '@/lib/db/schema/consumption';
-import { matchBetTransfers } from '@/lib/db/schema/matches';
+import { matchBetTransfers, matches } from '@/lib/db/schema/matches';
 import { members } from '@/lib/db/schema/members';
 import { drinkSessions, type DrinkSession } from '@/lib/db/schema/sessions';
 import { getBetTransfersForSession, type BetTransferRow } from './bets';
@@ -143,7 +143,10 @@ export async function getMyTabForSession(args: {
         loggerAvatarUploadAt: loggerMembers.avatarUploadAt,
         consumerMemberUserId: members.userId,
         voidId: consumptionVoids.id,
-        sourceMatchId: matchBetTransfers.matchId,
+        // The "view the match" link targets /match/[agreementId], so
+        // resolve the bet's match → its agreement id (not the matches
+        // row id, which 404s on the detail route).
+        sourceMatchId: matches.agreementId,
         betTransferId: betTransfers.id,
         betTransferVoidId: betTransferVoids.id,
         transferToDisplayName: transferToMembers.displayName,
@@ -180,6 +183,7 @@ export async function getMyTabForSession(args: {
       )
       .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
       .leftJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
+      .leftJoin(matches, eq(matches.id, matchBetTransfers.matchId))
       .leftJoin(transferToMembers, eq(transferToMembers.id, betTransfers.toMemberId))
       .where(
         and(
@@ -196,7 +200,7 @@ export async function getMyTabForSession(args: {
         unitPriceMinor: consumptions.unitPriceMinorSnapshot,
         createdAt: betTransfers.createdAt,
         fromMemberDisplayName: members.displayName,
-        sourceMatchId: matchBetTransfers.matchId,
+        sourceMatchId: matches.agreementId,
         voidId: betTransferVoids.id,
       })
       .from(betTransfers)
@@ -205,6 +209,7 @@ export async function getMyTabForSession(args: {
       .innerJoin(members, eq(members.id, betTransfers.fromMemberId))
       .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
       .leftJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
+      .leftJoin(matches, eq(matches.id, matchBetTransfers.matchId))
       .where(
         and(
           eq(betTransfers.toMemberId, args.memberId),
@@ -327,7 +332,7 @@ export async function getMemberTabForAdmin(args: {
         consumerMemberUserId: members.userId,
         createdByUserId: consumptions.createdByUserId,
         voidId: consumptionVoids.id,
-        sourceMatchId: matchBetTransfers.matchId,
+        sourceMatchId: matches.agreementId,
         betTransferId: betTransfers.id,
         betTransferVoidId: betTransferVoids.id,
         transferToDisplayName: transferToMembers.displayName,
@@ -364,6 +369,7 @@ export async function getMemberTabForAdmin(args: {
       )
       .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
       .leftJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
+      .leftJoin(matches, eq(matches.id, matchBetTransfers.matchId))
       .leftJoin(transferToMembers, eq(transferToMembers.id, betTransfers.toMemberId))
       .where(
         and(
@@ -379,7 +385,7 @@ export async function getMemberTabForAdmin(args: {
         unitPriceMinor: consumptions.unitPriceMinorSnapshot,
         createdAt: betTransfers.createdAt,
         fromMemberDisplayName: members.displayName,
-        sourceMatchId: matchBetTransfers.matchId,
+        sourceMatchId: matches.agreementId,
         voidId: betTransferVoids.id,
       })
       .from(betTransfers)
@@ -388,6 +394,7 @@ export async function getMemberTabForAdmin(args: {
       .innerJoin(members, eq(members.id, betTransfers.fromMemberId))
       .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
       .leftJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
+      .leftJoin(matches, eq(matches.id, matchBetTransfers.matchId))
       .where(
         and(
           eq(betTransfers.toMemberId, args.memberId),

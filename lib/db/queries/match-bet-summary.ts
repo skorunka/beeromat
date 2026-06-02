@@ -4,7 +4,7 @@ import { and, eq, gte, isNull, sql } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
 import { betTransfers, betTransferVoids } from '@/lib/db/schema/bets';
 import { consumptions, consumptionVoids } from '@/lib/db/schema/consumption';
-import { matchBetTransfers } from '@/lib/db/schema/matches';
+import { matchBetTransfers, matches } from '@/lib/db/schema/matches';
 
 // Spec 018 — home-page lookup: for the active member in the
 // active club, return the count of bet-linked unvoided
@@ -28,12 +28,15 @@ export async function matchBetSummaryForMember(
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
   const rows = await db
+    // Link target is /match/[agreementId], so resolve to the agreement
+    // id (not the matches row id, which 404s on the detail route).
     .selectDistinct({
-      matchId: matchBetTransfers.matchId,
+      agreementId: matches.agreementId,
     })
     .from(betTransfers)
     .innerJoin(consumptions, eq(consumptions.id, betTransfers.sourceConsumptionId))
     .innerJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
+    .innerJoin(matches, eq(matches.id, matchBetTransfers.matchId))
     .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
     .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
     .where(
@@ -66,7 +69,9 @@ export async function matchBetSummaryForMember(
 
   return {
     betCount: countRow?.n ?? 0,
-    sourceMatchIds: rows.map((r) => r.matchId),
+    sourceMatchIds: rows
+      .map((r) => r.agreementId)
+      .filter((id): id is string => id !== null),
   };
 }
 
@@ -90,10 +95,11 @@ export async function wonBeerSummaryForMember(
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
   const rows = await db
-    .selectDistinct({ matchId: matchBetTransfers.matchId })
+    .selectDistinct({ agreementId: matches.agreementId })
     .from(betTransfers)
     .innerJoin(consumptions, eq(consumptions.id, betTransfers.sourceConsumptionId))
     .innerJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
+    .innerJoin(matches, eq(matches.id, matchBetTransfers.matchId))
     .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
     .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
     .where(
@@ -125,6 +131,8 @@ export async function wonBeerSummaryForMember(
 
   return {
     wonCount: countRow?.n ?? 0,
-    sourceMatchIds: rows.map((r) => r.matchId),
+    sourceMatchIds: rows
+      .map((r) => r.agreementId)
+      .filter((id): id is string => id !== null),
   };
 }

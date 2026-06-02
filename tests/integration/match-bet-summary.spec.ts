@@ -141,7 +141,7 @@ async function seedBetLinkedConsumption(
   if (!transfer) throw new Error('seed transfer');
   await db.insert(matchBetTransfers).values({ matchId: match.id, betTransferId: transfer.id });
 
-  return { consumption, transfer, match };
+  return { consumption, transfer, match, agreement };
 }
 
 async function voidConsumption(db: TestDb, args: { clubId: string; consumptionId: string; userId: string }) {
@@ -167,7 +167,7 @@ describe('matchBetSummaryForMember — spec 018 home-page lookup', () => {
 
   it('returns the count + source match ids for a recent bet on the member', async () => {
     const { club, userA, memberA, memberB, session, beer } = await seedClubWithTwoMembers(testDb);
-    const { match } = await seedBetLinkedConsumption(testDb, {
+    const { agreement } = await seedBetLinkedConsumption(testDb, {
       clubId: club.id,
       sessionId: session.id,
       winnerMemberId: memberA.id,
@@ -177,7 +177,9 @@ describe('matchBetSummaryForMember — spec 018 home-page lookup', () => {
     });
     const summary = await matchBetSummaryForMember(memberB.id, club.id);
     expect(summary.betCount).toBe(1);
-    expect(summary.sourceMatchIds).toEqual([match.id]);
+    // The link target is the AGREEMENT (/match/[agreementId]), not the
+    // internal matches row id.
+    expect(summary.sourceMatchIds).toEqual([agreement.id]);
   });
 
   it('excludes voided bet-linked consumptions', async () => {
@@ -213,7 +215,7 @@ describe('matchBetSummaryForMember — spec 018 home-page lookup', () => {
 
   it('aggregates multiple matches into a single summary', async () => {
     const { club, userA, memberA, memberB, session, beer } = await seedClubWithTwoMembers(testDb);
-    const { match: match1 } = await seedBetLinkedConsumption(testDb, {
+    const { agreement: agreement1 } = await seedBetLinkedConsumption(testDb, {
       clubId: club.id,
       sessionId: session.id,
       winnerMemberId: memberA.id,
@@ -221,7 +223,7 @@ describe('matchBetSummaryForMember — spec 018 home-page lookup', () => {
       winnerUserId: userA.id,
       beerId: beer.id,
     });
-    const { match: match2 } = await seedBetLinkedConsumption(testDb, {
+    const { agreement: agreement2 } = await seedBetLinkedConsumption(testDb, {
       clubId: club.id,
       sessionId: session.id,
       winnerMemberId: memberA.id,
@@ -231,7 +233,7 @@ describe('matchBetSummaryForMember — spec 018 home-page lookup', () => {
     });
     const summary = await matchBetSummaryForMember(memberB.id, club.id);
     expect(summary.betCount).toBe(2);
-    expect(new Set(summary.sourceMatchIds)).toEqual(new Set([match1.id, match2.id]));
+    expect(new Set(summary.sourceMatchIds)).toEqual(new Set([agreement1.id, agreement2.id]));
   });
 
   it('scopes by club — no cross-club leakage', async () => {

@@ -10,6 +10,7 @@ import {
   cancelAgreementAction,
   editAgreementAction,
 } from '@/app/[locale]/(app)/match/actions';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -83,6 +84,8 @@ export function EditAgreementForm({
   initial,
 }: EditAgreementFormProps) {
   const t = useTranslations('match');
+  const tCommon = useTranslations('common');
+  const confirm = useConfirm();
   const router = useRouter();
   const [isSaving, startSave] = useTransition();
   const [isCancelling, startCancel] = useTransition();
@@ -135,8 +138,14 @@ export function EditAgreementForm({
     });
   }
 
-  function onCancel() {
-    if (!window.confirm(t('cancelConfirm'))) return;
+  async function onCancel() {
+    const confirmed = await confirm({
+      title: t('cancelConfirm'),
+      confirmLabel: t('cancelMatch'),
+      cancelLabel: tCommon('back'),
+      destructive: true,
+    });
+    if (!confirmed) return;
     startCancel(async () => {
       const result = await cancelAgreementAction({ agreementId });
       if (!result.ok) {

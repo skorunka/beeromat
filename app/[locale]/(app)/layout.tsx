@@ -10,6 +10,7 @@ import { getDisputedClaimsForMember } from '@/lib/db/queries/payments';
 import { formatMoney, formatMoneyCompact } from '@/lib/format';
 import { roleSatisfies } from '@/lib/permissions';
 import { PinGate } from '@/components/pin/pin-gate';
+import { ConfirmProvider } from '@/components/ui/confirm-dialog';
 import { DisputeBanner } from '@/components/dispute-banner';
 import { AppHeader } from '@/components/nav/app-header';
 import { BottomNav, type NavItem } from '@/components/nav/bottom-nav';
@@ -107,7 +108,9 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
         balanceAriaLabel={balanceAriaLabel}
       />
       {/* Bottom padding clears the fixed nav so it never occludes content. */}
-      <div className="pb-20">{children}</div>
+      <ConfirmProvider>
+        <div className="pb-20">{children}</div>
+      </ConfirmProvider>
       <BottomNav items={navItems} />
     </>
   );

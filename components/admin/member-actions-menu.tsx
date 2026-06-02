@@ -11,6 +11,7 @@ import {
   setMemberActiveAction,
 } from '@/app/[locale]/(app)/admin/members/actions';
 import { Button } from '@/components/ui/button';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +45,7 @@ export function MemberActionsMenu({
 }: MemberActionsMenuProps) {
   const t = useTranslations('admin.memberActions');
   const tRoles = useTranslations('admin.roles');
+  const confirm = useConfirm();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [optimisticRole, setOptimisticRole] = useState<Role>(currentRole);
@@ -72,11 +74,18 @@ export function MemberActionsMenu({
     });
   }
 
-  function handleToggleActive() {
+  async function handleToggleActive() {
     const nextActive = !isActive;
     const confirmKey = nextActive ? 'activateConfirm' : 'deactivateConfirm';
+    const actionLabel = nextActive ? t('activate') : t('deactivate');
     setOpen(false);
-    if (!window.confirm(t(confirmKey, { name: memberDisplayName }))) return;
+    const confirmed = await confirm({
+      title: actionLabel,
+      description: t(confirmKey, { name: memberDisplayName }),
+      confirmLabel: actionLabel,
+      destructive: !nextActive,
+    });
+    if (!confirmed) return;
     startTransition(async () => {
       const result = await setMemberActiveAction({ memberId, isActive: nextActive });
       if (!result.ok) {

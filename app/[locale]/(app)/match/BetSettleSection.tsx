@@ -10,7 +10,7 @@ import {
 } from '@/lib/db/queries/bets';
 import { consumptionVoids, consumptions as consumptionsTable } from '@/lib/db/schema/consumption';
 import { roleSatisfies, type Role } from '@/lib/permissions';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatRelativeDay } from '@/lib/format';
 
 // Casual "settle a bet" — take a winner's drink onto your own tab,
 // for an informal bet with no scheduled match. Folded into the Match
@@ -38,6 +38,7 @@ export async function BetSettleSection({
   locale,
 }: BetSettleSectionProps) {
   const t = await getTranslations('bet');
+  const tc = await getTranslations('common');
 
   const { session, consumptions } = await getTransferableConsumptionsForCurrentSession({
     clubId,
@@ -71,10 +72,16 @@ export async function BetSettleSection({
       ),
     );
   const roundDrinkCount = drinkCountRow?.n ?? 0;
-  const roundStarted = new Intl.DateTimeFormat(locale, {
-    dateStyle: 'medium',
+  // Relative day + time ("dnes 14:18" / "včera 14:18" / "pondělí 1. 6.
+  // 14:18") — consistent with the home/tab breakdown + history.
+  const roundStartedDay = formatRelativeDay(session.startedAt, new Date(), locale, {
+    today: tc('today'),
+    yesterday: tc('yesterday'),
+  });
+  const roundStartedTime = new Intl.DateTimeFormat(locale, {
     timeStyle: 'short',
   }).format(session.startedAt);
+  const roundStarted = `${roundStartedDay} ${roundStartedTime}`;
 
   const transferables: TransferableView[] = consumptions.map((c) => ({
     consumptionId: c.consumptionId,

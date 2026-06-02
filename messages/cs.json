@@ -254,7 +254,7 @@
   "home": {
     "greeting": "Ahoj, {name} 👋",
     "outstandingBalance": "Dluh",
-    "balanceOwed": "Dlužíš {amount}",
+    "balanceOwed": "Útrata {amount}",
     "balanceSquare": "Vyrovnáno",
     "oneTapLog": "Zapiš {beer} · {price}",
     "oneTapLogGeneric": "Zapiš pivo",

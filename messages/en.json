@@ -254,7 +254,7 @@
   "home": {
     "greeting": "Hey, {name} 👋",
     "outstandingBalance": "Owed",
-    "balanceOwed": "You owe {amount}",
+    "balanceOwed": "Tab {amount}",
     "balanceSquare": "All square",
     "oneTapLog": "Log a {beer} · {price}",
     "oneTapLogGeneric": "Log a beer",

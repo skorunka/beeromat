@@ -84,7 +84,7 @@ export function HomeLogForOther({ members, beers, currencyCode, locale }: HomeLo
           aria-label={t('collapse')}
           className="text-muted-foreground hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-md"
         >
-          <X className="h-4 w-4" aria-hidden />
+          <X className="h-[1.1rem] w-[1.1rem]" strokeWidth={2.5} aria-hidden />
         </button>
       </div>
 

@@ -285,6 +285,7 @@
       "reverseOne": "Vrátit zápas",
       "reverseMany": "Zobrazit zápasy",
       "won": "Vyhrál/a jsi — {count}× pivo dnes na účet 🍺",
+      "wonPaidBy": "Vyhrál/a jsi — {count}× pivo platí {name} 🍺",
       "viewOne": "Zobrazit zápas",
       "viewMany": "Zobrazit zápasy"
     },

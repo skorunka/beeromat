@@ -131,6 +131,7 @@ export default async function AppHomePage({
         sourceMatchIds={betSummary.sourceMatchIds}
         wonCount={wonSummary.wonCount}
         wonMatchIds={wonSummary.sourceMatchIds}
+        wonPayerName={wonSummary.payerName}
       />
 
       <HomeOneTapLog

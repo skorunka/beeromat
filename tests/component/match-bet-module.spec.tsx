@@ -23,6 +23,7 @@ function renderModule(
     sourceMatchIds: string[];
     wonCount?: number;
     wonMatchIds?: string[];
+    wonPayerName?: string | null;
   },
   locale: 'cs' | 'en' = 'en',
 ) {
@@ -34,6 +35,7 @@ function renderModule(
         sourceMatchIds={props.sourceMatchIds}
         wonCount={props.wonCount ?? 0}
         wonMatchIds={props.wonMatchIds ?? []}
+        wonPayerName={props.wonPayerName ?? null}
       />
     </NextIntlClientProvider>,
   );
@@ -68,6 +70,14 @@ describe('MatchBetModule (component layer)', () => {
     renderModule({ betCount: 0, sourceMatchIds: [], wonCount: 1, wonMatchIds: ['m-9'] }, 'en');
     expect(screen.getByText(/you won — 1× beer on the house tonight/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /view match/i })).toHaveAttribute('href', '/match/m-9');
+  });
+
+  it('winner with a named payer: shows who is buying', () => {
+    renderModule(
+      { betCount: 0, sourceMatchIds: [], wonCount: 1, wonMatchIds: ['m-9'], wonPayerName: 'Pepa' },
+      'en',
+    );
+    expect(screen.getByText(/you won — pepa is buying 1× beer/i)).toBeInTheDocument();
   });
 
   it('winner + loser together: both lines render', () => {

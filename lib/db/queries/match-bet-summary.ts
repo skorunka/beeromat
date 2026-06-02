@@ -5,6 +5,7 @@ import { db } from '@/lib/db/client';
 import { betTransfers, betTransferVoids } from '@/lib/db/schema/bets';
 import { consumptions, consumptionVoids } from '@/lib/db/schema/consumption';
 import { matchBetTransfers, matches } from '@/lib/db/schema/matches';
+import { members } from '@/lib/db/schema/members';
 
 // Spec 018 — home-page lookup: for the active member in the
 // active club, return the count of bet-linked unvoided
@@ -78,6 +79,9 @@ export async function matchBetSummaryForMember(
 export interface WonBeerSummary {
   wonCount: number;
   sourceMatchIds: string[];
+  /** The single member covering the won beer(s), or null when 0 or >1
+   *  distinct payers (then the message stays generic). */
+  payerName: string | null;
 }
 
 /**
@@ -95,11 +99,13 @@ export async function wonBeerSummaryForMember(
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
   const rows = await db
-    .selectDistinct({ agreementId: matches.agreementId })
+    // payer = the loser the cost moved to (betTransfers.toMemberId).
+    .selectDistinct({ agreementId: matches.agreementId, payerName: members.displayName })
     .from(betTransfers)
     .innerJoin(consumptions, eq(consumptions.id, betTransfers.sourceConsumptionId))
     .innerJoin(matchBetTransfers, eq(matchBetTransfers.betTransferId, betTransfers.id))
     .innerJoin(matches, eq(matches.id, matchBetTransfers.matchId))
+    .innerJoin(members, eq(members.id, betTransfers.toMemberId))
     .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
     .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
     .where(
@@ -129,10 +135,15 @@ export async function wonBeerSummaryForMember(
       ),
     );
 
+  // Name the payer only when it's unambiguously one person; with
+  // multiple distinct payers the message stays generic ("na účet").
+  const distinctPayers = [...new Set(rows.map((r) => r.payerName).filter(Boolean))];
+
   return {
     wonCount: countRow?.n ?? 0,
     sourceMatchIds: rows
       .map((r) => r.agreementId)
       .filter((id): id is string => id !== null),
+    payerName: distinctPayers.length === 1 ? distinctPayers[0]! : null,
   };
 }

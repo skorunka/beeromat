@@ -285,6 +285,7 @@
       "reverseOne": "Reverse match",
       "reverseMany": "View matches",
       "won": "You won — {count}× beer on the house tonight 🍺",
+      "wonPaidBy": "You won — {name} is buying {count}× beer 🍺",
       "viewOne": "View match",
       "viewMany": "View matches"
     },

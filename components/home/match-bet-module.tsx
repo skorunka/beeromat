@@ -19,6 +19,8 @@ interface MatchBetModuleProps {
   sourceMatchIds: string[];
   wonCount: number;
   wonMatchIds: string[];
+  /** Single member covering the won beer(s) — names them in the copy. */
+  wonPayerName: string | null;
 }
 
 export function MatchBetModule({
@@ -26,6 +28,7 @@ export function MatchBetModule({
   sourceMatchIds,
   wonCount,
   wonMatchIds,
+  wonPayerName,
 }: MatchBetModuleProps) {
   const t = useTranslations('home.matchBet');
   if (betCount === 0 && wonCount === 0) return null;
@@ -36,7 +39,9 @@ export function MatchBetModule({
         <div className="flex flex-col gap-1">
           <p className="text-sm leading-snug">
             <Trophy className="text-primary mr-1 inline-block h-4 w-4" aria-hidden />
-            {t('won', { count: wonCount })}
+            {wonPayerName
+              ? t('wonPaidBy', { count: wonCount, name: wonPayerName })
+              : t('won', { count: wonCount })}
           </p>
           <Link
             href={(wonMatchIds.length === 1 ? `/match/${wonMatchIds[0]}` : '/match') as Route}

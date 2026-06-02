@@ -65,7 +65,9 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
 
   const form = useForm<FormValues>({
     defaultValues: {
-      format: 'doubles', // FR-002
+      // FR-002 defaults to doubles, but a club that can't field four
+      // players should start on singles so the form is fillable.
+      format: members.length < 4 ? 'singles' : 'doubles',
       forBeer: true,
       a1: '',
       a2: '',

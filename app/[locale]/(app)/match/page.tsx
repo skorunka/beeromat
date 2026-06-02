@@ -2,6 +2,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { BetSettleSection } from './BetSettleSection';
 import { NewMatchAgreementForm } from './NewMatchAgreementForm';
+import { RecentResultsList } from './RecentResultsList';
 import { UpcomingAgreementsList } from './UpcomingAgreementsList';
 import { RecreateLastMatchButton } from '@/components/match/recreate-last-match-button';
 import { requireUnlocked } from '@/lib/auth/session';
@@ -9,6 +10,7 @@ import {
   lastAgreementForMember,
   listActiveClubMembers,
   listOpenAgreements,
+  listRecentResults,
 } from '@/lib/db/queries/match-agreements';
 import { joinSideNames } from '@/lib/format/match-sides';
 
@@ -27,30 +29,21 @@ export default async function MatchPage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('match');
-  const [agreements, members, lastMatch] = await Promise.all([
+  const [agreements, members, lastMatch, recentResults] = await Promise.all([
     listOpenAgreements(ctx.club.id),
     listActiveClubMembers(ctx.club.id),
     lastAgreementForMember(ctx.club.id, ctx.member.id),
+    listRecentResults(ctx.club.id),
   ]);
 
   return (
     <main className="mx-auto max-w-md p-5">
       <header className="mb-6">
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold">{t('hubTitle')}</h1>
-          {/* Jump straight to the form so creating a match never means
-              scrolling past a long Upcoming list (usability follow-up). */}
-          <a
-            href="#new-match"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-10 shrink-0 items-center rounded-md px-3 text-sm font-medium"
-          >
-            {t('newMatchCta')}
-          </a>
-        </div>
-        {/* Subtitle spans the full row below so it never wraps next to
-            the New-match button. */}
+        <h1 className="text-2xl font-bold">{t('hubTitle')}</h1>
         <p className="text-muted-foreground mt-1 text-sm">{t('hubSubtitle')}</p>
       </header>
+
+      {/* ── Matches: recreate · scheduled · recently played · new ── */}
 
       {/* Spec 027 — one-tap recreate of the member's last matchup.
           Rendered only when they have a prior match to clone. */}
@@ -63,12 +56,33 @@ export default async function MatchPage({
         </div>
       ) : null}
 
-      <section className="mb-8 flex flex-col gap-3">
+      <section className="mb-6 flex flex-col gap-3">
         <h2 className="text-sm font-semibold tracking-wide uppercase">{t('upcomingHeading')}</h2>
         <UpcomingAgreementsList agreements={agreements} />
       </section>
 
-      <div className="mb-8">
+      {/* The match surface finally shows matches you've *played*, not
+          just open ones + bets (UX audit 2026-06-02). */}
+      {recentResults.length > 0 ? (
+        <section className="mb-6 flex flex-col gap-3">
+          <h2 className="text-sm font-semibold tracking-wide uppercase">{t('recentHeading')}</h2>
+          <RecentResultsList results={recentResults} />
+        </section>
+      ) : null}
+
+      {/* Collapsed by default — the big form no longer dominates the
+          page; tap to expand (UX audit 2026-06-02). */}
+      <details id="new-match" className="mb-8 scroll-mt-4">
+        <summary className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-11 cursor-pointer list-none items-center justify-center gap-2 rounded-xl px-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+          {t('newMatchCta')}
+        </summary>
+        <div className="border-border mt-3 rounded-xl border p-4">
+          <NewMatchAgreementForm members={members} />
+        </div>
+      </details>
+
+      {/* ── Bets & session — visually separated from the match block ── */}
+      <div className="border-border border-t pt-6">
         <BetSettleSection
           clubId={ctx.club.id}
           memberId={ctx.member.id}
@@ -78,11 +92,6 @@ export default async function MatchPage({
           locale={ctx.club.defaultLocale}
         />
       </div>
-
-      <section id="new-match" className="flex flex-col gap-3 scroll-mt-4">
-        <h2 className="text-sm font-semibold tracking-wide uppercase">{t('newMatchHeading')}</h2>
-        <NewMatchAgreementForm members={members} />
-      </section>
     </main>
   );
 }

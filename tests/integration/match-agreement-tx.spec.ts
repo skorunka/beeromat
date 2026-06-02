@@ -15,6 +15,7 @@ import {
   cancelAgreementTx,
   createAgreementTx,
   editAgreementTx,
+  listRecentResults,
   recordResultTx,
   reverseResultTx,
 } from '@/lib/db/queries/match-agreements';
@@ -624,5 +625,68 @@ describe('editAgreementTx + cancelAgreementTx — spec 013 US4', () => {
     const agreement = await testDb.select().from(matchAgreements);
     expect(agreement[0]?.cancelledAt).toBeNull();
     expect(agreement[0]?.reversedAt).not.toBeNull();
+  });
+});
+
+describe('listRecentResults — /match recent results (UX audit 2026-06-02)', () => {
+  beforeEach(async () => {
+    ({ db: testDb } = await makeTestDb());
+  });
+
+  async function createSingles(club: { id: string }, user: { id: string }, a: { id: string }, b: { id: string }) {
+    const created = await createAgreementTx({
+      clubId: club.id,
+      createdByUserId: user.id,
+      input: {
+        format: 'singles',
+        forBeer: false,
+        sides: { A: { seat1: a.id }, B: { seat1: b.id } },
+      },
+    });
+    if (!created.ok) throw new Error('create');
+    return created.agreementId;
+  }
+
+  it('returns only recorded results (not open/reversed/cancelled), winner side resolved', async () => {
+    const { club, user, memberA, memberB } = await seedFourMembers();
+
+    // Open — excluded.
+    await createSingles(club, user, memberA, memberB);
+    // Recorded A-wins — included.
+    const recorded = await createSingles(club, user, memberA, memberB);
+    await recordResultTx({
+      agreementId: recorded,
+      clubId: club.id,
+      recordedByUserId: user.id,
+      winningSide: 'A',
+    });
+    // Recorded then reversed — excluded.
+    const reversed = await createSingles(club, user, memberA, memberB);
+    await recordResultTx({
+      agreementId: reversed,
+      clubId: club.id,
+      recordedByUserId: user.id,
+      winningSide: 'B',
+    });
+    await reverseResultTx({ agreementId: reversed, clubId: club.id, reversedByUserId: user.id });
+
+    const results = await listRecentResults(club.id);
+    expect(results).toHaveLength(1);
+    expect(results[0]?.id).toBe(recorded);
+    expect(results[0]?.winningSide).toBe('A');
+    expect(results[0]?.sides.A.map((s) => s.memberId)).toContain(memberA.id);
+    expect(results[0]?.sides.B.map((s) => s.memberId)).toContain(memberB.id);
+  });
+
+  it('orders newest-recorded first and respects the limit', async () => {
+    const { club, user, memberA, memberB } = await seedFourMembers();
+    const first = await createSingles(club, user, memberA, memberB);
+    await recordResultTx({ agreementId: first, clubId: club.id, recordedByUserId: user.id, winningSide: 'A' });
+    const second = await createSingles(club, user, memberA, memberB);
+    await recordResultTx({ agreementId: second, clubId: club.id, recordedByUserId: user.id, winningSide: 'B' });
+
+    const results = await listRecentResults(club.id, 1);
+    expect(results).toHaveLength(1);
+    expect(results[0]?.id).toBe(second); // newest recorded first
   });
 });

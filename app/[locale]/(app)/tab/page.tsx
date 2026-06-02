@@ -56,12 +56,18 @@ export default async function TabPage({
         )}
       </header>
 
-      <Card className="mb-6 p-4">
-        <div className="text-muted-foreground text-sm">{t('sessionTotal')}</div>
-        <div className="text-3xl font-bold">
-          {formatMoney(tab.totalMinor, ctx.club.currencyCode, ctx.club.defaultLocale)}
-        </div>
-      </Card>
+      {/* The beer breakdown carries its own prominent total, so the
+          standalone total card is only a fallback for an empty tab
+          (no countable beers → breakdown renders nothing). Avoids the
+          two-stacked-250-Kč duplication. */}
+      {breakdownGroups.length === 0 ? (
+        <Card className="mb-6 p-4">
+          <div className="text-muted-foreground text-sm">{t('sessionTotal')}</div>
+          <div className="text-3xl font-bold">
+            {formatMoney(tab.totalMinor, ctx.club.currencyCode, ctx.club.defaultLocale)}
+          </div>
+        </Card>
+      ) : null}
 
       <TabBeerBreakdown
         groups={breakdownGroups}

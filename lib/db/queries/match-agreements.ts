@@ -1,5 +1,5 @@
 import 'server-only';
-import { and, asc, desc, eq, isNull, notExists, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, isNotNull, notExists, sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { betTransferVoids, betTransfers } from '@/lib/db/schema/bets';
@@ -877,6 +877,84 @@ export async function listOpenAgreements(clubId: string): Promise<OpenAgreementS
     });
   }
   return Array.from(byAgreement.values());
+}
+
+export interface RecentResultSummary extends OpenAgreementSummary {
+  winningSide: Side;
+  resultRecordedAt: Date;
+}
+
+/**
+ * The club's most-recent recorded match results (not reversed, not
+ * cancelled), newest first. Powers the /match "Recent results" section
+ * so the match surface actually shows matches you've played — not just
+ * open ones + bets. Two-step so the LIMIT applies per agreement, not
+ * per side-join row.
+ */
+export async function listRecentResults(
+  clubId: string,
+  limit = 5,
+): Promise<RecentResultSummary[]> {
+  const latest = await db
+    .select({ id: matchAgreements.id })
+    .from(matchAgreements)
+    .where(
+      and(
+        eq(matchAgreements.clubId, clubId),
+        isNotNull(matchAgreements.resultRecordedAt),
+        isNull(matchAgreements.reversedAt),
+        isNull(matchAgreements.cancelledAt),
+      ),
+    )
+    .orderBy(desc(matchAgreements.resultRecordedAt))
+    .limit(limit);
+  if (latest.length === 0) return [];
+  const ids = latest.map((l) => l.id);
+
+  const rows = await db
+    .select({
+      id: matchAgreements.id,
+      format: matchAgreements.format,
+      forBeer: matchAgreements.forBeer,
+      pairingKind: matchAgreements.pairingKind,
+      createdAt: matchAgreements.createdAt,
+      winningSide: matchAgreements.winningSide,
+      resultRecordedAt: matchAgreements.resultRecordedAt,
+      side: matchAgreementSides.side,
+      seat: matchAgreementSides.seat,
+      memberId: members.id,
+      displayName: members.displayName,
+    })
+    .from(matchAgreements)
+    .innerJoin(matchAgreementSides, eq(matchAgreementSides.agreementId, matchAgreements.id))
+    .innerJoin(members, eq(members.id, matchAgreementSides.memberId))
+    .where(inArray(matchAgreements.id, ids))
+    .orderBy(asc(matchAgreementSides.side), asc(matchAgreementSides.seat));
+
+  const byAgreement = new Map<string, RecentResultSummary>();
+  for (const r of rows) {
+    let agg = byAgreement.get(r.id);
+    if (!agg) {
+      agg = {
+        id: r.id,
+        format: r.format,
+        forBeer: r.forBeer,
+        pairingKind: r.pairingKind as PairingKind | null,
+        createdAt: r.createdAt,
+        winningSide: r.winningSide as Side,
+        resultRecordedAt: r.resultRecordedAt!,
+        sides: { A: [], B: [] },
+      };
+      byAgreement.set(r.id, agg);
+    }
+    agg.sides[r.side as Side].push({
+      memberId: r.memberId,
+      displayName: r.displayName,
+      seat: r.seat as Seat,
+    });
+  }
+  // Preserve the newest-first order from the `latest` query.
+  return ids.map((id) => byAgreement.get(id)!).filter(Boolean);
 }
 
 export interface AgreementDetail extends OpenAgreementSummary {

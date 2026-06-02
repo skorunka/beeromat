@@ -12,16 +12,16 @@ import {
   matchBetTransfers,
   matches,
 } from '@/lib/db/schema/matches';
+import { matchBetDebts } from '@/lib/db/schema/match-bet-debts';
 import { members } from '@/lib/db/schema/members';
-import { drinkSessions } from '@/lib/db/schema/sessions';
 
-// Spec 018 — match-bet → home awareness. settleOnePair rewritten
-// to auto-create the winner's consumption + bet_transfer (rather
-// than passively searching for an existing consumption). Helpers
-// imported below.
-import { splitBeerCountAcrossPairs } from '@/lib/match/split-beer-count';
-import { pickBetBeer, NoBeerInStockError, type BetBeerCandidate } from '@/lib/match/default-bet-beer';
-import { lastBeerForMember } from '@/lib/db/queries/consumption';
+// Spec 030 — recording a for-beer result no longer settles. It creates
+// one PENDING match_bet_debt per losing↔winning pair (no consumption,
+// transfer, stock, or session change). Settlement is deferred to
+// delivery ("Předáno") in lib/db/queries/match-bet-debts.ts, which
+// reuses the consumption + bet_transfer accounting. The old spec-018
+// auto-settle helpers (settleOnePair, pickBetBeer, split, last-beer)
+// are gone from this path.
 
 // Spec 013 — match-agreement transaction helpers.
 //
@@ -53,6 +53,9 @@ interface AgreementSidesInput {
 type AgreementInputCommon = {
   forBeer: boolean;
   sides: AgreementSidesInput;
+  // Spec 030 — the beer the match is for (when forBeer). Stored on the
+  // agreement; becomes each debt's planned beer at record time.
+  betBeerTypeId?: string | null;
 };
 
 export type CreateAgreementInput =
@@ -121,6 +124,8 @@ export async function createAgreementTx(
         format: args.input.format,
         forBeer: args.input.forBeer,
         pairingKind: args.input.format === 'doubles' ? args.input.pairingKind : null,
+        // Only stash a beer when the match is for beer.
+        betBeerTypeId: args.input.forBeer ? args.input.betBeerTypeId ?? null : null,
         createdByUserId: args.createdByUserId,
       })
       .returning();
@@ -174,114 +179,19 @@ function computePairs(
   );
 }
 
-// Per-pair best-effort settlement: try to transfer up to `beerCount` of the
-// winner's recent eligible consumptions to the loser via bet_transfers,
-// linked through match_bet_transfers. Mirrors the 012 logMatchTx pipeline,
-// inlined here so 013 doesn't depend on its survival once US2 removes the
-// legacy 012 quick-log path.
-// Spec 018 — auto-create winner consumption + bet_transfer + link.
-// Replaces the spec-013 "find an existing winner consumption and
-// transfer it" path. Always settles exactly `beerCount` beers per
-// call; the caller has pre-resolved the beer + price + session.
-async function settleOnePair(
-  tx: typeof db,
-  args: {
-    clubId: string;
-    matchId: string;
-    sessionId: string;
-    winnerMemberId: string;
-    loserMemberId: string;
-    createdByUserId: string;
-    beerCount: number;
-    beerTypeId: string;
-    beerUnitPriceMinor: bigint;
-  },
-): Promise<{ transferredCount: number; requestedCount: number }> {
-  let transferredCount = 0;
-  for (let j = 0; j < args.beerCount; j += 1) {
-    // 1. Decrement stock FIRST, guarded by `currentStock > 0` (the
-    //    same atomic guard logBeer uses). When the chosen beer runs
-    //    out mid-settlement we STOP — best-effort partial settlement
-    //    (the result's transferredCount < requestedCount and the
-    //    recordedPartial UI copy already expect this). Without the
-    //    guard the decrement would hit the beer_types_stock_non_negative
-    //    CHECK constraint and throw an uncaught 23514, rolling back the
-    //    whole match record — a valid for-beer match would 500 whenever
-    //    the loser owed more beers than the beer's stock.
-    const decremented = await tx
-      .update(beerTypes)
-      .set({ currentStock: sql`${beerTypes.currentStock} - 1` })
-      .where(and(eq(beerTypes.id, args.beerTypeId), sql`${beerTypes.currentStock} > 0`))
-      .returning({ currentStock: beerTypes.currentStock });
-    if (decremented.length === 0) break; // out of stock — settle what we could
-
-    await tx.insert(stockChanges).values({
-      clubId: args.clubId,
-      beerTypeId: args.beerTypeId,
-      delta: -1,
-      kind: 'consumption_decrement',
-      createdByUserId: args.createdByUserId,
-    });
-
-    // 2. Insert the winner's consumption row.
-    const [consumption] = await tx
-      .insert(consumptions)
-      .values({
-        clubId: args.clubId,
-        drinkSessionId: args.sessionId,
-        memberId: args.winnerMemberId,
-        beerTypeId: args.beerTypeId,
-        unitPriceMinorSnapshot: args.beerUnitPriceMinor,
-        createdByUserId: args.createdByUserId,
-      })
-      .returning();
-    if (!consumption) throw new Error('settleOnePair: insert consumption failed');
-
-    // 3. Bet transfer (winner → loser).
-    const [transfer] = await tx
-      .insert(betTransfers)
-      .values({
-        clubId: args.clubId,
-        sourceConsumptionId: consumption.id,
-        fromMemberId: args.winnerMemberId,
-        toMemberId: args.loserMemberId,
-        createdByUserId: args.createdByUserId,
-      })
-      .returning();
-    if (!transfer) throw new Error('settleOnePair: insert bet_transfer failed');
-
-    // 4. Match link.
-    await tx
-      .insert(matchBetTransfers)
-      .values({ matchId: args.matchId, betTransferId: transfer.id });
-
-    transferredCount += 1;
-  }
-
-  return { transferredCount, requestedCount: args.beerCount };
-}
-
 export interface RecordResultArgs {
   agreementId: string;
   clubId: string;
   recordedByUserId: string;
   winningSide: Side;
-  // Spec 018 — optional override beer for the auto-created winner
-  // consumption(s). When omitted, the resolver picks the
-  // recording-pair's winner's last-beer (or cheapest in-stock as
-  // fallback). Validated by the caller before reaching here.
-  betBeerOverrideId?: string;
 }
 
 export type RecordResultResult =
   | {
       ok: true;
       matchRowIds: string[];
-      transferredCount: number;
-      requestedCount: number;
-      // Spec 018 — which beer type backed the bet (null when the
-      // agreement is not for-beer; otherwise the resolved choice).
-      betBeerTypeId: string | null;
+      // Spec 030 — pending beer-debts created (0 for a friendly match).
+      debtsCreated: number;
     }
   | { ok: false; code: 'NOT_FOUND' }
   | {
@@ -290,14 +200,13 @@ export type RecordResultResult =
       recordedAt: Date;
       recordedByUserId: string | null;
     }
-  | { ok: false; code: 'CANCELLED' }
-  | { ok: false; code: 'NO_BEER_IN_STOCK' };
+  | { ok: false; code: 'CANCELLED' };
 
 // Spec 027 perf — sentinel thrown when the optimistic-lock UPDATE
 // inside recordResultTx returns 0 rows (another caller already
 // stamped resultRecordedAt). The throw is needed to roll back the
-// transaction's already-completed inserts (matches + consumptions +
-// stock_changes + bet_transfers); the outer try/catch converts it
+// transaction's already-completed inserts (matches + pending debts);
+// the outer try/catch converts it
 // to a user-friendly ALREADY_RECORDED result so a double-submit
 // during network stall produces a clean error toast instead of a
 // 500. Custom class keeps the matching specific (no error-string
@@ -342,85 +251,22 @@ export async function recordResultTx(args: RecordResultArgs): Promise<RecordResu
         sideRows.map((r) => ({ side: r.side as Side, seat: r.seat as Seat, memberId: r.memberId })),
       );
 
-      // Spec 018 — for-beer matches need the doubles-split + beer
-      // resolution computed once for the whole transaction.
-      let perPairBeerCount: number[] = pairs.map(() => 0);
-      let resolvedBeer: BetBeerCandidate | null = null;
-      let sessionId: string | null = null;
-
+      // Spec 030 — for-beer matches: each pair owes the club's
+      // loser-beer-count (default 1) as a PENDING debt. No money,
+      // stock, consumption, or session touched at record time.
+      let beerCountPerPair = 0;
       if (agreement.forBeer) {
-        // 1. Load club config (matchLoserBeerCount). Today this is
-        //    default 1 in the schema; spec 018 turns it from a dead
-        //    column into the source of truth.
         const club = await tx.query.clubs.findFirst({
           where: eq(clubs.id, args.clubId),
         });
         if (!club) throw new Error('recordResultTx: club not found');
-
-        // 2. Split the per-side total across the pairs.
-        perPairBeerCount = splitBeerCountAcrossPairs(club.matchLoserBeerCount, pairs.length);
-
-        // 3. Resolve the default beer ONCE for the whole match.
-        //    Use the first pair's winner as the "winner" for the
-        //    last-beer lookup. (Doubles can have two different
-        //    winners across pairs — picking the first is arbitrary but
-        //    deterministic; the override can correct it.)
-        const firstWinner = pairs[0]?.winnerMemberId;
-        if (!firstWinner) throw new Error('recordResultTx: no pairs to settle');
-
-        const lastBeer = await lastBeerForMember(firstWinner, args.clubId, tx as typeof db);
-        const catalog = await tx
-          .select({
-            id: beerTypes.id,
-            name: beerTypes.name,
-            currentStock: beerTypes.currentStock,
-            isArchived: beerTypes.isArchived,
-            unitPriceMinor: beerTypes.unitPriceMinor,
-          })
-          .from(beerTypes)
-          .where(eq(beerTypes.clubId, args.clubId));
-
-        resolvedBeer = pickBetBeer({
-          override: args.betBeerOverrideId,
-          lastBeer,
-          catalog,
-        });
-
-        // 4. Find-or-auto-open the drink session. Race-safe via
-        //    onConflictDoNothing + re-select against the partial unique
-        //    index uniq_drink_sessions_club_open (see logBeer note).
-        const [openSession] = await tx
-          .select({ id: drinkSessions.id })
-          .from(drinkSessions)
-          .where(and(eq(drinkSessions.clubId, args.clubId), isNull(drinkSessions.endedAt)))
-          .limit(1);
-        if (openSession) {
-          sessionId = openSession.id;
-        } else {
-          await tx
-            .insert(drinkSessions)
-            .values({
-              clubId: args.clubId,
-              openedByUserId: args.recordedByUserId,
-              startedAt: new Date(),
-            })
-            .onConflictDoNothing();
-          const [reselected] = await tx
-            .select({ id: drinkSessions.id })
-            .from(drinkSessions)
-            .where(and(eq(drinkSessions.clubId, args.clubId), isNull(drinkSessions.endedAt)))
-            .limit(1);
-          if (!reselected) throw new Error('recordResultTx: failed to auto-open session');
-          sessionId = reselected.id;
-        }
+        beerCountPerPair = club.matchLoserBeerCount;
       }
 
       const matchRowIds: string[] = [];
-      let transferredCount = 0;
-      let requestedCount = 0;
+      let debtsCreated = 0;
 
-      for (let i = 0; i < pairs.length; i += 1) {
-        const pair = pairs[i]!;
+      for (const pair of pairs) {
         const [matchRow] = await tx
           .insert(matches)
           .values({
@@ -434,21 +280,18 @@ export async function recordResultTx(args: RecordResultArgs): Promise<RecordResu
         if (!matchRow) throw new Error('recordResultTx: insert matches failed');
         matchRowIds.push(matchRow.id);
 
-        const beerCountForPair = perPairBeerCount[i] ?? 0;
-        if (agreement.forBeer && beerCountForPair > 0 && resolvedBeer && sessionId) {
-          const settled = await settleOnePair(tx as typeof db, {
+        if (agreement.forBeer && beerCountPerPair > 0) {
+          await tx.insert(matchBetDebts).values({
             clubId: args.clubId,
             matchId: matchRow.id,
-            sessionId,
-            winnerMemberId: pair.winnerMemberId,
-            loserMemberId: pair.loserMemberId,
+            agreementId: args.agreementId,
+            fromMemberId: pair.loserMemberId,
+            toMemberId: pair.winnerMemberId,
+            plannedBeerTypeId: agreement.betBeerTypeId ?? null,
+            beerCount: beerCountPerPair,
             createdByUserId: args.recordedByUserId,
-            beerCount: beerCountForPair,
-            beerTypeId: resolvedBeer.id,
-            beerUnitPriceMinor: resolvedBeer.unitPriceMinor,
           });
-          transferredCount += settled.transferredCount;
-          requestedCount += settled.requestedCount;
+          debtsCreated += 1;
         }
       }
 
@@ -476,15 +319,10 @@ export async function recordResultTx(args: RecordResultArgs): Promise<RecordResu
       return {
         ok: true as const,
         matchRowIds,
-        transferredCount,
-        requestedCount,
-        betBeerTypeId: resolvedBeer?.id ?? null,
+        debtsCreated,
       };
     });
   } catch (e) {
-    if (e instanceof NoBeerInStockError) {
-      return { ok: false, code: 'NO_BEER_IN_STOCK' };
-    }
     if (e instanceof LostConcurrencyRaceError) {
       // Re-read post-rollback to surface the canonical recorded-at
       // for the user-facing toast. The winner has already committed,
@@ -610,6 +448,20 @@ export async function reverseResultTx(args: ReverseResultArgs): Promise<ReverseR
         }
       }
     }
+
+    // Spec 030 — void any STILL-PENDING beer-debts (no money to unwind;
+    // delivered debts already had their transfers voided above). Status
+    // transition, not delete (constitution V).
+    await tx
+      .update(matchBetDebts)
+      .set({
+        status: 'voided',
+        voidedAt: new Date(),
+        voidedByUserId: args.reversedByUserId,
+      })
+      .where(
+        and(eq(matchBetDebts.agreementId, args.agreementId), eq(matchBetDebts.status, 'pending')),
+      );
 
     // Soft-state restoration: agreement returns to OPEN; reversed_at carries
     // the audit trail. See plan.md Phase-1 re-evaluation note + constitution V

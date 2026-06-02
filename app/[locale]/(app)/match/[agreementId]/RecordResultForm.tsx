@@ -4,48 +4,23 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
-import { Beer, ChevronDown, Trophy } from 'lucide-react';
+import { Trophy } from 'lucide-react';
 
 import {
   recordResultAction,
   reverseResultAction,
 } from '@/app/[locale]/(app)/match/actions';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 interface RecordResultFormProps {
   agreementId: string;
   sideALabel: string;
   sideBLabel: string;
-  // Spec 018 follow-up + spec 025 — when present (i.e.
-  // agreement.forBeer === true and the viewer can record),
-  // renders an always-visible tile grid above the "who won"
-  // buttons. The first tile ("Auto · {beer}") represents
-  // "use the server-side default" and is pre-selected. Tapping
-  // any non-Auto tile sets `betBeerOverrideId` on submit.
-  betBeerOptions?: Array<{ id: string; name: string }>;
-  // Spec 025 — name shown on the Auto tile so the recorder
-  // sees what the auto-default will be. Null when the recorder
-  // has no last beer (new member) — falls back to a generic
-  // localized "Auto · Pivo" / "Auto · Beer" label.
-  loserLastBeerName?: string | null;
-  // Usability follow-up (2026-05-28) — club's per-loss beer count.
-  // Drives the passive "whoever loses buys N× beer" explainer so
-  // the recorder sees the money consequence BEFORE tapping a winner
-  // (no extra tap; the explainer is always visible for for-beer).
+  // Spec 030 — recording no longer settles. For a for-beer match we
+  // just show the passive "loser owes N beer" explainer; the beer was
+  // chosen at create and the IOU is delivered later ("Předáno").
+  forBeer?: boolean;
   loserBeerCount?: number;
-}
-
-interface RecentRecord {
-  side: 'A' | 'B';
-  transferredCount: number;
-  requestedCount: number;
 }
 
 const UNDO_WINDOW_MS = 5 * 60 * 1000;
@@ -54,46 +29,31 @@ export function RecordResultForm({
   agreementId,
   sideALabel,
   sideBLabel,
-  betBeerOptions,
-  loserLastBeerName,
+  forBeer = false,
   loserBeerCount = 1,
 }: RecordResultFormProps) {
   const t = useTranslations('match');
   const router = useRouter();
   const [isRecording, startRecord] = useTransition();
   const [isReversing, startReverse] = useTransition();
-  const [recent, setRecent] = useState<RecentRecord | null>(null);
-  // Spec 025 — picker selection. null = Auto tile selected
-  // (use server-side default); any string = that beer's id
-  // is sent as `betBeerOverrideId` on submit.
-  const [betBeerOverrideId, setBetBeerOverrideId] = useState<string | null>(null);
+  const [recordedSide, setRecordedSide] = useState<'A' | 'B' | null>(null);
 
   function record(side: 'A' | 'B') {
     startRecord(async () => {
-      const result = await recordResultAction({
-        agreementId,
-        winningSide: side,
-        ...(betBeerOverrideId ? { betBeerOverrideId } : {}),
-      });
+      const result = await recordResultAction({ agreementId, winningSide: side });
       if (!result.ok) {
         if (result.code === 'NOT_AUTHORIZED') toast.error(t('errors.notAuthorized'));
         else if (result.code === 'ALREADY_RECORDED') toast.error(t('errors.alreadyRecorded'));
         else if (result.code === 'CANCELLED') toast.error(t('errors.cancelled'));
-        else if (result.code === 'NO_BEER_IN_STOCK') toast.error(t('errors.noBeerInStock'));
         else toast.error(t('errors.generic'));
         router.refresh();
         return;
       }
       const sideName = side === 'A' ? sideALabel : sideBLabel;
       toast.success(t('recordedToast', { side: sideName }));
-      setRecent({
-        side,
-        transferredCount: result.transferredCount,
-        requestedCount: result.requestedCount,
-      });
-      // Schedule auto-clear of the undo affordance once the window expires
-      // so the toast/UI doesn't promise an undo that the server will reject.
-      window.setTimeout(() => setRecent((r) => (r?.side === side ? null : r)), UNDO_WINDOW_MS);
+      setRecordedSide(side);
+      // Auto-clear the undo affordance once the reverse window expires.
+      window.setTimeout(() => setRecordedSide((s) => (s === side ? null : s)), UNDO_WINDOW_MS);
       router.refresh();
     });
   }
@@ -108,22 +68,15 @@ export function RecordResultForm({
         return;
       }
       toast.success(t('reversedToast'));
-      setRecent(null);
+      setRecordedSide(null);
       router.refresh();
     });
   }
 
-  if (recent) {
+  if (recordedSide) {
     return (
       <div className="border-border bg-muted/30 flex flex-col gap-3 rounded-md border p-4">
-        <p className="text-sm">
-          {recent.transferredCount === recent.requestedCount
-            ? t('recordedConfirm', { count: recent.transferredCount })
-            : t('recordedPartial', {
-                transferred: recent.transferredCount,
-                requested: recent.requestedCount,
-              })}
-        </p>
+        <p className="text-sm">{forBeer ? t('recordedPending') : t('recordedFriendly')}</p>
         <Button
           type="button"
           variant="ghost"
@@ -139,72 +92,10 @@ export function RecordResultForm({
     );
   }
 
-  // Spec 025 — Auto tile label. Use the recorder's last-beer
-  // name when we have it; otherwise the localized fallback.
-  const autoLabel = loserLastBeerName
-    ? t('betPicker.autoLabel', { beer: loserLastBeerName })
-    : t('betPicker.autoFallback');
-
-  // The beer the loser will be charged for, given the current pick.
-  const selectedBeerName = betBeerOverrideId
-    ? betBeerOptions?.find((b) => b.id === betBeerOverrideId)?.name ?? null
-    : loserLastBeerName ?? null;
-  const isForBeer = !!betBeerOptions && betBeerOptions.length > 0;
-
   return (
     <div className="flex flex-col gap-3">
-      {isForBeer ? (
-        <p className="text-muted-foreground text-xs">
-          {selectedBeerName
-            ? t('loserBuysNamed', { count: loserBeerCount, beer: selectedBeerName })
-            : t('loserBuys', { count: loserBeerCount })}
-        </p>
-      ) : null}
-
-      {isForBeer ? (
-        // Compact dropdown picker (mirrors the home one-tap chevron):
-        // the tile grid took a full mid-screen block; the dropdown
-        // shows the current pick on one row and reveals the full list
-        // on tap. Auto is the default; tapping any other beer sets
-        // betBeerOverrideId.
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            type="button"
-            className="border-input bg-background hover:bg-accent flex h-12 w-full items-center justify-between gap-2 rounded-md border px-3 text-left text-base"
-          >
-            <span className="inline-flex min-w-0 items-center gap-2">
-              <Beer className="h-5 w-5 shrink-0" aria-hidden />
-              <span className="truncate font-medium">
-                {betBeerOverrideId === null
-                  ? autoLabel
-                  : betBeerOptions!.find((b) => b.id === betBeerOverrideId)?.name ?? autoLabel}
-              </span>
-            </span>
-            <ChevronDown className="h-5 w-5 shrink-0 opacity-60" aria-hidden />
-          </DropdownMenuTrigger>
-          {/* Items sized for fingers: min-h-12 (48px) + text-base; the
-              base-ui RadioItem defaults to ~32px which is fine on
-              desktop but a poor tap target on a phone. */}
-          <DropdownMenuContent align="start" sideOffset={4} className="min-w-(--anchor-width) p-1">
-            <DropdownMenuRadioGroup
-              value={betBeerOverrideId ?? ''}
-              onValueChange={(v) => setBetBeerOverrideId(v === '' ? null : v)}
-            >
-              <DropdownMenuRadioItem value="" className="min-h-12 py-3 text-base">
-                {autoLabel}
-              </DropdownMenuRadioItem>
-              {betBeerOptions!.map((b) => (
-                <DropdownMenuRadioItem
-                  key={b.id}
-                  value={b.id}
-                  className="min-h-12 py-3 text-base"
-                >
-                  {b.name}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      {forBeer ? (
+        <p className="text-muted-foreground text-xs">{t('loserBuys', { count: loserBeerCount })}</p>
       ) : null}
 
       <p className="text-muted-foreground text-sm">{t('whoWon')}</p>

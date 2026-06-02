@@ -102,13 +102,19 @@ export type CancelAgreementInput = z.infer<typeof cancelAgreementSchema>;
 export const recordResultSchema = z.object({
   agreementId: z.string().uuid({ error: 'match.errors.agreementIdRequired' }),
   winningSide: winningSideSchema,
-  // Spec 018 — optional beer-type override for the auto-created
-  // winner consumption. When omitted, the action picks the
-  // winner's last-beer (or cheapest in-stock fallback).
-  betBeerOverrideId: z.string().uuid().optional(),
 });
 
 export type RecordResultInput = z.infer<typeof recordResultSchema>;
+
+// Spec 030 — deliver ("Předáno") one beer-IOU. Optional beer override
+// (the beer actually handed over); omitted → the debt's planned beer /
+// fallback. Validated server-side; the server re-checks stock + authz.
+export const deliverBeerDebtSchema = z.object({
+  debtId: z.string().uuid({ error: 'match.errors.agreementIdRequired' }),
+  beerTypeId: z.string().uuid().nullable().optional(),
+});
+
+export type DeliverBeerDebtInput = z.infer<typeof deliverBeerDebtSchema>;
 
 export const reverseResultSchema = z.object({
   agreementId: z.string().uuid({ error: 'match.errors.agreementIdRequired' }),

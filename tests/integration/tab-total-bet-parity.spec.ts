@@ -12,13 +12,31 @@ vi.mock('@/lib/db/client', () => ({
 }));
 
 import { createAgreementTx, recordResultTx } from '@/lib/db/queries/match-agreements';
+import { deliverBeerDebtTx } from '@/lib/db/queries/match-bet-debts';
 import { getMyTabForSession, getMemberTabForAdmin } from '@/lib/db/queries/consumption';
 import { effectiveConsumptionTotal, memberBalance } from '@/lib/balance/calculate';
 import { users } from '@/lib/db/schema/auth';
 import { beerTypes } from '@/lib/db/schema/catalog';
 import { clubs } from '@/lib/db/schema/clubs';
+import { matchBetDebts } from '@/lib/db/schema/match-bet-debts';
 import { members } from '@/lib/db/schema/members';
 import { drinkSessions, type DrinkSession } from '@/lib/db/schema/sessions';
+
+// Spec 030 — recording creates a pending IOU; the money moves on
+// delivery. Deliver the (single) pending debt so the parity assertions
+// below see the settled state.
+async function deliverTheDebt(clubId: string, actorMemberId: string, actorUserId: string) {
+  const [debt] = await testDb.select().from(matchBetDebts).where(eq(matchBetDebts.clubId, clubId));
+  if (!debt) throw new Error('deliverTheDebt: no debt');
+  const d = await deliverBeerDebtTx({
+    debtId: debt.id,
+    clubId,
+    actorUserId,
+    actorMemberId,
+    isElevated: false,
+  });
+  if (!d.ok) throw new Error('deliverTheDebt: ' + d.code);
+}
 
 // The /tab screen total (getMyTabForSession.totalMinor) MUST equal
 // the member's effectiveConsumptionTotal for that session, otherwise
@@ -99,6 +117,7 @@ describe('getMyTabForSession.totalMinor ⇄ effectiveConsumptionTotal parity', (
       winningSide: 'A',
     });
     if (!r.ok) throw new Error('record');
+    await deliverTheDebt(club.id, mA.id, uU.id);
 
     // Winner A: balance + effective total are both 0 (beer moved to B).
     const effA = await effectiveConsumptionTotal(mA.id, session.id);
@@ -134,6 +153,7 @@ describe('getMyTabForSession.totalMinor ⇄ effectiveConsumptionTotal parity', (
       winningSide: 'A',
     });
     if (!r.ok) throw new Error('record');
+    await deliverTheDebt(club.id, mA.id, uU.id);
 
     const effB = await effectiveConsumptionTotal(mB.id, session.id);
     expect(effB).toBe(5000n);
@@ -165,6 +185,7 @@ describe('getMyTabForSession.totalMinor ⇄ effectiveConsumptionTotal parity', (
       winningSide: 'A',
     });
     if (!r.ok) throw new Error('record');
+    await deliverTheDebt(club.id, mA.id, uU.id);
 
     const effA = await effectiveConsumptionTotal(mA.id, session.id);
     const adminTabA = await getMemberTabForAdmin({ memberId: mA.id, session });

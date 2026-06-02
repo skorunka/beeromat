@@ -16,12 +16,14 @@ import {
   reverseResultTx,
   type OpenAgreementSummary,
 } from '@/lib/db/queries/match-agreements';
+import { deliverBeerDebtTx } from '@/lib/db/queries/match-bet-debts';
 import { closeOpenRoundTx } from '@/lib/db/queries/sessions';
-import { canRecordMatchResult } from '@/lib/permissions';
+import { canRecordMatchResult, roleSatisfies } from '@/lib/permissions';
 import type { CreateAgreementInput } from '@/lib/validation/match-agreement';
 import {
   cancelAgreementSchema,
   createAgreementSchema,
+  deliverBeerDebtSchema,
   editAgreementSchema,
   recordResultSchema,
   reverseResultSchema,
@@ -142,9 +144,8 @@ export type RecordResultResult =
   | {
       ok: true;
       matchRowIds: string[];
-      transferredCount: number;
-      requestedCount: number;
-      betBeerTypeId: string | null;
+      // Spec 030 — pending beer-debts created (0 for a friendly match).
+      debtsCreated: number;
     }
   | { ok: false; code: 'NOT_FOUND' }
   | { ok: false; code: 'NOT_AUTHORIZED' }
@@ -154,8 +155,7 @@ export type RecordResultResult =
       recordedAt: Date;
       recordedByUserId: string | null;
     }
-  | { ok: false; code: 'CANCELLED' }
-  | { ok: false; code: 'NO_BEER_IN_STOCK' };
+  | { ok: false; code: 'CANCELLED' };
 
 export async function recordResultAction(rawInput: unknown): Promise<RecordResultResult> {
   const parsed = recordResultSchema.safeParse(rawInput);
@@ -174,10 +174,42 @@ export async function recordResultAction(rawInput: unknown): Promise<RecordResul
     clubId: ctx.club.id,
     recordedByUserId: ctx.user.id,
     winningSide: parsed.data.winningSide,
-    betBeerOverrideId: parsed.data.betBeerOverrideId,
   });
   if (result.ok) {
     revalidatePath('/', 'layout');
+    revalidatePath('/match');
+  }
+  return result;
+}
+
+// Spec 030 — deliver ("Předáno") a beer-IOU: books the cost to the
+// loser + settles the debt. Either party to the debt, or a treasurer+,
+// may deliver (re-validated in the tx).
+export type DeliverBeerDebtResult =
+  | { ok: true; beerName: string; loserName: string }
+  | { ok: false; code: 'NOT_FOUND' }
+  | { ok: false; code: 'FORBIDDEN' }
+  | { ok: false; code: 'ALREADY_SETTLED' }
+  | { ok: false; code: 'OUT_OF_STOCK' }
+  | { ok: false; code: 'BEER_NOT_AVAILABLE' };
+
+export async function deliverBeerDebtAction(rawInput: unknown): Promise<DeliverBeerDebtResult> {
+  const parsed = deliverBeerDebtSchema.safeParse(rawInput);
+  if (!parsed.success) return { ok: false, code: 'NOT_FOUND' };
+  const ctx = await requireUnlocked();
+
+  const result = await deliverBeerDebtTx({
+    debtId: parsed.data.debtId,
+    clubId: ctx.club.id,
+    actorUserId: ctx.user.id,
+    actorMemberId: ctx.member.id,
+    isElevated: roleSatisfies(ctx.member.role, 'treasurer'),
+    beerTypeId: parsed.data.beerTypeId ?? null,
+  });
+  if (result.ok) {
+    revalidatePath('/', 'layout');
+    revalidatePath('/match');
+    revalidatePath('/tab');
   }
   return result;
 }

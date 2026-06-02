@@ -18,7 +18,7 @@ import { getMyTabForSession, lastBeerForMember } from '@/lib/db/queries/consumpt
 import { listOtherActiveMembers } from '@/lib/db/queries/members';
 import { getOpenSessionForClub } from '@/lib/db/queries/sessions';
 import { listOpenAgreementsForMember } from '@/lib/db/queries/match-agreements';
-import { matchBetSummaryForMember, wonBeerSummaryForMember } from '@/lib/db/queries/match-bet-summary';
+import { listBeerDebtsForMember } from '@/lib/db/queries/match-bet-debts';
 import { groupTabEntriesByBeer } from '@/lib/tab/group-beer-breakdown';
 import { joinSideNames } from '@/lib/format/match-sides';
 import { onBehalfReviewSummaryForMember } from '@/lib/db/queries/on-behalf-review';
@@ -42,8 +42,7 @@ export default async function AppHomePage({
     balanceMinor,
     lastBeer,
     catalog,
-    betSummary,
-    wonSummary,
+    beerDebts,
     openAgreements,
     otherMembers,
     onBehalfSummary,
@@ -51,8 +50,7 @@ export default async function AppHomePage({
     memberBalance(ctx.member.id),
     lastBeerForMember(ctx.member.id, ctx.club.id),
     getBeerTypeCatalog(ctx.club.id),
-    matchBetSummaryForMember(ctx.member.id, ctx.club.id),
-    wonBeerSummaryForMember(ctx.member.id, ctx.club.id),
+    listBeerDebtsForMember({ clubId: ctx.club.id, memberId: ctx.member.id }),
     listOpenAgreementsForMember(ctx.club.id, ctx.member.id),
     listOtherActiveMembers(ctx.club.id, ctx.member.id),
     onBehalfReviewSummaryForMember(ctx.member.id, ctx.club.id),
@@ -127,11 +125,10 @@ export default async function AppHomePage({
       <OpenMatchPrompt matches={myOpenMatches} />
 
       <MatchBetModule
-        betCount={betSummary.betCount}
-        sourceMatchIds={betSummary.sourceMatchIds}
-        wonCount={wonSummary.wonCount}
-        wonMatchIds={wonSummary.sourceMatchIds}
-        wonPayerName={wonSummary.payerName}
+        debts={beerDebts}
+        beers={inStockCatalog}
+        currencyCode={ctx.club.currencyCode}
+        locale={ctx.club.defaultLocale}
       />
 
       <HomeOneTapLog

@@ -29,6 +29,7 @@ import {
   matchBetTransfers,
   matches,
 } from '@/lib/db/schema/matches';
+import { matchBetDebts } from '@/lib/db/schema/match-bet-debts';
 import { clubs } from '@/lib/db/schema/clubs';
 import { members } from '@/lib/db/schema/members';
 import { drinkSessions } from '@/lib/db/schema/sessions';
@@ -287,10 +288,13 @@ describe('recordResultTx — spec 013', () => {
       expect(found?.agreementId).toBe(created.agreementId);
     }
 
+    expect(r.debtsCreated).toBe(2);
+    // Spec 030 — recording moves no money: two pending debts, no transfers.
     const transfers = await testDb.select().from(betTransfers);
-    expect(transfers).toHaveLength(2);
-    const links = await testDb.select().from(matchBetTransfers);
-    expect(links).toHaveLength(2);
+    expect(transfers).toHaveLength(0);
+    const debts = await testDb.select().from(matchBetDebts);
+    expect(debts).toHaveLength(2);
+    expect(debts.every((d) => d.status === 'pending')).toBe(true);
   });
 
   it('doubles crossed pairing flips who-owes-whom', async () => {
@@ -332,7 +336,7 @@ describe('recordResultTx — spec 013', () => {
     expect(cvsB).toBeDefined();
   });
 
-  it('singles for-beer = yes produces 1 match row + 1 transfer', async () => {
+  it('singles for-beer = yes produces 1 match row + 1 PENDING debt, no transfer (spec 030)', async () => {
     const { club, user, memberA, memberB } = await seedFourMembers();
     await seedBeerForMember(club.id, memberA.id, user.id, 1);
 
@@ -354,12 +358,20 @@ describe('recordResultTx — spec 013', () => {
       winningSide: 'A',
     });
     expect(r.ok).toBe(true);
+    if (!r.ok) throw new Error();
+    expect(r.debtsCreated).toBe(1);
     const matchRows = await testDb.select().from(matches);
     expect(matchRows).toHaveLength(1);
     expect(matchRows[0]?.winnerMemberId).toBe(memberA.id);
     expect(matchRows[0]?.loserMemberId).toBe(memberB.id);
+    // Spec 030 — recording moves no money: pending debt, no transfer.
     const transfers = await testDb.select().from(betTransfers);
-    expect(transfers).toHaveLength(1);
+    expect(transfers).toHaveLength(0);
+    const debts = await testDb.select().from(matchBetDebts);
+    expect(debts).toHaveLength(1);
+    expect(debts[0]?.status).toBe('pending');
+    expect(debts[0]?.fromMemberId).toBe(memberB.id); // loser owes
+    expect(debts[0]?.toMemberId).toBe(memberA.id); // winner owed
   });
 
   it('US3 — for_beer = no records result but produces zero transfers', async () => {
@@ -384,8 +396,7 @@ describe('recordResultTx — spec 013', () => {
     });
     expect(r.ok).toBe(true);
     if (!r.ok) throw new Error();
-    expect(r.transferredCount).toBe(0);
-    expect(r.requestedCount).toBe(0);
+    expect(r.debtsCreated).toBe(0);
 
     const matchRows = await testDb.select().from(matches);
     expect(matchRows).toHaveLength(1); // result IS persisted
@@ -393,6 +404,8 @@ describe('recordResultTx — spec 013', () => {
     expect(transfers).toHaveLength(0); // NO transfers
     const links = await testDb.select().from(matchBetTransfers);
     expect(links).toHaveLength(0);
+    const debts = await testDb.select().from(matchBetDebts);
+    expect(debts).toHaveLength(0); // friendly → no debt
   });
 
   it('rejects ALREADY_RECORDED on second attempt', async () => {
@@ -429,15 +442,8 @@ describe('reverseResultTx — spec 013', () => {
     ({ db: testDb } = await makeTestDb());
   });
 
-  it('voids all linked matches + transfers + sets reversed_at + nulls result_recorded_at', async () => {
+  it('reverse-while-pending voids matches + debts, moves no money (spec 030)', async () => {
     const { club, user, memberA, memberB, memberC, memberD } = await seedFourMembers();
-    // Spec 018 — bump matchLoserBeerCount to 2 so doubles still
-    // produces one transfer per pair (test's original intent).
-    await testDb
-      .update(clubs)
-      .set({ matchLoserBeerCount: 2 })
-      .where(eq(clubs.id, club.id));
-    await seedBeerForMember(club.id, memberC.id, user.id, 1);
 
     const created = await createAgreementTx({
       clubId: club.id,
@@ -453,12 +459,15 @@ describe('reverseResultTx — spec 013', () => {
       },
     });
     if (!created.ok) throw new Error();
-    await recordResultTx({
+    const rec = await recordResultTx({
       agreementId: created.agreementId,
       clubId: club.id,
       recordedByUserId: user.id,
       winningSide: 'B',
     });
+    if (!rec.ok) throw new Error();
+    expect(rec.debtsCreated).toBe(2); // doubles → one debt per pair
+
     const r = await reverseResultTx({
       agreementId: created.agreementId,
       clubId: club.id,
@@ -467,12 +476,18 @@ describe('reverseResultTx — spec 013', () => {
     expect(r.ok).toBe(true);
     if (!r.ok) throw new Error();
     expect(r.voidedMatchCount).toBe(2);
-    expect(r.voidedTransferCount).toBe(2);
+    // Nothing was delivered → no transfers to void.
+    expect(r.voidedTransferCount).toBe(0);
 
     const matchRows = await testDb.select().from(matches);
     expect(matchRows.every((m) => m.voidedAt !== null)).toBe(true);
-    const voids = await testDb.select().from(betTransferVoids);
-    expect(voids).toHaveLength(2);
+    // No money ever moved: no transfers, no transfer-voids.
+    expect(await testDb.select().from(betTransfers)).toHaveLength(0);
+    expect(await testDb.select().from(betTransferVoids)).toHaveLength(0);
+    // Both pending debts are now voided.
+    const debts = await testDb.select().from(matchBetDebts);
+    expect(debts).toHaveLength(2);
+    expect(debts.every((d) => d.status === 'voided')).toBe(true);
 
     const agreements = await testDb.select().from(matchAgreements);
     expect(agreements[0]?.resultRecordedAt).toBeNull();

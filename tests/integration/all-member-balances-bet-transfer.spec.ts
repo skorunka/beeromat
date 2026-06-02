@@ -12,12 +12,14 @@ vi.mock('@/lib/db/client', () => ({
 }));
 
 import { createAgreementTx, recordResultTx } from '@/lib/db/queries/match-agreements';
+import { deliverBeerDebtTx } from '@/lib/db/queries/match-bet-debts';
 import { getAllMemberBalances } from '@/lib/db/queries/payments';
 import { memberBalance } from '@/lib/balance/calculate';
 import { users } from '@/lib/db/schema/auth';
 import { beerTypes } from '@/lib/db/schema/catalog';
 import { clubs } from '@/lib/db/schema/clubs';
 import { consumptions } from '@/lib/db/schema/consumption';
+import { matchBetDebts } from '@/lib/db/schema/match-bet-debts';
 import { members } from '@/lib/db/schema/members';
 import { drinkSessions } from '@/lib/db/schema/sessions';
 
@@ -103,6 +105,18 @@ describe('getAllMemberBalances ⇄ memberBalance parity under bet transfers', ()
       winningSide: 'A',
     });
     if (!r.ok) throw new Error('record result');
+
+    // Spec 030 — money moves on delivery; deliver the pending IOU.
+    const [debt] = await testDb.select().from(matchBetDebts).where(eq(matchBetDebts.clubId, club.id));
+    if (!debt) throw new Error('no debt');
+    const d = await deliverBeerDebtTx({
+      debtId: debt.id,
+      clubId: club.id,
+      actorUserId: uU.id,
+      actorMemberId: mA.id,
+      isElevated: false,
+    });
+    if (!d.ok) throw new Error('deliver: ' + d.code);
 
     // Canonical per-member balances (what each member sees on /tab + home).
     const canonA = await memberBalance(mA.id);

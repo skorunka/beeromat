@@ -1,19 +1,16 @@
 import { notFound } from 'next/navigation';
-import { and, eq, gt } from 'drizzle-orm';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Link } from '@/lib/i18n/navigation';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { requireUnlocked } from '@/lib/auth/session';
-import { db } from '@/lib/db/client';
-import { beerTypes } from '@/lib/db/schema/catalog';
-import { lastBeerForMember } from '@/lib/db/queries/consumption';
 import {
   UNDO_WINDOW_MS,
   getAgreement,
   listActiveClubMembers,
 } from '@/lib/db/queries/match-agreements';
+import { winnerLabel } from '@/lib/match/winner-label';
 import { joinSideNames } from '@/lib/format/match-sides';
 import { canRecordMatchResult } from '@/lib/permissions';
 import { ReverseMatchButton } from '@/components/match/reverse-match-button';
@@ -47,31 +44,14 @@ export default async function AgreementDetailPage({
   const isOpen = !agreement.resultRecordedAt && !agreement.cancelledAt;
   const isRecorded = !!agreement.resultRecordedAt;
   const isCancelled = !!agreement.cancelledAt;
+  // Reverse-window check computed here (not inline in JSX) — `new Date()`
+  // rather than `Date.now()` to satisfy the React-compiler purity lint.
+  const canReverseNow =
+    isRecorded &&
+    !!agreement.resultRecordedAt &&
+    new Date().getTime() - agreement.resultRecordedAt.getTime() <= UNDO_WINDOW_MS;
 
   const members = isOpen ? await listActiveClubMembers(ctx.club.id) : [];
-
-  // Spec 018 follow-up + spec 025 — for an open for-beer agreement,
-  // expose the in-stock catalog as the bet-beer picker source AND
-  // resolve the recorder's last-beer so the picker's Auto tile can
-  // show what the server-side auto-default would land on. Both
-  // queries run in parallel with each other.
-  const pickerEnabled = isOpen && agreement.forBeer && viewerCanRecord;
-  const [betBeerOptions, recorderLastBeer] = pickerEnabled
-    ? await Promise.all([
-        db
-          .select({ id: beerTypes.id, name: beerTypes.name })
-          .from(beerTypes)
-          .where(
-            and(
-              eq(beerTypes.clubId, ctx.club.id),
-              eq(beerTypes.isArchived, false),
-              gt(beerTypes.currentStock, 0),
-            ),
-          )
-          .orderBy(beerTypes.displayOrder),
-        lastBeerForMember(ctx.member.id, ctx.club.id),
-      ])
-    : [[], null];
 
   function pickSeat(side: 'A' | 'B', seat: 1 | 2): string | null {
     const found = agreement!.sides[side].find((s) => s.seat === seat);
@@ -80,6 +60,14 @@ export default async function AgreementDetailPage({
 
   const sideAName = joinSideNames(agreement.sides.A);
   const sideBName = joinSideNames(agreement.sides.B);
+
+  // Spec 030 — name the winner(s) as a noun (Vítěz / Vítězové) rather
+  // than the old "Vyhrál/a {side}" verb. (Plain loop, not .map(=>), to
+  // avoid the i18n-check JSX-text regex false-positive on the arrow.)
+  const winningSeats = agreement.winningSide === 'A' ? agreement.sides.A : agreement.sides.B;
+  const winnerNames: string[] = [];
+  for (const seat of winningSeats) winnerNames.push(seat.displayName);
+  const winnerHeadingLabel = winnerLabel(agreement.format, winnerNames);
 
   return (
     <main className="mx-auto flex max-w-md flex-col gap-6 p-5">
@@ -124,11 +112,7 @@ export default async function AgreementDetailPage({
 
       {isRecorded ? (
         <Card className="flex flex-col gap-2 p-4 text-sm">
-          <p className="font-semibold">
-            {t('recordedHeading', {
-              side: agreement.winningSide === 'A' ? sideAName : sideBName,
-            })}
-          </p>
+          <p className="font-semibold">{t(winnerHeadingLabel.key, winnerHeadingLabel.values)}</p>
           <p className="text-muted-foreground text-xs">
             {t('recordedAt', { time: agreement.resultRecordedAt!.toLocaleString(locale) })}
           </p>
@@ -138,10 +122,7 @@ export default async function AgreementDetailPage({
       {/* Reverse a recorded result inside the 5-min undo window. The
           home MatchBetModule's "Reverse match" link sends users here;
           without this button the page was a dead-end. */}
-      {isRecorded &&
-      viewerCanRecord &&
-      agreement.resultRecordedAt &&
-      Date.now() - agreement.resultRecordedAt.getTime() <= UNDO_WINDOW_MS ? (
+      {canReverseNow && viewerCanRecord ? (
         <ReverseMatchButton agreementId={agreement.id} />
       ) : null}
 
@@ -150,8 +131,7 @@ export default async function AgreementDetailPage({
           agreementId={agreement.id}
           sideALabel={sideAName}
           sideBLabel={sideBName}
-          betBeerOptions={agreement.forBeer ? betBeerOptions : undefined}
-          loserLastBeerName={recorderLastBeer?.name ?? null}
+          forBeer={agreement.forBeer}
           loserBeerCount={ctx.club.matchLoserBeerCount}
         />
       ) : isOpen ? (

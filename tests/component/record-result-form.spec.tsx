@@ -5,8 +5,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RecordResultForm } from '@/app/[locale]/(app)/match/[agreementId]/RecordResultForm';
 import enMessages from '@/messages/en.json';
 
-// Spec 025 T007 — component test for the tile-grid bet-beer picker
-// inside RecordResultForm.
+// Spec 030 — RecordResultForm no longer picks a beer (chosen at create,
+// overridable at delivery). It just records who won; recording creates
+// pending IOUs, not settlement.
 
 const mockRecordResultAction = vi.fn();
 const mockReverseResultAction = vi.fn();
@@ -28,29 +29,14 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
 }));
 
-const seedBeers = [
-  { id: 'b-pilsner', name: 'Pilsner' },
-  { id: 'b-stout', name: 'Stout' },
-];
-
-function renderForm(opts: {
-  betBeerOptions?: Array<{ id: string; name: string }>;
-  loserLastBeerName?: string | null;
-  loserBeerCount?: number;
-} = {}) {
-  // Use `in opts` checks so an explicit `undefined` or `null` is
-  // honored (the `??` fallback would collapse them to defaults).
-  const beers = 'betBeerOptions' in opts ? opts.betBeerOptions : seedBeers;
-  const lastBeer =
-    'loserLastBeerName' in opts ? opts.loserLastBeerName : 'Pilsner';
+function renderForm(opts: { forBeer?: boolean; loserBeerCount?: number } = {}) {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages}>
       <RecordResultForm
         agreementId="agreement-1"
         sideALabel="Side A"
         sideBLabel="Side B"
-        betBeerOptions={beers}
-        loserLastBeerName={lastBeer}
+        forBeer={opts.forBeer ?? true}
         loserBeerCount={opts.loserBeerCount ?? 1}
       />
     </NextIntlClientProvider>,
@@ -64,65 +50,30 @@ beforeEach(() => {
   mockToastSuccess.mockReset();
 });
 
-describe('RecordResultForm — bet-beer dropdown picker', () => {
-  it('trigger shows Auto · {last beer} pre-selected when last-beer is known', () => {
-    renderForm({ loserLastBeerName: 'Stout' });
-    // The dropdown trigger is the only button carrying the Auto label.
-    expect(screen.getByRole('button', { name: /Auto · Stout/i })).toBeInTheDocument();
+describe('RecordResultForm — spec 030', () => {
+  it('renders both win buttons; no beer picker', () => {
+    renderForm();
+    expect(screen.getByRole('button', { name: /Side A won/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Side B won/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Auto/i })).not.toBeInTheDocument();
   });
 
-  it('trigger falls back to "Auto · Beer" when last-beer is null', () => {
-    renderForm({ loserLastBeerName: null });
-    expect(screen.getByRole('button', { name: /Auto · Beer/i })).toBeInTheDocument();
+  it('for-beer match shows the "loser buys" explainer', () => {
+    renderForm({ forBeer: true, loserBeerCount: 2 });
+    expect(screen.getByText(/whoever loses buys 2× beer/i)).toBeInTheDocument();
   });
 
-  it('submit with the default Auto pick omits betBeerOverrideId from the payload', async () => {
-    mockRecordResultAction.mockResolvedValue({
-      ok: true,
-      transferredCount: 1,
-      requestedCount: 1,
-    });
+  it('friendly match shows no explainer', () => {
+    renderForm({ forBeer: false });
+    expect(screen.queryByText(/whoever loses buys/i)).not.toBeInTheDocument();
+  });
+
+  it('recording sends only agreementId + winningSide (no override)', async () => {
+    mockRecordResultAction.mockResolvedValue({ ok: true, matchRowIds: ['m-1'], debtsCreated: 1 });
     renderForm();
     fireEvent.click(screen.getByRole('button', { name: /Side A won/i }));
-
-    await waitFor(() => {
-      expect(mockRecordResultAction).toHaveBeenCalledTimes(1);
-    });
+    await waitFor(() => expect(mockRecordResultAction).toHaveBeenCalledTimes(1));
     const payload = mockRecordResultAction.mock.calls[0]![0] as Record<string, unknown>;
     expect(payload).toEqual({ agreementId: 'agreement-1', winningSide: 'A' });
-    expect(payload).not.toHaveProperty('betBeerOverrideId');
-  });
-
-  it('picker is hidden when betBeerOptions is undefined (not-for-beer or not-authorized)', () => {
-    renderForm({ betBeerOptions: undefined });
-    // No Auto trigger button.
-    expect(screen.queryByRole('button', { name: /Auto/i })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Side A won/i })).toBeInTheDocument();
-  });
-
-  it('picker is hidden when betBeerOptions is an empty array', () => {
-    renderForm({ betBeerOptions: [] });
-    expect(screen.queryByRole('button', { name: /Auto/i })).not.toBeInTheDocument();
-  });
-
-  describe('loser-buys explainer (usability follow-up)', () => {
-    it('names the selected beer + count for a for-beer match', () => {
-      renderForm({ loserLastBeerName: 'Pilsner', loserBeerCount: 2 });
-      expect(
-        screen.getByText(/whoever loses buys 2× pilsner for the winner/i),
-      ).toBeInTheDocument();
-    });
-
-    it('falls back to the beer-less explainer when no beer name is known', () => {
-      renderForm({ loserLastBeerName: null, loserBeerCount: 1 });
-      expect(
-        screen.getByText(/whoever loses buys 1× beer for the winner/i),
-      ).toBeInTheDocument();
-    });
-
-    it('no explainer for a not-for-beer match (picker absent)', () => {
-      renderForm({ betBeerOptions: undefined });
-      expect(screen.queryByText(/whoever loses buys/i)).not.toBeInTheDocument();
-    });
   });
 });

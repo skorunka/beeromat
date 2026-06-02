@@ -69,12 +69,12 @@ export default async function SessionDetailPage({
       <h2 className="mb-2 text-sm font-medium">{t('yourDrinks')}</h2>
       <ul className="mb-6 flex flex-col gap-2">
         {detail.entries.map((e) => (
-          <li
-            key={e.id}
-            className={`flex items-center justify-between rounded-md border p-3 ${
-              e.voided ? 'opacity-50' : ''
-            }`}
-          >
+          <li key={e.id}>
+            <Card
+              className={`flex flex-row items-center justify-between gap-3 p-3 ${
+                e.voided ? 'opacity-50' : ''
+              }`}
+            >
             <div>
               <div className="font-medium">{e.beerTypeName}</div>
               <div className="text-muted-foreground text-xs">
@@ -85,6 +85,7 @@ export default async function SessionDetailPage({
             <div className="font-mono text-sm">
               {formatMoney(e.unitPriceMinor, currencyCode, defaultLocale)}
             </div>
+            </Card>
           </li>
         ))}
         {detail.entries.length === 0 ? (
@@ -114,12 +115,12 @@ export default async function SessionDetailPage({
                     avatarUploadAt: tr.toAvatarUploadAt,
                   };
               return (
-                <li
-                  key={tr.id}
-                  className={`flex items-center justify-between rounded-md border p-3 ${
-                    tr.voided ? 'opacity-50' : ''
-                  }`}
-                >
+                <li key={tr.id}>
+                  <Card
+                    className={`flex flex-row items-center justify-between gap-3 p-3 ${
+                      tr.voided ? 'opacity-50' : ''
+                    }`}
+                  >
                   <div className="flex min-w-0 items-center gap-2 text-sm">
                     <MemberAvatar
                       size="inline"
@@ -138,6 +139,7 @@ export default async function SessionDetailPage({
                     {tookByMe ? '+' : '−'}
                     {formatMoney(tr.unitPriceMinorSnapshot, currencyCode, defaultLocale)}
                   </div>
+                  </Card>
                 </li>
               );
             })}

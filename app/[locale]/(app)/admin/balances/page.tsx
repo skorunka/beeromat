@@ -46,7 +46,7 @@ export default async function BalancesPage({
         {balances.map((b) => (
           <li key={b.memberId}>
             <Link href={`/admin/balances/${b.memberId}` as Route}>
-              <Card className="hover:bg-accent flex items-center gap-3 p-3 transition-colors">
+              <Card className="hover:bg-accent flex flex-row items-center gap-3 p-3 transition-colors">
                 <MemberAvatar
                   avatarKey={b.avatarKey}
                   displayName={b.displayName}

@@ -3,8 +3,10 @@ import { useTranslations } from 'next-intl';
 
 import { Link } from '@/lib/i18n/navigation';
 import { UndoButton } from '@/components/log/undo-button';
+import { Card } from '@/components/ui/card';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
+import { cn } from '@/lib/utils';
 import { formatMoney } from '@/lib/format';
 import type { MemberTabEntry } from '@/lib/db/queries/consumption';
 
@@ -67,7 +69,8 @@ export function TabEntryRow({ entry, currencyCode, locale }: TabEntryRowProps) {
   // member's total (parity with the balance).
   if (entry.kind === 'transfer_out') {
     return (
-      <li className="flex items-center justify-between rounded-md border p-3">
+      <li>
+        <Card className="flex flex-row items-center justify-between gap-3 p-3">
         <div className="min-w-0">
           <div className="text-sm font-medium leading-snug">
             {t('wonBet', {
@@ -93,6 +96,7 @@ export function TabEntryRow({ entry, currencyCode, locale }: TabEntryRowProps) {
         <div className="text-muted-foreground font-mono text-sm line-through">
           {formatMoney(entry.unitPriceMinor, currencyCode, locale)}
         </div>
+        </Card>
       </li>
     );
   }
@@ -102,9 +106,13 @@ export function TabEntryRow({ entry, currencyCode, locale }: TabEntryRowProps) {
   // from /tab; the match-void path handles it).
   if (entry.kind === 'transfer_in') {
     return (
-      <li
-        className={`flex items-center justify-between rounded-md border p-3 ${entry.voided ? 'opacity-50' : ''}`}
-      >
+      <li>
+        <Card
+          className={cn(
+            'flex flex-row items-center justify-between gap-3 p-3',
+            entry.voided && 'opacity-50',
+          )}
+        >
         <div className="min-w-0">
           <div className="text-sm font-medium leading-snug">
             {t('fromBet', {
@@ -130,15 +138,20 @@ export function TabEntryRow({ entry, currencyCode, locale }: TabEntryRowProps) {
         <div className="font-mono text-sm">
           {formatMoney(entry.unitPriceMinor, currencyCode, locale)}
         </div>
+        </Card>
       </li>
     );
   }
 
   // Standard consumption row (self or on-behalf).
   return (
-    <li
-      className={`flex items-center justify-between rounded-md border p-3 ${entry.voided ? 'opacity-50' : ''}`}
-    >
+    <li>
+      <Card
+        className={cn(
+          'flex flex-row items-center justify-between gap-3 p-3',
+          entry.voided && 'opacity-50',
+        )}
+      >
       <div className="min-w-0">
         <div className="font-medium">{entry.beerTypeName}</div>
         <div className="text-muted-foreground text-xs">
@@ -153,6 +166,7 @@ export function TabEntryRow({ entry, currencyCode, locale }: TabEntryRowProps) {
         </div>
         {entry.canUndo ? <UndoButton consumptionId={entry.id} /> : null}
       </div>
+      </Card>
     </li>
   );
 }

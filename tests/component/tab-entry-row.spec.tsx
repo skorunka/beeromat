@@ -137,7 +137,8 @@ describe('TabEntryRow (component layer — spec 019)', () => {
   it('voided consumption: shows the voided badge + applies the dim style', () => {
     const { container } = renderRow({ ...baseEntry, voided: true });
     expect(screen.getByText(/scrapped/i)).toBeInTheDocument();
-    expect(container.querySelector('li')?.className).toMatch(/opacity-50/);
+    // The dim style now lives on the Card inside the <li>.
+    expect(container.querySelector('[data-slot="card"]')?.className).toMatch(/opacity-50/);
   });
 
   it('canUndo: renders the UndoButton', () => {

@@ -144,7 +144,7 @@ export function TransferList({
             {transfers.map((tr) => (
               <li key={tr.id}>
                 <Card
-                  className={`flex items-center justify-between gap-3 p-3 ${
+                  className={`flex flex-row items-center justify-between gap-3 p-3 ${
                     tr.voided ? 'opacity-50' : ''
                   }`}
                 >

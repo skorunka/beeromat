@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { MemberPickerDropdown } from '@/components/picker/member-picker-dropdown';
+import { BeerPickerDropdown, type BeerPickerOption } from '@/components/picker/beer-picker-dropdown';
 import type { MemberOption } from '@/components/picker/types';
 import {
   createAgreementSchema,
@@ -26,6 +27,10 @@ import {
 
 interface NewMatchAgreementFormProps {
   members: MemberOption[];
+  // Spec 030 — in-stock beers for the bet-beer picker (shown when forBeer).
+  beers: BeerPickerOption[];
+  currencyCode: string;
+  locale: string;
 }
 
 type FormValues = {
@@ -36,14 +41,17 @@ type FormValues = {
   b1: string;
   b2: string;
   pairingKind: 'straight' | 'crossed' | '';
+  betBeerTypeId: string | null;
 };
 
 function buildInput(values: FormValues): CreateAgreementInput {
+  const betBeerTypeId = values.forBeer ? values.betBeerTypeId : null;
   if (values.format === 'singles') {
     return {
       format: 'singles',
       forBeer: values.forBeer,
       sides: { A: { seat1: values.a1 }, B: { seat1: values.b1 } },
+      betBeerTypeId,
     };
   }
   return {
@@ -55,10 +63,16 @@ function buildInput(values: FormValues): CreateAgreementInput {
     },
     // pairingKind is required for doubles; UI validation ensures non-empty.
     pairingKind: (values.pairingKind || 'straight') as 'straight' | 'crossed',
+    betBeerTypeId,
   };
 }
 
-export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
+export function NewMatchAgreementForm({
+  members,
+  beers,
+  currencyCode,
+  locale,
+}: NewMatchAgreementFormProps) {
   const t = useTranslations('match');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -78,6 +92,7 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
       // it so creating a doubles match is one fewer tap. Members can
       // still flip to "crossed" before submitting.
       pairingKind: 'straight',
+      betBeerTypeId: null,
     },
   });
   // Use `useWatch` (subscription-based) instead of `form.watch()` —
@@ -85,6 +100,7 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
   // because its returned values can't be memoised safely.
   const format = useWatch({ control: form.control, name: 'format' });
   const pairingKind = useWatch({ control: form.control, name: 'pairingKind' });
+  const forBeer = useWatch({ control: form.control, name: 'forBeer' });
   // Spec 024 — subscribe to each seat field so the disable-set
   // recomputes when any pick changes.
   const seatA1 = useWatch({ control: form.control, name: 'a1' });
@@ -315,6 +331,32 @@ export function NewMatchAgreementForm({ members }: NewMatchAgreementFormProps) {
             </FormItem>
           )}
         />
+
+        {/* Spec 030 — bet beer picker, shown only for a for-beer match.
+            Becomes the IOU default; overridable at delivery. */}
+        {forBeer ? (
+          <FormField
+            control={form.control}
+            name="betBeerTypeId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('betBeerLabel')}</FormLabel>
+                <FormControl>
+                  <BeerPickerDropdown
+                    beers={beers}
+                    value={field.value}
+                    onChange={field.onChange}
+                    currencyCode={currencyCode}
+                    locale={locale}
+                    placeholder={t('betBeerLabel')}
+                    ariaLabel={t('betBeerLabel')}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        ) : null}
 
         {/* Pairing — doubles only, EXPLICIT pick (FR-006 / Q4 — no default) */}
         {format === 'doubles' ? (

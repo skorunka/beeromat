@@ -34,7 +34,7 @@ export default async function HistoryPage({
         {sessions.map((s) => (
           <li key={s.id}>
             <Link href={`/history/${s.id}` as Route}>
-              <Card className="hover:bg-accent flex items-center justify-between gap-3 p-3 transition-colors">
+              <Card className="hover:bg-accent flex flex-row items-center justify-between gap-3 p-3 transition-colors">
                 <div className="min-w-0 flex-1">
                   {/* Spec 022 follow-up — inline-editable session title
                       on the list view. StopRowNavigation prevents

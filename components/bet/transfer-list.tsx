@@ -104,7 +104,7 @@ export function TransferList({
           <ul className="flex flex-col gap-2">
             {transferables.map((c) => (
               <li key={c.consumptionId}>
-                <Card className="flex items-center justify-between gap-3 p-3">
+                <Card className="flex flex-row items-center justify-between gap-3 p-3">
                   <div className="flex min-w-0 items-center gap-2">
                     <MemberAvatar
                       size="inline"

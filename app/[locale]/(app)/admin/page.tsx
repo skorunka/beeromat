@@ -21,24 +21,27 @@ export default async function AdminHubPage({
   const tTreasurer = await getTranslations('treasurer');
   const pendingCount = await countPendingClaims(ctx.club.id);
 
+  // Ordered most-used first: confirming payments + stock + balances are
+  // the recurring ops; member management is occasional; club setup is a
+  // one-/twice-ever thing, so it sinks to the bottom.
   const links: { href: Route; title: string; desc: string; badge?: number }[] = [
-    {
-      href: '/admin/config' as Route,
-      title: t('config'),
-      desc: t('configDesc'),
-    },
-    { href: '/admin/members' as Route, title: t('members'), desc: t('membersDesc') },
-    { href: '/admin/beer-types' as Route, title: t('beerTypes'), desc: t('beerTypesDesc') },
     {
       href: '/admin/pending' as Route,
       title: tTreasurer('pendingTitle'),
       desc: t('pendingDesc'),
       badge: pendingCount,
     },
+    { href: '/admin/beer-types' as Route, title: t('beerTypes'), desc: t('beerTypesDesc') },
     {
       href: '/admin/balances' as Route,
       title: tTreasurer('balancesTitle'),
       desc: t('balancesDesc'),
+    },
+    { href: '/admin/members' as Route, title: t('members'), desc: t('membersDesc') },
+    {
+      href: '/admin/config' as Route,
+      title: t('config'),
+      desc: t('configDesc'),
     },
   ];
 

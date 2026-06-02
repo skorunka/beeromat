@@ -525,7 +525,7 @@
     "beerTypes": "Beers & stock",
     "beerTypesDesc": "Look after the fridge",
     "pendingDesc": "Confirm or flag members' payments",
-    "balancesDesc": "Who's run up what",
+    "balancesDesc": "Who owes what",
     "config": "Club config",
     "configDesc": "Name, currency, default language",
     "membersTitle": "Members",

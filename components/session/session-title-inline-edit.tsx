@@ -146,7 +146,7 @@ export function SessionTitleInlineEdit({
           onClick={cancelEdit}
           className="border-input text-muted-foreground hover:bg-accent flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border"
         >
-          <X aria-hidden className="h-4 w-4" />
+          <X aria-hidden className="size-[1.1rem]" strokeWidth={2.5} />
         </button>
         <button
           type="button"
@@ -155,7 +155,7 @@ export function SessionTitleInlineEdit({
           onClick={commit}
           className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors"
         >
-          <Check aria-hidden className="h-4 w-4" />
+          <Check aria-hidden className="size-[1.1rem]" strokeWidth={2.5} />
         </button>
       </span>
     );

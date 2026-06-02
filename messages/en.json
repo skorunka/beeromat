@@ -594,6 +594,7 @@
     "edit": "Edit",
     "archive": "Archive",
     "unarchive": "Bring back",
+    "moreActions": "More actions",
     "noBeerTypes": "No beers yet — add the first one.",
     "nameLabel": "Name",
     "priceLabel": "Price ({currency})",

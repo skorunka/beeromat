@@ -25,6 +25,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MoreVertical } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
   Form,
@@ -515,54 +523,49 @@ export function BeerTypeManager({
               {/* Restock is the dominant action — full-width and primary;
                   Adjust / Edit / Archive sit below as secondary controls
                   (v1.3 UX review F9). */}
-              <div className="mt-2 flex flex-col gap-2">
+              {/* Restock stays the one prominent action; the secondary
+                  Adjust / Edit / Archive move into a kebab menu so each
+                  card is compact (UX review 2026-06-02). */}
+              <div className="mt-2 flex items-center gap-2">
                 {!beer.isArchived ? (
                   <>
                     <Button
-                      size="lg"
                       type="button"
-                      className="w-full"
+                      className="flex-1"
                       onClick={() => setDialog({ kind: 'restock', beer })}
                     >
                       {t('restock')}
                     </Button>
-                    <div className="flex gap-2">
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        type="button"
-                        className="flex-1"
-                        onClick={() => setDialog({ kind: 'adjust', beer })}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        aria-label={t('moreActions')}
+                        className="hover:bg-accent inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md transition-colors"
                       >
-                        {t('adjust')}
-                      </Button>
-                      <Button
-                        size="lg"
-                        variant="outline"
-                        type="button"
-                        className="flex-1"
-                        onClick={() => setDialog({ kind: 'edit', beer })}
-                      >
-                        {t('edit')}
-                      </Button>
-                      <Button
-                        size="lg"
-                        variant="ghost"
-                        type="button"
-                        className="flex-1"
-                        disabled={isPending}
-                        isPending={isPending}
-                        onClick={() => handleArchiveToggle(beer)}
-                      >
-                        {t('archive')}
-                      </Button>
-                    </div>
+                        <MoreVertical className="h-4 w-4" aria-hidden />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" sideOffset={4} className="min-w-44">
+                        <DropdownMenuItem onClick={() => setDialog({ kind: 'adjust', beer })}>
+                          {t('adjust')}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setDialog({ kind: 'edit', beer })}>
+                          {t('edit')}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          variant="destructive"
+                          disabled={isPending}
+                          onClick={() => handleArchiveToggle(beer)}
+                        >
+                          {t('archive')}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </>
                 ) : (
                   <Button
-                    size="lg"
-                    variant="ghost"
                     type="button"
+                    variant="outline"
+                    className="flex-1"
                     disabled={isPending}
                     isPending={isPending}
                     onClick={() => handleArchiveToggle(beer)}

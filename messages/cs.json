@@ -594,6 +594,7 @@
     "edit": "Upravit pivo",
     "archive": "Archivovat",
     "unarchive": "Vrátit zpět",
+    "moreActions": "Další akce",
     "noBeerTypes": "Zatím žádná piva — přidej první.",
     "nameLabel": "Název",
     "priceLabel": "Cena ({currency})",

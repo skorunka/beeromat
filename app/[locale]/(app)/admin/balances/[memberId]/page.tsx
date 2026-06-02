@@ -83,9 +83,10 @@ export default async function MemberBalanceDetailPage({
           /history); admin has no undo affordance from this view. */}
       {openSession && tab.entries.length > 0 ? (
         <section className="mb-6">
-          <h2 className="mb-2 text-sm font-medium">
-            {tTab('title')} · {openSession.title ?? ''}
-          </h2>
+          {/* Neutral, session-scoped heading — this is the member's tab
+              viewed by an admin, so no "Moje" possessive, and no
+              dangling "·" when the session is unnamed. */}
+          <h2 className="mb-2 text-sm font-medium">{tTab('sessionTotal')}</h2>
           <ul className="flex flex-col gap-2">
             {tab.entries.map((entry) => (
               <TabEntryRow

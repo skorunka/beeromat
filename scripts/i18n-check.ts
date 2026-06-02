@@ -47,6 +47,11 @@ const EXCLUDED = new Set([
   // close). File audited: every user-facing string (placeholder,
   // ariaLabel) comes in via props; prices format through formatMoney.
   'components/picker/beer-picker-dropdown.tsx',
+  // member-picker-grid.tsx — the `members.filter((m) => …)` arrow
+  // trips the JSX_TEXT regex (same root cause as the dropdown
+  // pickers). File audited: the only user-facing strings come from
+  // useTranslations('common') (search placeholder, no-match text).
+  'components/picker/member-picker-grid.tsx',
   // confirm-dialog.tsx — the `=> Promise<boolean>` type alias trips
   // the JSX_TEXT regex (reads `Promise` as text before a `<boolean>`
   // tag). File audited: button labels come from props or common.* via

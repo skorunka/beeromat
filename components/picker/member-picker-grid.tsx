@@ -1,9 +1,17 @@
 'use client';
 
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+
+import { Input } from '@/components/ui/input';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { cn } from '@/lib/utils';
 import type { MemberOption } from './types';
+
+// Show the search box only once the roster is big enough to be worth
+// filtering — small clubs don't need the extra control.
+const SEARCH_THRESHOLD = 8;
 
 // Spec 024 — tile-grid member picker used on /log/for.
 //
@@ -32,15 +40,29 @@ export function MemberPickerGrid({
   ariaLabel,
   className,
 }: MemberPickerGridProps) {
+  const t = useTranslations('common');
+  const [query, setQuery] = useState('');
   if (members.length === 0) return null;
 
+  const showSearch = members.length >= SEARCH_THRESHOLD;
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? members.filter((m) => m.displayName.toLowerCase().includes(q))
+    : members;
+
   return (
-    <div
-      role="radiogroup"
-      aria-label={ariaLabel}
-      className={cn('grid grid-cols-2 gap-2', className)}
-    >
-      {members.map((m) => {
+    <div className={cn('flex flex-col gap-2', className)}>
+      {showSearch ? (
+        <Input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder={t('searchMember')}
+          aria-label={t('searchMember')}
+        />
+      ) : null}
+      <div role="radiogroup" aria-label={ariaLabel} className="grid grid-cols-2 gap-2">
+      {filtered.map((m) => {
         const isSelected = value === m.id;
         return (
           <button
@@ -66,6 +88,12 @@ export function MemberPickerGrid({
           </button>
         );
       })}
+      </div>
+      {showSearch && filtered.length === 0 ? (
+        <p className="text-muted-foreground py-4 text-center text-sm">
+          {t('noMembersFound')}
+        </p>
+      ) : null}
     </div>
   );
 }

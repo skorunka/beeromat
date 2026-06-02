@@ -16,6 +16,8 @@
     "close": "Close",
     "today": "Today",
     "yesterday": "Yesterday",
+    "searchMember": "Search members…",
+    "noMembersFound": "No members found",
     "brand": "beeromat"
   },
   "nav": {

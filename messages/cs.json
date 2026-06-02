@@ -16,6 +16,8 @@
     "close": "Zavřít",
     "today": "dnes",
     "yesterday": "včera",
+    "searchMember": "Hledat člena…",
+    "noMembersFound": "Nikdo nenalezen",
     "brand": "beeromat"
   },
   "nav": {

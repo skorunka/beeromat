@@ -1,7 +1,7 @@
 import type { Route } from 'next';
 import { Link } from '@/lib/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,7 +35,12 @@ export default async function AdminMembersPage({
   const memberRows = await db
     .select()
     .from(members)
-    .where(eq(members.clubId, ctx.club.id));
+    .where(eq(members.clubId, ctx.club.id))
+    // Order by display name, falling back to email when the name is
+    // blank (case-insensitive).
+    .orderBy(
+      sql`lower(coalesce(nullif(trim(${members.displayName}), ''), ${members.email}))`,
+    );
 
   const invitationRows = await getPendingInvitations(ctx.club.id);
   const dateFmt = new Intl.DateTimeFormat(ctx.club.defaultLocale, { dateStyle: 'medium' });
@@ -62,13 +67,13 @@ export default async function AdminMembersPage({
       </h2>
       <ul className="mb-6 flex flex-col gap-2">
         {memberRows.map((m) => (
-          <li
-            key={m.id}
-            className={cn(
-              'flex items-center gap-3 rounded-md border p-3',
-              !m.isActive && 'opacity-60',
-            )}
-          >
+          <li key={m.id}>
+            <Card
+              className={cn(
+                'flex flex-row items-center gap-3 p-3',
+                !m.isActive && 'opacity-60',
+              )}
+            >
             <MemberAvatar
               avatarKey={m.avatarKey}
               displayName={m.displayName}
@@ -98,6 +103,7 @@ export default async function AdminMembersPage({
                 isSelf={m.id === ctx.member.id}
               />
             ) : null}
+            </Card>
           </li>
         ))}
       </ul>
@@ -105,10 +111,8 @@ export default async function AdminMembersPage({
       <h2 className="mb-3 text-lg font-semibold">{t('recentInvitations')}</h2>
       <ul className="flex flex-col gap-2">
         {invitationRows.map((inv) => (
-          <li
-            key={inv.id}
-            className="flex items-center justify-between rounded-md border p-3"
-          >
+          <li key={inv.id}>
+            <Card className="flex flex-row items-center justify-between gap-3 p-3">
             <div>
               <div className="font-medium">{inv.email}</div>
               <div className="text-muted-foreground text-xs">
@@ -121,6 +125,7 @@ export default async function AdminMembersPage({
             <Badge variant={inv.status === 'pending' ? 'secondary' : 'outline'}>
               {tStatus(inv.status)}
             </Badge>
+            </Card>
           </li>
         ))}
         {invitationRows.length === 0 ? (

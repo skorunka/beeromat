@@ -52,6 +52,10 @@ const EXCLUDED = new Set([
   // pickers). File audited: the only user-facing strings come from
   // useTranslations('common') (search placeholder, no-match text).
   'components/picker/member-picker-grid.tsx',
+  // filter-list.tsx — the `items.filter((i) => …)` arrow trips the
+  // JSX_TEXT regex. File audited: placeholder/emptyText come from
+  // props (callers pass translated strings).
+  'components/ui/filter-list.tsx',
   // confirm-dialog.tsx — the `=> Promise<boolean>` type alias trips
   // the JSX_TEXT regex (reads `Promise` as text before a `<boolean>`
   // tag). File audited: button labels come from props or common.* via

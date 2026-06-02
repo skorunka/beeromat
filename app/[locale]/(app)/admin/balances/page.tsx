@@ -4,6 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { FilterList } from '@/components/ui/filter-list';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { requireRole } from '@/lib/auth/session';
 import { getAllMemberBalances } from '@/lib/db/queries/payments';
@@ -42,53 +43,58 @@ export default async function BalancesPage({
         </div>
       </header>
 
-      <ul className="flex flex-col gap-2">
-        {balances.map((b) => (
-          <li key={b.memberId}>
-            <Link href={`/admin/balances/${b.memberId}` as Route}>
-              <Card className="hover:bg-accent flex flex-row items-center gap-3 p-3 transition-colors">
-                <MemberAvatar
-                  avatarKey={b.avatarKey}
-                  displayName={b.displayName}
-                  uploadUrl={avatarUploadUrl(b.memberId, b.avatarUploadAt)}
-                  className="h-10 w-10 text-xs"
-                />
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium">
-                    {b.displayName}
-                    {b.isActive ? null : (
-                      <Badge variant="outline" className="ml-2">
-                        {t('inactive')}
-                      </Badge>
-                    )}
-                  </div>
-                  {b.pendingConfirmationMinor > 0n ? (
-                    <div className="text-muted-foreground text-xs">
-                      {t('pendingConfirmation', {
-                        amount: formatMoney(
-                          b.pendingConfirmationMinor,
-                          currencyCode,
-                          defaultLocale,
-                        ),
-                      })}
+      {balances.length === 0 ? (
+        <p className="text-muted-foreground p-4 text-center text-sm">{t('noMembers')}</p>
+      ) : (
+        <FilterList
+          placeholder={tCommon('searchMember')}
+          emptyText={tCommon('noMembersFound')}
+          items={balances.map((b) => ({
+            key: b.memberId,
+            searchText: b.displayName,
+            node: (
+              <Link href={`/admin/balances/${b.memberId}` as Route}>
+                <Card className="hover:bg-accent flex flex-row items-center gap-3 p-3 transition-colors">
+                  <MemberAvatar
+                    avatarKey={b.avatarKey}
+                    displayName={b.displayName}
+                    uploadUrl={avatarUploadUrl(b.memberId, b.avatarUploadAt)}
+                    className="h-10 w-10 text-xs"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium">
+                      {b.displayName}
+                      {b.isActive ? null : (
+                        <Badge variant="outline" className="ml-2">
+                          {t('inactive')}
+                        </Badge>
+                      )}
                     </div>
-                  ) : null}
-                </div>
-                <div
-                  className={`font-mono text-sm font-semibold ${
-                    b.balanceMinor > 0n ? '' : 'text-muted-foreground'
-                  }`}
-                >
-                  {formatMoney(b.balanceMinor, currencyCode, defaultLocale)}
-                </div>
-              </Card>
-            </Link>
-          </li>
-        ))}
-        {balances.length === 0 ? (
-          <li className="text-muted-foreground p-4 text-center text-sm">{t('noMembers')}</li>
-        ) : null}
-      </ul>
+                    {b.pendingConfirmationMinor > 0n ? (
+                      <div className="text-muted-foreground text-xs">
+                        {t('pendingConfirmation', {
+                          amount: formatMoney(
+                            b.pendingConfirmationMinor,
+                            currencyCode,
+                            defaultLocale,
+                          ),
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                  <div
+                    className={`font-mono text-sm font-semibold ${
+                      b.balanceMinor > 0n ? '' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {formatMoney(b.balanceMinor, currencyCode, defaultLocale)}
+                  </div>
+                </Card>
+              </Link>
+            ),
+          }))}
+        />
+      )}
     </main>
   );
 }

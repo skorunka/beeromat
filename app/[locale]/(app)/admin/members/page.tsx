@@ -5,6 +5,7 @@ import { eq, sql } from 'drizzle-orm';
 
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { FilterList } from '@/components/ui/filter-list';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { MemberActionsMenu } from '@/components/admin/member-actions-menu';
 import { requireRole } from '@/lib/auth/session';
@@ -65,48 +66,54 @@ export default async function AdminMembersPage({
       <h2 className="mb-3 text-lg font-semibold">
         {t('activeMembers', { count: memberRows.length })}
       </h2>
-      <ul className="mb-6 flex flex-col gap-2">
-        {memberRows.map((m) => (
-          <li key={m.id}>
-            <Card
-              className={cn(
-                'flex flex-row items-center gap-3 p-3',
-                !m.isActive && 'opacity-60',
-              )}
-            >
-            <MemberAvatar
-              avatarKey={m.avatarKey}
-              displayName={m.displayName}
-              uploadUrl={avatarUploadUrl(m.id, m.avatarUploadAt)}
-              className="h-10 w-10 text-xs"
-            />
-            <div className="min-w-0 flex-1">
-              <div className="font-medium">
-                {m.displayName}
-                {!m.isActive ? (
-                  <span className="text-muted-foreground ml-2 text-xs font-normal">
-                    · {tActions('inactiveLabel')}
-                  </span>
+      <div className="mb-6">
+        <FilterList
+          placeholder={tCommon('searchMember')}
+          emptyText={tCommon('noMembersFound')}
+          items={memberRows.map((m) => ({
+            key: m.id,
+            searchText: `${m.displayName} ${m.email}`,
+            node: (
+              <Card
+                className={cn(
+                  'flex flex-row items-center gap-3 p-3',
+                  !m.isActive && 'opacity-60',
+                )}
+              >
+                <MemberAvatar
+                  avatarKey={m.avatarKey}
+                  displayName={m.displayName}
+                  uploadUrl={avatarUploadUrl(m.id, m.avatarUploadAt)}
+                  className="h-10 w-10 text-xs"
+                />
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium">
+                    {m.displayName}
+                    {!m.isActive ? (
+                      <span className="text-muted-foreground ml-2 text-xs font-normal">
+                        · {tActions('inactiveLabel')}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="text-muted-foreground text-xs">{m.email}</div>
+                </div>
+                <Badge variant={m.role === 'club_admin' ? 'default' : 'secondary'}>
+                  {tRoles(m.role)}
+                </Badge>
+                {canManageMembers ? (
+                  <MemberActionsMenu
+                    memberId={m.id}
+                    memberDisplayName={m.displayName}
+                    currentRole={m.role}
+                    isActive={m.isActive}
+                    isSelf={m.id === ctx.member.id}
+                  />
                 ) : null}
-              </div>
-              <div className="text-muted-foreground text-xs">{m.email}</div>
-            </div>
-            <Badge variant={m.role === 'club_admin' ? 'default' : 'secondary'}>
-              {tRoles(m.role)}
-            </Badge>
-            {canManageMembers ? (
-              <MemberActionsMenu
-                memberId={m.id}
-                memberDisplayName={m.displayName}
-                currentRole={m.role}
-                isActive={m.isActive}
-                isSelf={m.id === ctx.member.id}
-              />
-            ) : null}
-            </Card>
-          </li>
-        ))}
-      </ul>
+              </Card>
+            ),
+          }))}
+        />
+      </div>
 
       <h2 className="mb-3 text-lg font-semibold">{t('recentInvitations')}</h2>
       <ul className="flex flex-col gap-2">

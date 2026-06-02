@@ -104,15 +104,13 @@ export default async function AppHomePage({
         >
           {t('greeting', { name: ctx.member.displayName })}
         </Link>
-        <p
-          className={
-            owes
-              ? 'text-primary text-xl font-bold tabular-nums leading-relaxed'
-              : 'text-foreground text-xl font-medium leading-relaxed'
-          }
-        >
-          {owes ? t('balanceOwed', { amount: balanceFormatted }) : t('balanceSquare')}
-        </p>
+        {/* Only surface the balance when there's actually something to
+            pay — "all settled" needs no announcement on the home page. */}
+        {owes ? (
+          <p className="text-primary text-xl font-bold tabular-nums leading-relaxed">
+            {t('balanceOwed', { amount: balanceFormatted })}
+          </p>
+        ) : null}
       </header>
 
       <OnBehalfReviewBanner

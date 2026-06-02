@@ -12,16 +12,20 @@ winner unchanged, debt settled. Bet beer chosen at match create
 NewMatchAgreementForm when forBeer) and overridable at delivery.
 reverseResultTx voids still-pending debts (no money) / unwinds
 delivered ones. Result heading → Vítěz/Vítězové. The casual
-"Vyrovnat sázku / take someone's drink" box was removed
-(BetSettleSection + components/bet/transfer-list deleted); the casual
-createBetTransferAction + lib/db/queries/bets.ts casual query + their
-integration tests remain as dead-but-green code (deeper removal +
-casual bet.* i18n key cleanup is a BACKLOG follow-up). New shared
-components/match/beer-iou-row.tsx (deliver control); home
-match-bet-module rewired to render IOUs. Migration
-0011_marvelous_wallflower. Full SDD artifacts in
-specs/030-match-bet-iou/. BACKLOG after 030: dead-casual-code +
-casual-i18n removal; a "your bets" ledger view; unsettled-IOU nudges.
+"Vyrovnat sázku / take someone's drink" bet system was REMOVED
+entirely (UI: BetSettleSection + components/bet/transfer-list;
+actions: app/.../bet/actions.ts createBetTransferAction +
+voidBetTransferAction; query: lib/db/queries/bets.ts; the whole `bet`
+i18n namespace; 4 integration tests). Won beers now appear in history:
+/history/[id] renders entries via the shared TabEntryRow (same as
+/tab) so won-bet beers show "z vyhrané sázky: platí {loser}"
+(struck-through, links to the match) and lost-bet "z prohrané sázky";
+the separate bet-transfers section is gone (getSessionDetail no longer
+returns `transfers`). New shared components/match/beer-iou-row.tsx
+(deliver control); home match-bet-module rewired to render IOUs.
+Migration 0011_marvelous_wallflower. Full SDD artifacts in
+specs/030-match-bet-iou/. BACKLOG after 030: a "your bets" ledger
+view; unsettled-IOU nudges.
 
 Most recently shipped: spec 029 (inline-log-for-other — home's
 "log for someone else" is now an inline collapse/expand control

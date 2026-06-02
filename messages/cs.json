@@ -394,7 +394,7 @@
     }
   },
   "tab": {
-    "title": "Moje útrata",
+    "title": "Tvoje útrata",
     "noOpenSession": "Žádné posezení neběží",
     "sessionTotal": "Tohle posezení",
     "voided": "zrušeno",
@@ -404,7 +404,7 @@
     "fromBet": "z prohrané sázky: {logger} · {beer}",
     "wonBet": "z vyhrané sázky: platí {logger} · {beer}",
     "breakdown": {
-      "heading": "Tvá útrata",
+      "heading": "Tvoje piva",
       "lostBet": "prohraná sázka"
     }
   },

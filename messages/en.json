@@ -394,7 +394,7 @@
     }
   },
   "tab": {
-    "title": "My tab",
+    "title": "Your tab",
     "noOpenSession": "Nothing on the go",
     "sessionTotal": "This round",
     "voided": "scrapped",
@@ -404,7 +404,7 @@
     "fromBet": "lost bet: {logger} · {beer}",
     "wonBet": "won bet: {logger} pays · {beer}",
     "breakdown": {
-      "heading": "Your tab",
+      "heading": "Your beers",
       "lostBet": "lost bet"
     }
   },

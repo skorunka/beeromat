@@ -6,10 +6,12 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { SessionTitleInlineEdit } from '@/components/session/session-title-inline-edit';
+import { TabBeerBreakdown } from '@/components/tab/tab-beer-breakdown';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getSessionDetail } from '@/lib/db/queries/consumption';
 import { formatDayLabel, formatMoney, formatRelativeDay } from '@/lib/format';
+import { groupTabEntriesByBeer } from '@/lib/tab/group-beer-breakdown';
 
 // US8 — drill-down into one session: consumptions + bet transfers.
 export default async function SessionDetailPage({
@@ -37,6 +39,12 @@ export default async function SessionDetailPage({
   const timeFmt = new Intl.DateTimeFormat(defaultLocale, { timeStyle: 'short' });
   const now = new Date();
   const relativeLabels = { today: tc('today'), yesterday: tc('yesterday') };
+  // Spec 028 follow-up — same per-beer breakdown as /tab, reusing the
+  // identical entries (getSessionDetail wraps getMyTabForSession). The
+  // breakdown carries its own prominent total (== detail.totalMinor by
+  // the balance invariant), so the standalone total card is now only the
+  // empty-tab fallback — parity with /tab.
+  const breakdownGroups = groupTabEntriesByBeer(detail.entries);
 
   return (
     <main className="mx-auto max-w-md p-5">
@@ -59,12 +67,23 @@ export default async function SessionDetailPage({
         </p>
       </header>
 
-      <Card className="mb-6 p-4">
-        <div className="text-muted-foreground text-sm">{t('yourTotal')}</div>
-        <div className="text-3xl font-bold">
-          {formatMoney(detail.totalMinor, currencyCode, defaultLocale)}
+      {breakdownGroups.length === 0 ? (
+        <Card className="mb-6 p-4">
+          <div className="text-muted-foreground text-sm">{t('yourTotal')}</div>
+          <div className="text-3xl font-bold">
+            {formatMoney(detail.totalMinor, currencyCode, defaultLocale)}
+          </div>
+        </Card>
+      ) : (
+        <div className="mb-6">
+          <TabBeerBreakdown
+            groups={breakdownGroups}
+            currencyCode={currencyCode}
+            locale={defaultLocale}
+            now={now}
+          />
         </div>
-      </Card>
+      )}
 
       <h2 className="mb-2 text-sm font-medium">{t('yourDrinks')}</h2>
       <ul className="mb-6 flex flex-col gap-2">

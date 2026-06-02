@@ -174,7 +174,11 @@ export function ClubConfigForm({ defaults }: ClubConfigFormProps) {
             )}
           />
 
-          <Button type="submit" disabled={isPending} isPending={isPending}>
+          <Button
+            type="submit"
+            disabled={isPending || !form.formState.isDirty}
+            isPending={isPending}
+          >
             {t('submit')}
           </Button>
         </form>

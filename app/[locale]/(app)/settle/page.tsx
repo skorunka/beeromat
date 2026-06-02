@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { PaidOtherMethod } from '@/components/settle/paid-other-method';
 import { QrDisplay } from '@/components/settle/qr-display';
 import { RevolutButton } from '@/components/settle/revolut-button';
+import { WithdrawClaimButton } from '@/components/settle/withdraw-claim-button';
 import { Card } from '@/components/ui/card';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getMyBalance } from '@/lib/db/queries/payments';
@@ -48,6 +49,11 @@ export default async function SettlePage({
                   ),
                 })}
               </p>
+              {/* Escape hatch — withdraw a mistaken claim instead of
+                  waiting for the treasurer (back to the pay screen). */}
+              <div className="mt-1 flex justify-center">
+                <WithdrawClaimButton />
+              </div>
             </>
           ) : (
             <>

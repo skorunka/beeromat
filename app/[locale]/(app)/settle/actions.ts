@@ -213,6 +213,62 @@ export async function markPaidOtherMethodAction(input: {
   }
 }
 
+export type WithdrawClaimResult =
+  | { ok: true }
+  | { ok: false; code: 'NO_CLAIM' | 'ALREADY_RESOLVED' };
+
+/**
+ * Member withdraws their own pending (claimed) payment before a
+ * treasurer acts on it: claimed → voided, with an append-only audit
+ * transition carrying a `withdrawn_by_member` reason (distinguishes it
+ * from a treasurer voiding a confirmed payment, since both land on the
+ * `voided` status). The `status = 'claimed'` predicate in the UPDATE
+ * WHERE makes the treasurer-confirms-first race safe — 0 rows updated
+ * → ALREADY_RESOLVED. `voided` is ignored by the balance and frees the
+ * one-claimed slot, so the member drops straight back to the pay screen.
+ */
+export async function withdrawPaymentClaimAction(): Promise<WithdrawClaimResult> {
+  const ctx = await requireUnlocked();
+
+  return db.transaction(async (tx) => {
+    const claim = await tx.query.payments.findFirst({
+      where: and(
+        eq(payments.memberId, ctx.member.id),
+        eq(payments.clubId, ctx.club.id),
+        eq(payments.status, 'claimed'),
+      ),
+    });
+    if (!claim) return { ok: false, code: 'NO_CLAIM' } as const;
+
+    const updated = await tx
+      .update(payments)
+      .set({ status: 'voided' })
+      .where(
+        and(
+          eq(payments.id, claim.id),
+          eq(payments.memberId, ctx.member.id),
+          eq(payments.clubId, ctx.club.id),
+          eq(payments.status, 'claimed'),
+        ),
+      )
+      .returning({ id: payments.id });
+    if (updated.length === 0) return { ok: false, code: 'ALREADY_RESOLVED' } as const;
+
+    await tx.insert(paymentStateTransitions).values({
+      clubId: ctx.club.id,
+      paymentId: claim.id,
+      fromStatus: 'claimed',
+      toStatus: 'voided',
+      reason: 'withdrawn_by_member',
+      createdByUserId: ctx.user.id,
+    });
+
+    revalidatePath('/settle');
+    revalidatePath('/');
+    return { ok: true } as const;
+  });
+}
+
 // Spec 027 — match Postgres unique-constraint violation on the new
 // uniq_payments_member_one_claimed partial index. Drizzle wraps the
 // underlying Postgres error in a DrizzleQueryError; the SQLSTATE +

@@ -42,17 +42,23 @@ export default async function TabPage({
 
   return (
     <main className="mx-auto max-w-md p-5">
+      {/* Session title is the page heading (mirrors /history detail) so
+          "Tvoje útrata" appears once — on the breakdown card below — not
+          stacked as both an H1 and the card heading. */}
       <header className="mb-4">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
         {tab.session ? (
-          <SessionTitleInlineEdit
-            sessionId={tab.session.id}
-            currentTitle={tab.session.title}
-            fallbackLabel={formatDayLabel(tab.session.startedAt, ctx.club.defaultLocale)}
-            className="text-muted-foreground text-sm"
-          />
+          <h1 className="text-2xl font-bold">
+            <SessionTitleInlineEdit
+              sessionId={tab.session.id}
+              currentTitle={tab.session.title}
+              fallbackLabel={formatDayLabel(tab.session.startedAt, ctx.club.defaultLocale)}
+            />
+          </h1>
         ) : (
-          <p className="text-muted-foreground text-sm">{t('noOpenSession')}</p>
+          <>
+            <h1 className="text-2xl font-bold">{t('title')}</h1>
+            <p className="text-muted-foreground text-sm">{t('noOpenSession')}</p>
+          </>
         )}
       </header>
 

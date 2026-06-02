@@ -404,7 +404,7 @@
     "fromBet": "lost bet: {logger} · {beer}",
     "wonBet": "won bet: {logger} pays · {beer}",
     "breakdown": {
-      "heading": "Your beers",
+      "heading": "Your tab",
       "lostBet": "lost bet"
     }
   },

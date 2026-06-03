@@ -274,6 +274,7 @@
     "outstandingBalance": "Dluh",
     "balanceOwed": "Útrata {amount}",
     "balanceSquare": "Vyrovnáno",
+    "wonBeersTotal": "🏆 {count, plural, one {# vyhrané pivo} few {# vyhraná piva} other {# vyhraných piv}}",
     "oneTapLog": "Zapiš {beer} · {price}",
     "oneTapLogGeneric": "Zapiš pivo",
     "oneTapLogUnavailable": "{beer} — nedostupné",

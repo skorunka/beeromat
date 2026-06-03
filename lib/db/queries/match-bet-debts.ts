@@ -1,8 +1,8 @@
 import 'server-only';
-import { and, asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, isNull, sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
-import { betTransfers } from '@/lib/db/schema/bets';
+import { betTransfers, betTransferVoids } from '@/lib/db/schema/bets';
 import { beerTypes, stockChanges } from '@/lib/db/schema/catalog';
 import { consumptions } from '@/lib/db/schema/consumption';
 import { matchBetDebts } from '@/lib/db/schema/match-bet-debts';
@@ -99,6 +99,33 @@ export async function listBeerDebtsForMember(args: {
     .orderBy(asc(matchBetDebts.createdAt));
 
   return { owedToMe, iOwe };
+}
+
+// ── Read: lifetime won-beer count ────────────────────────────────────
+
+/**
+ * Spec 030 follow-up — how many beers this member has WON so far (a
+ * settled bet where they're the winner = an active, non-voided
+ * bet_transfer with `from_member_id = member`). Club-scoped, all-time
+ * (there are no "rounds" — just the running total). Drives the compact
+ * "🏆 N piv vyhráno" home stat.
+ */
+export async function wonBeerCountForMember(args: {
+  clubId: string;
+  memberId: string;
+}): Promise<number> {
+  const [row] = await db
+    .select({ n: sql<number>`count(*)::int` })
+    .from(betTransfers)
+    .leftJoin(betTransferVoids, eq(betTransferVoids.betTransferId, betTransfers.id))
+    .where(
+      and(
+        eq(betTransfers.clubId, args.clubId),
+        eq(betTransfers.fromMemberId, args.memberId),
+        isNull(betTransferVoids.betTransferId),
+      ),
+    );
+  return row?.n ?? 0;
 }
 
 // ── Write: deliver one IOU ("Předáno") ───────────────────────────────

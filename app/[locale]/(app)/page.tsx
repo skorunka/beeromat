@@ -18,7 +18,7 @@ import { getMyTabForSession, lastBeerForMember } from '@/lib/db/queries/consumpt
 import { listOtherActiveMembers } from '@/lib/db/queries/members';
 import { getOpenSessionForClub } from '@/lib/db/queries/sessions';
 import { listOpenAgreementsForMember } from '@/lib/db/queries/match-agreements';
-import { listBeerDebtsForMember } from '@/lib/db/queries/match-bet-debts';
+import { listBeerDebtsForMember, wonBeerCountForMember } from '@/lib/db/queries/match-bet-debts';
 import { groupTabEntriesByBeer } from '@/lib/tab/group-beer-breakdown';
 import { joinSideNames } from '@/lib/format/match-sides';
 import { onBehalfReviewSummaryForMember } from '@/lib/db/queries/on-behalf-review';
@@ -43,6 +43,7 @@ export default async function AppHomePage({
     lastBeer,
     catalog,
     beerDebts,
+    wonBeers,
     openAgreements,
     otherMembers,
     onBehalfSummary,
@@ -51,6 +52,7 @@ export default async function AppHomePage({
     lastBeerForMember(ctx.member.id, ctx.club.id),
     getBeerTypeCatalog(ctx.club.id),
     listBeerDebtsForMember({ clubId: ctx.club.id, memberId: ctx.member.id }),
+    wonBeerCountForMember({ clubId: ctx.club.id, memberId: ctx.member.id }),
     listOpenAgreementsForMember(ctx.club.id, ctx.member.id),
     listOtherActiveMembers(ctx.club.id, ctx.member.id),
     onBehalfReviewSummaryForMember(ctx.member.id, ctx.club.id),
@@ -107,6 +109,13 @@ export default async function AppHomePage({
         {owes ? (
           <p className="text-primary text-xl font-bold tabular-nums leading-relaxed">
             {t('balanceOwed', { amount: balanceFormatted })}
+          </p>
+        ) : null}
+        {/* Spec 030 follow-up — lifetime won-beer brag. Compact, shown
+            only once you've actually won one. */}
+        {wonBeers > 0 ? (
+          <p className="text-muted-foreground text-sm font-medium">
+            {t('wonBeersTotal', { count: wonBeers })}
           </p>
         ) : null}
       </header>

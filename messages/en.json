@@ -274,6 +274,7 @@
     "outstandingBalance": "Owed",
     "balanceOwed": "Tab {amount}",
     "balanceSquare": "All square",
+    "wonBeersTotal": "🏆 {count, plural, one {# beer won} other {# beers won}}",
     "oneTapLog": "Log a {beer} · {price}",
     "oneTapLogGeneric": "Log a beer",
     "oneTapLogUnavailable": "{beer} — out of stock",

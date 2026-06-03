@@ -12,7 +12,7 @@ vi.mock('@/lib/db/client', () => ({
 }));
 
 import { createAgreementTx, recordResultTx, reverseResultTx } from '@/lib/db/queries/match-agreements';
-import { deliverBeerDebtTx } from '@/lib/db/queries/match-bet-debts';
+import { deliverBeerDebtTx, wonBeerCountForMember } from '@/lib/db/queries/match-bet-debts';
 import { effectiveConsumptionTotal } from '@/lib/balance/calculate';
 import { getMyTabForSession } from '@/lib/db/queries/consumption';
 import { getOpenSessionForClub } from '@/lib/db/queries/sessions';
@@ -249,6 +249,30 @@ describe('deliverBeerDebtTx — spec 030', () => {
       });
       expect(eff).toBe(tab.totalMinor);
     }
+  });
+
+  it('wonBeerCountForMember: 0 while pending, 1 once delivered (winner only), 0 after reverse', async () => {
+    const s = await seedAndRecord({ price: 40n });
+    // Pending → nothing won yet (no transfer exists).
+    expect(await wonBeerCountForMember({ clubId: s.clubId, memberId: s.winnerId })).toBe(0);
+
+    await deliverBeerDebtTx({
+      debtId: s.debtId,
+      clubId: s.clubId,
+      actorUserId: s.userId,
+      actorMemberId: s.winnerId,
+      isElevated: false,
+    });
+    expect(await wonBeerCountForMember({ clubId: s.clubId, memberId: s.winnerId })).toBe(1);
+    // The loser didn't win anything.
+    expect(await wonBeerCountForMember({ clubId: s.clubId, memberId: s.loserId })).toBe(0);
+
+    // Reversing the match voids the transfer → no longer counts.
+    const agreementId = (
+      await testDb.select().from(matchBetDebts).where(eq(matchBetDebts.id, s.debtId))
+    )[0]!.agreementId;
+    await reverseResultTx({ agreementId, clubId: s.clubId, reversedByUserId: s.userId });
+    expect(await wonBeerCountForMember({ clubId: s.clubId, memberId: s.winnerId })).toBe(0);
   });
 
   it('reverse after delivery unwinds the booked cost', async () => {

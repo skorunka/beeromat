@@ -219,7 +219,6 @@
     "currencyPlaceholder": "CZK",
     "currencyHint": "Kód podle ISO 4217 — CZK, EUR, USD apod.",
     "defaultLocaleLabel": "Výchozí jazyk klubu",
-    "defaultLocaleHint": "V téhle řeči dostanou členové e-maily.",
     "adminEmailLabel": "Tvůj e-mail",
     "adminEmailPlaceholder": "ty@example.com",
     "adminEmailHint": "Pošleme ti odkaz a budeš správce klubu.",

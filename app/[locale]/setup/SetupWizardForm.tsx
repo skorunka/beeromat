@@ -165,7 +165,6 @@ export function SetupWizardForm() {
                     admin config locale switcher. */}
                 <LocaleDropdown value={field.value} onChange={field.onChange} />
               </FormControl>
-              <FormDescription>{t('defaultLocaleHint')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}

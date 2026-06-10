@@ -219,7 +219,6 @@
     "currencyPlaceholder": "CZK",
     "currencyHint": "ISO 4217 code — CZK, EUR, USD, etc.",
     "defaultLocaleLabel": "Club default language",
-    "defaultLocaleHint": "Members get emails in this language.",
     "adminEmailLabel": "Your email",
     "adminEmailPlaceholder": "you@example.com",
     "adminEmailHint": "We'll send you a sign-in link and make you the admin.",

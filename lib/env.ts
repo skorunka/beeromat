@@ -32,9 +32,14 @@ const envSchema = z.object({
   NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1),
   TURNSTILE_SECRET_KEY: z.string().min(1),
 
-  // Rate limiting
-  UPSTASH_REDIS_REST_URL: z.string().url(),
-  UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
+  // Rate limiting — Upstash Redis. Only consumed by lib/rate-limit's
+  // lazy getRedis(), which is reached solely when AUTH_RATE_LIMIT_ENABLED
+  // is on (and even then fails open if Upstash is unreachable). So these
+  // are OPTIONAL at the field level and required conditionally by the
+  // superRefine below: a minimal deploy that sets AUTH_RATE_LIMIT_ENABLED
+  // 'false' needs no Upstash account at all.
+  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1).optional(),
 
   // Seed — consumed only by scripts/seed.ts (and by the v1.8 bootstrap
   // fallback for the very first sign-in if no club row exists yet).
@@ -55,17 +60,39 @@ const envSchema = z.object({
     .regex(/^[a-z]{2}(-[A-Z]{2})?$/)
     .optional(),
 
-  // Spec 009 bootstrap-state cache mode. Defaults to 'sticky' (the
-  // post-bootstrap proxy pays zero DB cost; the cache is one-way).
-  // An isolated test rig that truncates between tests sets this to
-  // 'off' so the next request re-queries against the just-truncated
-  // DB. Configuration, not code: the same code path consumes both
-  // values (constitution: Test/Prod Code Separation).
-  BOOTSTRAP_STATE_CACHE: z.enum(['sticky', 'off']).default('sticky'),
+  // NOTE: BOOTSTRAP_STATE_CACHE ('sticky' | 'off') is intentionally NOT
+  // declared here. lib/db/queries/bootstrap-state.ts reads it directly
+  // from process.env (with a safe 'sticky' default) precisely so unit
+  // tests importing that module don't have to satisfy this whole schema.
+  // Declaring it here would be dead — no consumer reads env.* for it.
 
   // Runtime
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-});
+})
+  // Upstash is required only when the built-in rate limiter is on (the
+  // default). With AUTH_RATE_LIMIT_ENABLED='false' the limiter code is
+  // never reached, so a minimal deploy can omit the Upstash vars
+  // entirely. Catch the misconfiguration (limiter on + Upstash unset) at
+  // boot with a clear message rather than failing open at runtime.
+  .superRefine((data, ctx) => {
+    if (data.AUTH_RATE_LIMIT_ENABLED === 'false') return;
+    if (!data.UPSTASH_REDIS_REST_URL) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['UPSTASH_REDIS_REST_URL'],
+        message:
+          'Required when AUTH_RATE_LIMIT_ENABLED is on — set it, or set AUTH_RATE_LIMIT_ENABLED=false',
+      });
+    }
+    if (!data.UPSTASH_REDIS_REST_TOKEN) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['UPSTASH_REDIS_REST_TOKEN'],
+        message:
+          'Required when AUTH_RATE_LIMIT_ENABLED is on — set it, or set AUTH_RATE_LIMIT_ENABLED=false',
+      });
+    }
+  });
 
 export type Env = z.infer<typeof envSchema>;
 

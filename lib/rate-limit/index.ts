@@ -12,6 +12,12 @@ let _redis: Redis | null = null;
 
 function getRedis(): Redis {
   if (!_redis) {
+    // The env superRefine guarantees these are set whenever the limiter
+    // is enabled, so this guard only trips on a genuine misconfiguration
+    // — and checkMagicLinkLimits catches the throw and fails open.
+    if (!env.UPSTASH_REDIS_REST_URL || !env.UPSTASH_REDIS_REST_TOKEN) {
+      throw new Error('Upstash not configured (UPSTASH_REDIS_REST_URL/TOKEN unset)');
+    }
     _redis = new Redis({
       url: env.UPSTASH_REDIS_REST_URL,
       token: env.UPSTASH_REDIS_REST_TOKEN,

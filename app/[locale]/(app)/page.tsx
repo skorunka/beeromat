@@ -89,8 +89,18 @@ export default async function AppHomePage({
       unitPriceMinor: b.unitPriceMinor,
     }));
   const owes = balanceMinor > 0n;
+  // A negative balance means the member has paid in more than they've
+  // consumed (treasurer cash entry / "paid other way" overshoot, or a
+  // reversed charge). Without this the `owes`-gated UI hides it entirely
+  // and a member the club now owes sees nothing.
+  const hasCredit = balanceMinor < 0n;
   const balanceFormatted = formatMoney(
     balanceMinor,
+    ctx.club.currencyCode,
+    ctx.club.defaultLocale,
+  );
+  const creditFormatted = formatMoney(
+    -balanceMinor,
     ctx.club.currencyCode,
     ctx.club.defaultLocale,
   );
@@ -109,6 +119,10 @@ export default async function AppHomePage({
         {owes ? (
           <p className="text-primary text-xl font-bold tabular-nums leading-relaxed">
             {t('balanceOwed', { amount: balanceFormatted })}
+          </p>
+        ) : hasCredit ? (
+          <p className="text-base font-medium tabular-nums">
+            {t('balanceCredit', { amount: creditFormatted })}
           </p>
         ) : null}
         {/* Spec 030 follow-up — lifetime won-beer brag. Compact, shown

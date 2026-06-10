@@ -235,8 +235,8 @@
   },
   "invitation": {
     "welcomeTitle": "Vítej v beeromatu",
-    "welcomeBody": "Vyber si jméno, pod kterým tě parta zná, a pošleme ti přihlašovací odkaz.",
-    "displayNameLabel": "Tvoje jméno",
+    "displayNameLabel": "Jak ti budeme říkat?",
+    "submitHint": "Pošleme ti přihlašovací odkaz.",
     "submit": "Přidat se ke klubu",
     "working": "Moment…",
     "acceptedTitle": "Jsi uvnitř!",
@@ -245,7 +245,14 @@
     "acceptedNote": "Odkaz platí 5 minut.",
     "errorInvalid": "Tahle pozvánka už neplatí. Řekni si správci klubu o novou.",
     "errorNameRequired": "Nejdřív napiš svoje jméno.",
-    "errorGeneric": "Nepovedlo se to — zkus to prosím znovu."
+    "errorGeneric": "Nepovedlo se to — zkus to prosím znovu.",
+    "expiredTitle": "Pozvánka už vypršela",
+    "expiredBody": "Nevadí — pošleme ti nový odkaz na stejnou adresu.",
+    "resend": "Poslat nový odkaz",
+    "resending": "Posílám…",
+    "resentTitle": "Nový odkaz už letí!",
+    "resendRateLimited": "Moment — moc pokusů. Dej tomu chvíli a zkus to znovu.",
+    "resendFailed": "Nový odkaz se nepovedlo poslat — zkus to za chvíli."
   },
   "emails": {
     "magicLink": {
@@ -274,6 +281,7 @@
     "outstandingBalance": "Dluh",
     "balanceOwed": "Útrata {amount}",
     "balanceSquare": "Vyrovnáno",
+    "balanceCredit": "💰 Máš přeplatek {amount}",
     "wonBeersTotal": "🏆 {count, plural, one {# vyhrané pivo} few {# vyhraná piva} other {# vyhraných piv}}",
     "oneTapLog": "Zapiš {beer} · {price}",
     "oneTapLogGeneric": "Zapiš pivo",

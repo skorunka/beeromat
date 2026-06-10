@@ -1,16 +1,21 @@
 'use server';
 
-import { randomUUID } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { cookies, headers } from 'next/headers';
-import { eq, sql } from 'drizzle-orm';
+import { getLocale } from 'next-intl/server';
+import { and, eq, sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { invitations, members, deviceSessions } from '@/lib/db/schema/members';
+import { clubs } from '@/lib/db/schema/clubs';
 import { users } from '@/lib/db/schema/auth';
 import { requireMember } from '@/lib/auth/session';
 import { DEVICE_ID_COOKIE } from '@/lib/auth/session';
 import { hashPin, isValidPinFormat, verifyPin } from '@/lib/auth/pin';
 import { auth } from '@/lib/auth/better-auth';
+import { sendInvitation } from '@/lib/email/mailer';
+import { env } from '@/lib/env';
+import type { Locale } from '@/lib/i18n/routing';
 import { verifyTurnstileToken } from '@/lib/turnstile/verify';
 import { checkMagicLinkLimits } from '@/lib/rate-limit';
 import { acceptInvitationSchema } from '@/lib/validation/invitation';
@@ -118,6 +123,104 @@ export async function acceptInvitationAction(input: {
     });
   } catch (err) {
     console.error('[accept-invitation] magic-link send failed', err);
+  }
+
+  return { ok: true, data: { email: inv.email } };
+}
+
+/**
+ * Self-service resend for an expired (but still pending) invitation.
+ * The invitee lands on /invitation/[token] with a dead link and taps
+ * "send me a new one" — this re-matches that raw token, re-issues a
+ * fresh token + 14-day expiry ON THE SAME invitation row, and re-emails
+ * the ORIGINALLY-INVITED address.
+ *
+ * Security: the email only ever goes to inv.email (never an
+ * attacker-supplied address), and holding the token already proves the
+ * caller had access to the original invite, so there is no enumeration
+ * leak. The rate limit is purely anti-spam. Accepted / revoked
+ * invitations never match (status filter), so this can't resurrect a
+ * consumed invite. User-reported 2026-06-04.
+ */
+export async function resendInvitationLinkAction(input: {
+  token: string;
+}): Promise<AuthActionResult<{ email: string }>> {
+  if (!input.token) return { ok: false, code: 'INVALID_INVITATION' };
+
+  // Match the raw token against every pending invitation — INCLUDING
+  // expired ones. Expiry is a date, not a status change, so an expired
+  // link is still status:'pending'; that's exactly the row we want to
+  // refresh here (acceptInvitationAction skips them via an expiresAt
+  // check; we deliberately do not).
+  const argon2 = await import('argon2');
+  const open = await db.query.invitations.findMany({
+    where: eq(invitations.status, 'pending'),
+  });
+  let inv = null as null | (typeof open)[number];
+  for (const candidate of open) {
+    try {
+      if (await argon2.verify(candidate.tokenHash, input.token)) {
+        inv = candidate;
+        break;
+      }
+    } catch {
+      /* malformed hash, skip */
+    }
+  }
+  if (!inv) return { ok: false, code: 'INVALID_INVITATION' };
+
+  // Anti-spam rate limit keyed on the invited address + caller IP,
+  // reusing the magic-link bucket (same "an email is about to be sent"
+  // shape).
+  const reqHeaders = await headers();
+  const remoteIp =
+    reqHeaders.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    reqHeaders.get('x-real-ip') ??
+    undefined;
+  const { allowed } = await checkMagicLinkLimits(inv.email, remoteIp);
+  if (!allowed) return { ok: false, code: 'RATE_LIMITED' };
+
+  // Inviter name + club name for the email body. Both have graceful
+  // fallbacks so a missing inviter member (e.g. since deactivated)
+  // never blocks the resend.
+  const [club, inviter] = await Promise.all([
+    db.query.clubs.findFirst({ where: eq(clubs.id, inv.clubId) }),
+    db.query.members.findFirst({
+      where: and(
+        eq(members.clubId, inv.clubId),
+        eq(members.userId, inv.createdByUserId),
+      ),
+    }),
+  ]);
+  const clubName = club?.name ?? 'beeromat';
+
+  // Re-issue: fresh token + expiry on the same row.
+  const rawToken = randomBytes(32).toString('base64url');
+  const tokenHash = await argon2.hash(rawToken, {
+    type: argon2.argon2id,
+    memoryCost: 65_536,
+    timeCost: 3,
+    parallelism: 4,
+  });
+  const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  await db
+    .update(invitations)
+    .set({ tokenHash, expiresAt })
+    .where(eq(invitations.id, inv.id));
+
+  const locale = (await getLocale().catch(() => undefined)) as Locale | undefined;
+  try {
+    const url = `${env.BETTER_AUTH_URL}/invitation/${rawToken}`;
+    await sendInvitation({
+      to: inv.email,
+      inviterName: inviter?.displayName ?? clubName,
+      clubName,
+      url,
+      locale,
+    });
+  } catch (err) {
+    console.error('[resend-invitation] email dispatch failed', err);
+    return { ok: false, code: 'EMAIL_SEND_FAILED' };
   }
 
   return { ok: true, data: { email: inv.email } };

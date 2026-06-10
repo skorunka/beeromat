@@ -235,8 +235,8 @@
   },
   "invitation": {
     "welcomeTitle": "Welcome to beeromat",
-    "welcomeBody": "Pick a name your mates know you by, and we'll email you a sign-in link.",
-    "displayNameLabel": "Your name",
+    "displayNameLabel": "What should we call you?",
+    "submitHint": "We'll email you a sign-in link.",
     "submit": "Join the club",
     "working": "Hang on…",
     "acceptedTitle": "You're in!",
@@ -245,7 +245,14 @@
     "acceptedNote": "The link's good for 5 minutes.",
     "errorInvalid": "This invite's no longer good. Ask your club admin for a fresh one.",
     "errorNameRequired": "Pop your name in first.",
-    "errorGeneric": "That didn't work — give it another go."
+    "errorGeneric": "That didn't work — give it another go.",
+    "expiredTitle": "This invite has expired",
+    "expiredBody": "No worries — we can email you a fresh link to the same address.",
+    "resend": "Email me a new link",
+    "resending": "Sending…",
+    "resentTitle": "New link on its way!",
+    "resendRateLimited": "Hold on a sec — too many tries. Give it a minute and retry.",
+    "resendFailed": "Couldn't send a new link — try again in a moment."
   },
   "emails": {
     "magicLink": {
@@ -274,6 +281,7 @@
     "outstandingBalance": "Owed",
     "balanceOwed": "Tab {amount}",
     "balanceSquare": "All square",
+    "balanceCredit": "💰 You're {amount} in credit",
     "wonBeersTotal": "🏆 {count, plural, one {# beer won} other {# beers won}}",
     "oneTapLog": "Log a {beer} · {price}",
     "oneTapLogGeneric": "Log a beer",

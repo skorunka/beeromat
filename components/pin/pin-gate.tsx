@@ -43,6 +43,15 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [isPending, startTransition] = useTransition();
+  // Sticky submit lock. `isPending` flips back to false the instant the
+  // transition's async callback returns — but on the success path that
+  // callback fires `window.location.reload()` and returns, leaving a
+  // window where the button is re-enabled while the (possibly slow,
+  // e.g. Turbopack recompile) reload is still in flight. A second tap
+  // there fires a second submit. So we keep this true through the
+  // reload and only release it on the retry paths (wrong PIN / locked /
+  // bad format). User-reported 2026-06-04.
+  const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<PinFormValues>({
     // The active schema depends on mode. Both validate `pin`; only setup
@@ -82,6 +91,7 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
 
   function onSubmit(values: PinFormValues) {
     setServerError(null);
+    setSubmitting(true);
     startTransition(async () => {
       const result =
         mode === 'setup'
@@ -92,6 +102,8 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
         // No success toast — the page reloads immediately so the toast
         // would only flash before vanishing. The reload itself is the
         // user's success signal (their next screen is the unlocked app).
+        // Leave `submitting` set: the reload is in flight and the button
+        // must stay disabled until the page actually navigates away.
         onUnlocked?.();
         window.location.reload();
       } else if (result.code === 'WRONG_PIN') {
@@ -99,10 +111,13 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
         form.resetField('pin');
         // Re-enable auto-submit so the next 4-digit fill triggers again.
         hasAutoSubmittedRef.current = false;
+        setSubmitting(false);
       } else if (result.code === 'LOCKED') {
         setServerError(t('unlock.lockedBody'));
+        setSubmitting(false);
       } else {
         setServerError(t('setup.invalidFormat'));
+        setSubmitting(false);
       }
     });
   }
@@ -114,6 +129,7 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
     if (
       pinValue.length === PIN_LENGTH &&
       !isPending &&
+      !submitting &&
       !hasAutoSubmittedRef.current
     ) {
       hasAutoSubmittedRef.current = true;
@@ -121,7 +137,7 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
     } else if (pinValue.length < PIN_LENGTH) {
       hasAutoSubmittedRef.current = false;
     }
-  }, [pinValue, mode, isPending, form]);
+  }, [pinValue, mode, isPending, submitting, form]);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center gap-6 p-8">
@@ -224,8 +240,8 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
           <Button
             type="submit"
             size="lg"
-            disabled={isPending}
-            isPending={isPending}
+            disabled={isPending || submitting}
+            isPending={isPending || submitting}
             className="h-14 text-lg"
           >
             {t(mode === 'setup' ? 'setup.submit' : 'unlock.submit')}
@@ -237,7 +253,7 @@ export function PinGate({ mode, onUnlocked }: PinGateProps) {
         <button
           type="button"
           onClick={handleForgotPin}
-          disabled={isPending}
+          disabled={isPending || submitting}
           className="text-muted-foreground text-sm underline disabled:opacity-50"
         >
           {t('unlock.forgotPin')}

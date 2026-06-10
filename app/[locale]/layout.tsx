@@ -11,7 +11,7 @@ import { routing } from '@/lib/i18n/routing';
 import '../globals.css';
 
 export const metadata: Metadata = {
-  title: '🍺 beeromat',
+  title: 'beeromat',
   description: 'After-match beer tab tracker for tennis clubs',
 };
 

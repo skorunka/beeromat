@@ -12,7 +12,7 @@ import { OnBehalfReviewBanner } from '@/components/home/on-behalf-review-banner'
 import { TabBeerBreakdown } from '@/components/tab/tab-beer-breakdown';
 import { HomeLogForOther } from '@/components/home/home-log-for-other';
 import { requireUnlocked } from '@/lib/auth/session';
-import { memberBalance } from '@/lib/balance/calculate';
+import { getMyBalance } from '@/lib/db/queries/payments';
 import { getBeerTypeCatalog } from '@/lib/db/queries/catalog';
 import { getMyTabForSession, lastBeerForMember } from '@/lib/db/queries/consumption';
 import { listOtherActiveMembers } from '@/lib/db/queries/members';
@@ -39,7 +39,7 @@ export default async function AppHomePage({
   const ctx = await requireUnlocked();
   const t = await getTranslations('home');
   const [
-    balanceMinor,
+    myBalance,
     lastBeer,
     catalog,
     beerDebts,
@@ -48,7 +48,7 @@ export default async function AppHomePage({
     otherMembers,
     onBehalfSummary,
   ] = await Promise.all([
-    memberBalance(ctx.member.id),
+    getMyBalance(ctx.member.id, ctx.club.currencyCode),
     lastBeerForMember(ctx.member.id, ctx.club.id),
     getBeerTypeCatalog(ctx.club.id),
     listBeerDebtsForMember({ clubId: ctx.club.id, memberId: ctx.member.id }),
@@ -88,12 +88,18 @@ export default async function AppHomePage({
       isArchived: b.isArchived,
       unitPriceMinor: b.unitPriceMinor,
     }));
+  const { balanceMinor, pendingConfirmationMinor } = myBalance;
   const owes = balanceMinor > 0n;
   // A negative balance means the member has paid in more than they've
   // consumed (treasurer cash entry / "paid other way" overshoot, or a
   // reversed charge). Without this the `owes`-gated UI hides it entirely
   // and a member the club now owes sees nothing.
   const hasCredit = balanceMinor < 0n;
+  // A claimed-but-unconfirmed payment covering the balance → calm
+  // "awaiting confirmation" state instead of the owed nag + settle CTA.
+  // A partial claim (pending < balance) still shows owed, with a note.
+  const hasPendingClaim = pendingConfirmationMinor > 0n;
+  const awaitingConfirmation = owes && pendingConfirmationMinor >= balanceMinor;
   const balanceFormatted = formatMoney(
     balanceMinor,
     ctx.club.currencyCode,
@@ -101,6 +107,11 @@ export default async function AppHomePage({
   );
   const creditFormatted = formatMoney(
     -balanceMinor,
+    ctx.club.currencyCode,
+    ctx.club.defaultLocale,
+  );
+  const pendingFormatted = formatMoney(
+    pendingConfirmationMinor,
     ctx.club.currencyCode,
     ctx.club.defaultLocale,
   );
@@ -116,10 +127,21 @@ export default async function AppHomePage({
         </Link>
         {/* Only surface the balance when there's actually something to
             pay — "all settled" needs no announcement on the home page. */}
-        {owes ? (
-          <p className="text-primary text-xl font-bold tabular-nums leading-relaxed">
-            {t('balanceOwed', { amount: balanceFormatted })}
+        {awaitingConfirmation ? (
+          <p className="text-muted-foreground text-base font-medium">
+            {t('balanceAwaiting')}
           </p>
+        ) : owes ? (
+          <>
+            <p className="text-primary text-xl font-bold tabular-nums leading-relaxed">
+              {t('balanceOwed', { amount: balanceFormatted })}
+            </p>
+            {hasPendingClaim ? (
+              <p className="text-muted-foreground text-sm">
+                {t('balancePendingNote', { amount: pendingFormatted })}
+              </p>
+            ) : null}
+          </>
         ) : hasCredit ? (
           <p className="text-base font-medium tabular-nums">
             {t('balanceCredit', { amount: creditFormatted })}
@@ -194,8 +216,9 @@ export default async function AppHomePage({
 
       {/* Quick settle — prominent full-width button right under the
           round breakdown so calling it a day is one tap. Only when
-          the member owes. */}
-      {owes ? (
+          the member owes AND hasn't already claimed a covering payment
+          (no point sending them to settle what's awaiting confirmation). */}
+      {owes && !awaitingConfirmation ? (
         <Link
           href={'/settle' as Route}
           className={buttonVariants({ size: 'lg', className: 'h-14 w-full text-base' })}

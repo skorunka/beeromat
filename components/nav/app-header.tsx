@@ -24,6 +24,7 @@ export function AppHeader({
   avatarUploadAt,
   balanceFormatted,
   balanceAriaLabel,
+  balanceAwaiting = false,
 }: {
   clubName: string;
   displayName: string;
@@ -33,6 +34,7 @@ export function AppHeader({
   avatarUploadAt: Date | null;
   balanceFormatted: string | null;
   balanceAriaLabel: string;
+  balanceAwaiting?: boolean;
 }) {
   return (
     <header className="mx-auto flex max-w-md items-center justify-between gap-3 px-5 pt-5">
@@ -51,7 +53,11 @@ export function AppHeader({
         </span>
       </Link>
       <div className="flex shrink-0 items-center gap-2">
-        <BalanceBadge balanceFormatted={balanceFormatted} ariaLabel={balanceAriaLabel} />
+        <BalanceBadge
+          balanceFormatted={balanceFormatted}
+          ariaLabel={balanceAriaLabel}
+          awaiting={balanceAwaiting}
+        />
         <UserMenu
           displayName={displayName}
           email={email}

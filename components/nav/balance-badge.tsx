@@ -1,5 +1,5 @@
 import type { Route } from 'next';
-import { Coins } from 'lucide-react';
+import { Clock, Coins } from 'lucide-react';
 
 import { Link } from '@/lib/i18n/navigation';
 
@@ -29,11 +29,34 @@ import { Link } from '@/lib/i18n/navigation';
 export function BalanceBadge({
   balanceFormatted,
   ariaLabel,
+  awaiting = false,
 }: {
   balanceFormatted: string | null;
   ariaLabel: string;
+  /** A claimed-but-unconfirmed payment covers the balance — render a
+   *  calm, non-animated "awaiting confirmation" pill instead of the
+   *  theatrical nag, so a member who already paid isn't told to settle
+   *  again. */
+  awaiting?: boolean;
 }) {
   if (!balanceFormatted) return null;
+
+  // Calm variant: muted pill, a clock, and NONE of the four looping
+  // animations — the member has paid; the signal is "hang tight", not
+  // "go settle".
+  if (awaiting) {
+    return (
+      <Link
+        href={'/tab' as Route}
+        aria-label={ariaLabel}
+        className="bg-muted text-muted-foreground hover:bg-muted/80 inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm font-medium tabular-nums transition-colors"
+      >
+        <Clock aria-hidden className="h-3.5 w-3.5" />
+        {balanceFormatted}
+      </Link>
+    );
+  }
+
   return (
     <div className="relative inline-flex shrink-0 items-center">
       {/* Pulsing halo behind the pill (blurred amber circle). */}

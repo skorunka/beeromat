@@ -5,8 +5,7 @@ import { getTranslations } from 'next-intl/server';
 import { auth } from '@/lib/auth/better-auth';
 import { currentSession, localeRedirect } from '@/lib/auth/session';
 import { deviceSessionState } from '@/lib/auth/device-session-state';
-import { memberBalance } from '@/lib/balance/calculate';
-import { getDisputedClaimsForMember } from '@/lib/db/queries/payments';
+import { getDisputedClaimsForMember, getMyBalance } from '@/lib/db/queries/payments';
 import { formatMoney, formatMoneyCompact } from '@/lib/format';
 import { roleSatisfies } from '@/lib/permissions';
 import { PinGate } from '@/components/pin/pin-gate';
@@ -40,24 +39,34 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
   if (state === 'no-session') return <PinGate mode="setup" />;
   if (state !== 'unlocked') return <PinGate mode="unlock" />;
 
-  const [disputed, balanceMinor, tHome] = await Promise.all([
+  const [disputed, myBalance, tHome] = await Promise.all([
     getDisputedClaimsForMember(ctx.member.id),
-    memberBalance(ctx.member.id),
+    getMyBalance(ctx.member.id, ctx.club.currencyCode),
     getTranslations('home'),
   ]);
+  const { balanceMinor, pendingConfirmationMinor } = myBalance;
+  const owes = balanceMinor > 0n;
+  // Once a member has claimed a payment that covers what they owe, the
+  // canonical balance is unchanged until a treasurer confirms — but
+  // nagging them with the full amount + theatrical money-fly reads as
+  // "you still owe this" and breeds double-payment anxiety. Switch the
+  // pill to a calm "awaiting confirmation" variant in that window.
+  const awaitingConfirmation = owes && pendingConfirmationMinor >= balanceMinor;
   // Compact format for the header pill ("380 Kč" not "380,00 Kč").
   // The aria-label uses the full sentence form for screen readers,
   // built from the catalog with the precise amount.
-  const balanceFormatted =
-    balanceMinor > 0n
-      ? formatMoneyCompact(balanceMinor, ctx.club.currencyCode, ctx.club.defaultLocale)
-      : null;
-  const balanceAriaLabel =
-    balanceFormatted !== null
-      ? tHome('balanceOwed', {
+  const balanceFormatted = owes
+    ? formatMoneyCompact(balanceMinor, ctx.club.currencyCode, ctx.club.defaultLocale)
+    : null;
+  const balanceAriaLabel = !owes
+    ? tHome('balanceSquare')
+    : awaitingConfirmation
+      ? tHome('balanceAwaitingAria', {
           amount: formatMoney(balanceMinor, ctx.club.currencyCode, ctx.club.defaultLocale),
         })
-      : tHome('balanceSquare');
+      : tHome('balanceOwed', {
+          amount: formatMoney(balanceMinor, ctx.club.currencyCode, ctx.club.defaultLocale),
+        });
 
   // Daily destinations for everyone, plus one role-gated operational
   // entry (highest role wins) — computed server-side so the client nav
@@ -106,6 +115,7 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
         avatarUploadAt={ctx.member.avatarUploadAt ?? null}
         balanceFormatted={balanceFormatted}
         balanceAriaLabel={balanceAriaLabel}
+        balanceAwaiting={awaitingConfirmation}
       />
       {/* Bottom padding clears the fixed nav so it never occludes content. */}
       <ConfirmProvider>

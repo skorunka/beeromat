@@ -200,6 +200,9 @@
     "settledToast": "Vyrovnáno — {beer} na útratě {name}.",
     "alreadySettled": "Tahle sázka už je vyrovnaná.",
     "deliverFailed": "Nepovedlo se to — zkus to prosím znovu.",
+    "writeOff": "Odepsat",
+    "writeOffConfirm": "Odepsat dluh? {name} ti pivo dlužit nebude.",
+    "writeOffToast": "Dluh odepsán — {name} ti pivo nedluží.",
     "cancel": "Zrušit",
     "beerPlaceholder": "Vyber pivo",
     "nothingToSettle": "Žádné sázky k vyrovnání."

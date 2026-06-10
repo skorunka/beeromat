@@ -16,7 +16,7 @@ import {
   reverseResultTx,
   type OpenAgreementSummary,
 } from '@/lib/db/queries/match-agreements';
-import { deliverBeerDebtTx } from '@/lib/db/queries/match-bet-debts';
+import { deliverBeerDebtTx, voidBeerDebtTx } from '@/lib/db/queries/match-bet-debts';
 import { closeOpenRoundTx } from '@/lib/db/queries/sessions';
 import { canRecordMatchResult, roleSatisfies } from '@/lib/permissions';
 import type { CreateAgreementInput } from '@/lib/validation/match-agreement';
@@ -27,6 +27,7 @@ import {
   editAgreementSchema,
   recordResultSchema,
   reverseResultSchema,
+  voidBeerDebtSchema,
 } from '@/lib/validation/match-agreement';
 
 // Spec 013 — match-agreement Server Actions.
@@ -210,6 +211,34 @@ export async function deliverBeerDebtAction(rawInput: unknown): Promise<DeliverB
     revalidatePath('/', 'layout');
     revalidatePath('/match');
     revalidatePath('/tab');
+  }
+  return result;
+}
+
+// Spec 030 follow-up — write off ("Odepsat") a pending beer-IOU. The
+// winner forgives it (no money/stock). Asymmetric authz lives in the tx:
+// only the winner (to_member) or treasurer+ — never the loser.
+export type VoidBeerDebtResult =
+  | { ok: true; loserName: string }
+  | { ok: false; code: 'NOT_FOUND' }
+  | { ok: false; code: 'FORBIDDEN' }
+  | { ok: false; code: 'ALREADY_SETTLED' };
+
+export async function voidBeerDebtAction(rawInput: unknown): Promise<VoidBeerDebtResult> {
+  const parsed = voidBeerDebtSchema.safeParse(rawInput);
+  if (!parsed.success) return { ok: false, code: 'NOT_FOUND' };
+  const ctx = await requireUnlocked();
+
+  const result = await voidBeerDebtTx({
+    debtId: parsed.data.debtId,
+    clubId: ctx.club.id,
+    actorUserId: ctx.user.id,
+    actorMemberId: ctx.member.id,
+    isElevated: roleSatisfies(ctx.member.role, 'treasurer'),
+  });
+  if (result.ok) {
+    revalidatePath('/', 'layout');
+    revalidatePath('/match');
   }
   return result;
 }

@@ -6,9 +6,10 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { X } from 'lucide-react';
 
-import { deliverBeerDebtAction } from '@/app/[locale]/(app)/match/actions';
+import { deliverBeerDebtAction, voidBeerDebtAction } from '@/app/[locale]/(app)/match/actions';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useConfirm } from '@/components/ui/confirm-dialog';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { BeerPickerDropdown, type BeerPickerOption } from '@/components/picker/beer-picker-dropdown';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
@@ -34,9 +35,11 @@ interface BeerIouRowProps {
 export function BeerIouRow({ debt, role, beers, currencyCode, locale }: BeerIouRowProps) {
   const t = useTranslations('matchBet');
   const router = useRouter();
+  const confirm = useConfirm();
   const [expanded, setExpanded] = useState(false);
   const [beerId, setBeerId] = useState<string | null>(debt.plannedBeerTypeId);
   const [isPending, startTransition] = useTransition();
+  const [isVoiding, startVoidTransition] = useTransition();
 
   const label =
     role === 'owed'
@@ -54,6 +57,28 @@ export function BeerIouRow({ debt, role, beers, currencyCode, locale }: BeerIouR
       }
       celebrateBeer();
       toast.success(t('settledToast', { beer: result.beerName, name: result.loserName }));
+      router.refresh();
+    });
+  }
+
+  // Write off ("Odepsat") — winner forgives the debt, no money moves.
+  // Only rendered for the winner (role 'owed'); the confirm runs OUTSIDE
+  // the transition so the button doesn't spin while the dialog is open.
+  async function writeOff() {
+    const ok = await confirm({
+      title: t('writeOffConfirm', { name: debt.counterpartyName }),
+      confirmLabel: t('writeOff'),
+      destructive: true,
+    });
+    if (!ok) return;
+    startVoidTransition(async () => {
+      const result = await voidBeerDebtAction({ debtId: debt.debtId });
+      if (!result.ok) {
+        toast.error(result.code === 'ALREADY_SETTLED' ? t('alreadySettled') : t('deliverFailed'));
+        router.refresh();
+        return;
+      }
+      toast.success(t('writeOffToast', { name: result.loserName }));
       router.refresh();
     });
   }
@@ -77,9 +102,24 @@ export function BeerIouRow({ debt, role, beers, currencyCode, locale }: BeerIouR
           ) : null}
         </div>
         {!expanded ? (
-          <Button type="button" size="sm" onClick={() => setExpanded(true)} className="shrink-0">
-            {t('deliver')}
-          </Button>
+          <div className="flex shrink-0 items-center gap-1">
+            {/* Winner-only escape hatch: forgive a debt you'll never
+                collect (e.g. the loser left the club). The loser can't
+                write off their own IOU. */}
+            {role === 'owed' ? (
+              <button
+                type="button"
+                onClick={writeOff}
+                disabled={isVoiding}
+                className="text-muted-foreground hover:text-foreground inline-flex h-8 items-center rounded-md px-2 text-xs disabled:opacity-50"
+              >
+                {t('writeOff')}
+              </button>
+            ) : null}
+            <Button type="button" size="sm" onClick={() => setExpanded(true)}>
+              {t('deliver')}
+            </Button>
+          </div>
         ) : (
           <button
             type="button"

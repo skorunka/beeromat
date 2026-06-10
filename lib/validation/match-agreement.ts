@@ -116,6 +116,15 @@ export const deliverBeerDebtSchema = z.object({
 
 export type DeliverBeerDebtInput = z.infer<typeof deliverBeerDebtSchema>;
 
+// Spec 030 follow-up — write off ("Odepsat") a pending beer-IOU: the
+// winner forgives the debt, no money/stock moves. Authz (winner-only or
+// elevated) is enforced server-side, not here.
+export const voidBeerDebtSchema = z.object({
+  debtId: z.string().uuid({ error: 'match.errors.agreementIdRequired' }),
+});
+
+export type VoidBeerDebtInput = z.infer<typeof voidBeerDebtSchema>;
+
 export const reverseResultSchema = z.object({
   agreementId: z.string().uuid({ error: 'match.errors.agreementIdRequired' }),
 });

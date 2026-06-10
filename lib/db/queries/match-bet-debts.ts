@@ -293,3 +293,69 @@ export async function deliverBeerDebtTx(
     return { ok: true as const, beerName: chosen.name, loserName: loser?.name ?? '' };
   });
 }
+
+// ── Write: write off ("Odepsat") one IOU ─────────────────────────────
+
+export interface VoidBeerDebtArgs {
+  debtId: string;
+  clubId: string;
+  actorUserId: string;
+  actorMemberId: string;
+  /** treasurer/club_admin — may write off any debt. */
+  isElevated: boolean;
+}
+
+export type VoidBeerDebtResult =
+  | { ok: true; loserName: string }
+  | { ok: false; code: 'NOT_FOUND' }
+  | { ok: false; code: 'FORBIDDEN' }
+  | { ok: false; code: 'ALREADY_SETTLED' };
+
+/**
+ * Forgive a pending beer-IOU: status pending → voided, NO money/stock
+ * moves (unlike delivery). The escape hatch for a winner who'll never
+ * collect — e.g. the loser left the club, leaving a dangling IOU.
+ *
+ * Authz is ASYMMETRIC and deliberately stricter than delivery: only the
+ * WINNER (to_member) or an elevated role may write off. The loser
+ * (from_member) must NOT be able to void their own debt — that would
+ * let them unilaterally evade what they owe. This is the one place the
+ * deliver authz model (either party) cannot be copied.
+ */
+export async function voidBeerDebtTx(
+  args: VoidBeerDebtArgs,
+): Promise<VoidBeerDebtResult> {
+  return db.transaction(async (tx) => {
+    const debt = await tx.query.matchBetDebts.findFirst({
+      where: and(eq(matchBetDebts.id, args.debtId), eq(matchBetDebts.clubId, args.clubId)),
+    });
+    if (!debt) return { ok: false, code: 'NOT_FOUND' as const };
+
+    const isWinner = debt.toMemberId === args.actorMemberId;
+    if (!isWinner && !args.isElevated) return { ok: false, code: 'FORBIDDEN' as const };
+
+    if (debt.status !== 'pending') return { ok: false, code: 'ALREADY_SETTLED' as const };
+
+    // Optimistic claim (house idiom): pending → voided. The check
+    // constraint requires voidedAt set + settledAt null, which holds.
+    // 0 rows ⇒ concurrently delivered/voided → bail.
+    const claimed = await tx
+      .update(matchBetDebts)
+      .set({
+        status: 'voided',
+        voidedAt: new Date(),
+        voidedByUserId: args.actorUserId,
+      })
+      .where(and(eq(matchBetDebts.id, args.debtId), eq(matchBetDebts.status, 'pending')))
+      .returning({ id: matchBetDebts.id });
+    if (claimed.length === 0) return { ok: false, code: 'ALREADY_SETTLED' as const };
+
+    const [loser] = await tx
+      .select({ name: members.displayName })
+      .from(members)
+      .where(eq(members.id, debt.fromMemberId))
+      .limit(1);
+
+    return { ok: true as const, loserName: loser?.name ?? '' };
+  });
+}

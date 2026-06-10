@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { describe, it, expect, vi } from 'vitest';
 
 import { MatchBetModule } from '@/components/home/match-bet-module';
+import { ConfirmProvider } from '@/components/ui/confirm-dialog';
 import type { BeerDebtRow, MemberBeerDebts } from '@/lib/db/queries/match-bet-debts';
 import enMessages from '@/messages/en.json';
 
@@ -10,6 +11,7 @@ import enMessages from '@/messages/en.json';
 
 vi.mock('@/app/[locale]/(app)/match/actions', () => ({
   deliverBeerDebtAction: vi.fn(),
+  voidBeerDebtAction: vi.fn(),
 }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock('@/lib/celebrate', () => ({ celebrateBeer: vi.fn() }));
@@ -33,7 +35,11 @@ function debt(over: Partial<BeerDebtRow> = {}): BeerDebtRow {
 function renderModule(debts: MemberBeerDebts) {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages}>
-      <MatchBetModule debts={debts} beers={[]} currencyCode="CZK" locale="en" />
+      {/* BeerIouRow's write-off control uses useConfirm(), which needs a
+          ConfirmProvider above it (mounted in the (app) layout for real). */}
+      <ConfirmProvider>
+        <MatchBetModule debts={debts} beers={[]} currencyCode="CZK" locale="en" />
+      </ConfirmProvider>
     </NextIntlClientProvider>,
   );
 }

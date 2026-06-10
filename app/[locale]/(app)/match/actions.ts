@@ -16,7 +16,11 @@ import {
   reverseResultTx,
   type OpenAgreementSummary,
 } from '@/lib/db/queries/match-agreements';
-import { deliverBeerDebtTx, voidBeerDebtTx } from '@/lib/db/queries/match-bet-debts';
+import {
+  deliverBeerDebtTx,
+  undeliverBeerDebtTx,
+  voidBeerDebtTx,
+} from '@/lib/db/queries/match-bet-debts';
 import { closeOpenRoundTx } from '@/lib/db/queries/sessions';
 import { canRecordMatchResult, roleSatisfies } from '@/lib/permissions';
 import type { CreateAgreementInput } from '@/lib/validation/match-agreement';
@@ -27,6 +31,7 @@ import {
   editAgreementSchema,
   recordResultSchema,
   reverseResultSchema,
+  undeliverBeerDebtSchema,
   voidBeerDebtSchema,
 } from '@/lib/validation/match-agreement';
 
@@ -206,6 +211,38 @@ export async function deliverBeerDebtAction(rawInput: unknown): Promise<DeliverB
     actorMemberId: ctx.member.id,
     isElevated: roleSatisfies(ctx.member.role, 'treasurer'),
     beerTypeId: parsed.data.beerTypeId ?? null,
+  });
+  if (result.ok) {
+    revalidatePath('/', 'layout');
+    revalidatePath('/match');
+    revalidatePath('/tab');
+  }
+  return result;
+}
+
+// Spec 030 follow-up — undo a recent delivery ("Vrátit"). Reverses the
+// booked cost and restores the pending IOU. Window (keyed to settledAt)
+// + authz (either party or treasurer+) enforced in the tx.
+export type UndeliverBeerDebtResult =
+  | { ok: true; loserName: string }
+  | { ok: false; code: 'NOT_FOUND' }
+  | { ok: false; code: 'FORBIDDEN' }
+  | { ok: false; code: 'NOT_DELIVERED' }
+  | { ok: false; code: 'UNDO_WINDOW_EXPIRED' };
+
+export async function undeliverBeerDebtAction(
+  rawInput: unknown,
+): Promise<UndeliverBeerDebtResult> {
+  const parsed = undeliverBeerDebtSchema.safeParse(rawInput);
+  if (!parsed.success) return { ok: false, code: 'NOT_FOUND' };
+  const ctx = await requireUnlocked();
+
+  const result = await undeliverBeerDebtTx({
+    debtId: parsed.data.debtId,
+    clubId: ctx.club.id,
+    actorUserId: ctx.user.id,
+    actorMemberId: ctx.member.id,
+    isElevated: roleSatisfies(ctx.member.role, 'treasurer'),
   });
   if (result.ok) {
     revalidatePath('/', 'layout');

@@ -11,6 +11,7 @@ import enMessages from '@/messages/en.json';
 
 vi.mock('@/app/[locale]/(app)/match/actions', () => ({
   deliverBeerDebtAction: vi.fn(),
+  undeliverBeerDebtAction: vi.fn(),
   voidBeerDebtAction: vi.fn(),
 }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }));

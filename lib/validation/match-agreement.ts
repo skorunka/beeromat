@@ -125,6 +125,14 @@ export const voidBeerDebtSchema = z.object({
 
 export type VoidBeerDebtInput = z.infer<typeof voidBeerDebtSchema>;
 
+// Spec 030 follow-up — undo a recent delivery ("Vrátit"). Window check
+// (keyed to settledAt) + authz are enforced server-side.
+export const undeliverBeerDebtSchema = z.object({
+  debtId: z.string().uuid({ error: 'match.errors.agreementIdRequired' }),
+});
+
+export type UndeliverBeerDebtInput = z.infer<typeof undeliverBeerDebtSchema>;
+
 export const reverseResultSchema = z.object({
   agreementId: z.string().uuid({ error: 'match.errors.agreementIdRequired' }),
 });

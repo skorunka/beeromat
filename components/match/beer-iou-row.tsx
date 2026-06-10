@@ -6,7 +6,11 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { X } from 'lucide-react';
 
-import { deliverBeerDebtAction, voidBeerDebtAction } from '@/app/[locale]/(app)/match/actions';
+import {
+  deliverBeerDebtAction,
+  undeliverBeerDebtAction,
+  voidBeerDebtAction,
+} from '@/app/[locale]/(app)/match/actions';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useConfirm } from '@/components/ui/confirm-dialog';
@@ -56,7 +60,29 @@ export function BeerIouRow({ debt, role, beers, currencyCode, locale }: BeerIouR
         return;
       }
       celebrateBeer();
-      toast.success(t('settledToast', { beer: result.beerName, name: result.loserName }));
+      // Undo affordance for the common mis-tap. The toast lives at the
+      // app root, so its onClick must be self-contained (this row
+      // unmounts once the now-settled debt drops off the list on
+      // refresh) — call the action + refresh directly, no component
+      // state. Server keeps the undo open for the settledAt window.
+      const debtId = debt.debtId;
+      toast.success(t('settledToast', { beer: result.beerName, name: result.loserName }), {
+        duration: 10000,
+        action: {
+          label: t('undoDeliver'),
+          onClick: async () => {
+            const undo = await undeliverBeerDebtAction({ debtId });
+            if (!undo.ok) {
+              toast.error(
+                undo.code === 'UNDO_WINDOW_EXPIRED' ? t('undoExpired') : t('deliverFailed'),
+              );
+            } else {
+              toast.success(t('undoneToast', { name: undo.loserName }));
+            }
+            router.refresh();
+          },
+        },
+      });
       router.refresh();
     });
   }

@@ -1,14 +1,15 @@
 import 'server-only';
-import { and, asc, eq, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, isNull, notExists, sql } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { betTransfers, betTransferVoids } from '@/lib/db/schema/bets';
 import { beerTypes, stockChanges } from '@/lib/db/schema/catalog';
-import { consumptions } from '@/lib/db/schema/consumption';
+import { consumptions, consumptionVoids } from '@/lib/db/schema/consumption';
 import { matchBetDebts } from '@/lib/db/schema/match-bet-debts';
 import { matchBetTransfers } from '@/lib/db/schema/matches';
 import { members } from '@/lib/db/schema/members';
 import { drinkSessions } from '@/lib/db/schema/sessions';
+import { UNDO_WINDOW_MS } from '@/lib/db/queries/match-agreements';
 import { pickBetBeer, NoBeerInStockError, type BetBeerCandidate } from '@/lib/match/default-bet-beer';
 
 // Spec 030 — beer-IOU reads + the deliver ("Předáno") transaction.
@@ -291,6 +292,136 @@ export async function deliverBeerDebtTx(
       .limit(1);
 
     return { ok: true as const, beerName: chosen.name, loserName: loser?.name ?? '' };
+  });
+}
+
+// ── Write: undo a delivery ("Vrátit") ────────────────────────────────
+
+export interface UndeliverBeerDebtArgs {
+  debtId: string;
+  clubId: string;
+  actorUserId: string;
+  actorMemberId: string;
+  /** treasurer/club_admin — may undo any delivery. */
+  isElevated: boolean;
+}
+
+export type UndeliverBeerDebtResult =
+  | { ok: true; loserName: string }
+  | { ok: false; code: 'NOT_FOUND' }
+  | { ok: false; code: 'FORBIDDEN' }
+  | { ok: false; code: 'NOT_DELIVERED' }
+  | { ok: false; code: 'UNDO_WINDOW_EXPIRED' };
+
+/**
+ * Undo a recent delivery: settled → pending, unwinding the booked cost
+ * (void the bet_transfer(s) + source consumption(s), restore stock).
+ * The fast-path "oops, wrong tap / wrong beer" recovery.
+ *
+ * The window is keyed to `settledAt` (delivery time), NOT the match's
+ * result-record time — a debt delivered days later still gets a fair
+ * undo window (the agreement-reversal path, by contrast, expires from
+ * result time and would never help a late delivery).
+ *
+ * Authz mirrors delivery: either party or elevated (un-delivering just
+ * restores the pending IOU — no evasion risk, unlike write-off).
+ */
+export async function undeliverBeerDebtTx(
+  args: UndeliverBeerDebtArgs,
+): Promise<UndeliverBeerDebtResult> {
+  return db.transaction(async (tx) => {
+    const debt = await tx.query.matchBetDebts.findFirst({
+      where: and(eq(matchBetDebts.id, args.debtId), eq(matchBetDebts.clubId, args.clubId)),
+    });
+    if (!debt) return { ok: false, code: 'NOT_FOUND' as const };
+
+    const isParty =
+      debt.fromMemberId === args.actorMemberId || debt.toMemberId === args.actorMemberId;
+    if (!isParty && !args.isElevated) return { ok: false, code: 'FORBIDDEN' as const };
+
+    if (debt.status !== 'settled' || !debt.settledAt) {
+      return { ok: false, code: 'NOT_DELIVERED' as const };
+    }
+    if (Date.now() - debt.settledAt.getTime() > UNDO_WINDOW_MS) {
+      return { ok: false, code: 'UNDO_WINDOW_EXPIRED' as const };
+    }
+
+    // Flip settled → pending via optimistic claim, nulling the settle
+    // columns (chk_match_bet_debts_status_consistency requires pending ⇒
+    // both settledAt and voidedAt null). 0 rows ⇒ concurrently changed.
+    const claimed = await tx
+      .update(matchBetDebts)
+      .set({
+        status: 'pending',
+        settledAt: null,
+        settledByUserId: null,
+        settledBeerTypeId: null,
+      })
+      .where(and(eq(matchBetDebts.id, args.debtId), eq(matchBetDebts.status, 'settled')))
+      .returning({ id: matchBetDebts.id });
+    if (claimed.length === 0) return { ok: false, code: 'NOT_DELIVERED' as const };
+
+    // Unwind the booked cost for THIS debt's match. The notExists filter
+    // targets only live transfers, so a re-deliver→undeliver cycle never
+    // double-voids or double-restores stock (mirrors reverseResultTx).
+    const links = await tx
+      .select({
+        transferId: betTransfers.id,
+        sourceConsumptionId: betTransfers.sourceConsumptionId,
+        beerTypeId: consumptions.beerTypeId,
+      })
+      .from(matchBetTransfers)
+      .innerJoin(betTransfers, eq(betTransfers.id, matchBetTransfers.betTransferId))
+      .innerJoin(consumptions, eq(consumptions.id, betTransfers.sourceConsumptionId))
+      .where(
+        and(
+          eq(matchBetTransfers.matchId, debt.matchId),
+          notExists(
+            tx
+              .select()
+              .from(betTransferVoids)
+              .where(eq(betTransferVoids.betTransferId, betTransfers.id)),
+          ),
+        ),
+      );
+    for (const link of links) {
+      await tx.insert(betTransferVoids).values({
+        clubId: args.clubId,
+        betTransferId: link.transferId,
+        voidedByUserId: args.actorUserId,
+        reason: 'delivery undo',
+      });
+      const existingConsumptionVoid = await tx.query.consumptionVoids.findFirst({
+        where: eq(consumptionVoids.consumptionId, link.sourceConsumptionId),
+      });
+      if (!existingConsumptionVoid) {
+        await tx.insert(consumptionVoids).values({
+          clubId: args.clubId,
+          consumptionId: link.sourceConsumptionId,
+          voidedByUserId: args.actorUserId,
+          reason: 'delivery undo',
+        });
+        await tx
+          .update(beerTypes)
+          .set({ currentStock: sql`${beerTypes.currentStock} + 1` })
+          .where(eq(beerTypes.id, link.beerTypeId));
+        await tx.insert(stockChanges).values({
+          clubId: args.clubId,
+          beerTypeId: link.beerTypeId,
+          delta: 1,
+          kind: 'consumption_void_increment',
+          createdByUserId: args.actorUserId,
+        });
+      }
+    }
+
+    const [loser] = await tx
+      .select({ name: members.displayName })
+      .from(members)
+      .where(eq(members.id, debt.fromMemberId))
+      .limit(1);
+
+    return { ok: true as const, loserName: loser?.name ?? '' };
   });
 }
 

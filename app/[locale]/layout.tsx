@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -13,6 +13,17 @@ import '../globals.css';
 export const metadata: Metadata = {
   title: 'beeromat',
   description: 'After-match beer tab tracker for tennis clubs',
+};
+
+// `viewportFit: 'cover'` lets content (and the bottom nav's
+// `env(safe-area-inset-bottom)` padding) extend into the iOS notch /
+// home-indicator regions. Without it those insets report 0 and the
+// fixed bottom nav sits under the home indicator. Zoom is left enabled
+// (no maximumScale / userScalable) so pinch-to-zoom stays available.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 // The Clubhouse display typeface (v1.4). `latin-ext` carries the Czech

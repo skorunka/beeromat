@@ -681,7 +681,11 @@
     "unauthorized": "You'll need to sign in for that.",
     "forbidden": "That one's not for you.",
     "notFound": "Couldn't find that.",
-    "rateLimited": "Whoa — slow down a sec."
+    "rateLimited": "Whoa — slow down a sec.",
+    "boundaryTitle": "Something spilled.",
+    "boundaryBody": "Sorry — something fell over here. Give it another go.",
+    "boundaryRetry": "Try again",
+    "boundaryHome": "Back home"
   },
   "forms": {
     "required": "Pop something in here.",

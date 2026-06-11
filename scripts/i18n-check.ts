@@ -36,6 +36,12 @@ const SCAN_DIRS = ['app', 'components'];
 // file has been audited; no real hardcoded user-facing copy.
 const EXCLUDED = new Set([
   'app/not-found.tsx',
+  // global-error.tsx replaces the root layout and renders OUTSIDE the
+  // NextIntlClientProvider (it catches errors thrown by the locale
+  // layout itself), so — like not-found.tsx — it legitimately carries
+  // hardcoded copy in the deployment-default language (Czech). The
+  // branded, localized boundary for the common case is [locale]/error.tsx.
+  'app/global-error.tsx',
   'components/ui/pin-input.tsx',
   // member-picker-dropdown.tsx uses `disabledIds?: Set<string>` in
   // its props — the `<string>` generic trips the JSX_TEXT regex

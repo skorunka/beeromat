@@ -681,7 +681,11 @@
     "unauthorized": "Na tohle se musíš přihlásit.",
     "forbidden": "Tohle není pro tebe.",
     "notFound": "Tohle se nenašlo.",
-    "rateLimited": "Hele — zpomal trochu."
+    "rateLimited": "Hele — zpomal trochu.",
+    "boundaryTitle": "Něco se rozlilo.",
+    "boundaryBody": "Promiň, tady něco spadlo. Zkus to prosím znovu.",
+    "boundaryRetry": "Zkusit znovu",
+    "boundaryHome": "Zpátky domů"
   },
   "forms": {
     "required": "Tohle ještě doplň.",

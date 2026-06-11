@@ -324,6 +324,7 @@
       "placePlaceholder": "Clay court",
       "titleLabel": "Title (optional)",
       "create": "Create",
+      "createdToast": "Session created.",
       "cancelOccurrence": "Cancel this date",
       "deactivate": "Deactivate session",
       "setForMember": "Set for member",

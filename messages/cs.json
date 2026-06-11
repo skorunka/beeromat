@@ -324,6 +324,7 @@
       "placePlaceholder": "Antuka",
       "titleLabel": "Název (nepovinné)",
       "create": "Vytvořit",
+      "createdToast": "Sraz vytvořen.",
       "cancelOccurrence": "Zrušit tenhle termín",
       "deactivate": "Deaktivovat sraz",
       "setForMember": "Nastavit za člena",

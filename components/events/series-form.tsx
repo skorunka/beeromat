@@ -44,7 +44,7 @@ export function SeriesForm() {
     startTransition(async () => {
       const r = await createSeriesAction(values);
       if (r.ok) {
-        toast.success(t('create'));
+        toast.success(t('createdToast'));
         form.reset({ weekday: values.weekday, startLocalTime: values.startLocalTime, placeLabel: '' });
         router.refresh();
       } else {

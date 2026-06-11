@@ -620,7 +620,7 @@
     "stockSummary": "{price} · {stock} in the fridge · heads-up at {threshold}",
     "historyLink": "History",
     "restock": "Restock",
-    "adjust": "Adjust",
+    "adjust": "Edit stock",
     "edit": "Edit",
     "archive": "Archive",
     "unarchive": "Bring back",

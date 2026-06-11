@@ -620,7 +620,7 @@
     "stockSummary": "{price} · v lednici {stock} · upozornění při {threshold}",
     "historyLink": "Historie",
     "restock": "Naskladnit",
-    "adjust": "Upravit stav",
+    "adjust": "Upravit zásobu",
     "edit": "Upravit pivo",
     "archive": "Archivovat",
     "unarchive": "Vrátit zpět",

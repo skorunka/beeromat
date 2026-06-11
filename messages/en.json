@@ -3,6 +3,16 @@
     "title": "beeromat",
     "tagline": "After the match. After the pint. Without the chaos."
   },
+  "pwa": {
+    "install": {
+      "title": "Install beeromat",
+      "subtitle": "Keep your beer tab one tap from your home screen.",
+      "cta": "Install",
+      "dismiss": "Dismiss",
+      "iosTitle": "Add beeromat to your home screen",
+      "iosBody": "Tap Share, then “Add to Home Screen”."
+    }
+  },
   "common": {
     "loading": "Loading…",
     "error": "That didn't work — give it another go.",

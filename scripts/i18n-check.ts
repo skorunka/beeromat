@@ -67,6 +67,11 @@ const EXCLUDED = new Set([
   // tag). File audited: button labels come from props or common.* via
   // useTranslations; no hardcoded user-facing copy.
   'components/ui/confirm-dialog.tsx',
+  // install-prompt.tsx — the BeforeInstallPromptEvent interface's
+  // `prompt: () => Promise<void>` trips the JSX_TEXT regex (same
+  // Promise<…> false-positive as confirm-dialog.tsx). File audited:
+  // every user-facing string comes from useTranslations('pwa.install').
+  'components/pwa/install-prompt.tsx',
 ]);
 
 // ── shared ───────────────────────────────────────────────────────────

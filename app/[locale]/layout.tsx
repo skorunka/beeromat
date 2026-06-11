@@ -7,6 +7,7 @@ import { Bricolage_Grotesque } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
 import { BeerCelebration } from '@/components/log/beer-celebration';
 import { ServiceWorkerRegistrar } from '@/components/pwa/service-worker-registrar';
+import { InstallPrompt } from '@/components/pwa/install-prompt';
 import { routing } from '@/lib/i18n/routing';
 
 import '../globals.css';
@@ -72,6 +73,7 @@ export default async function LocaleLayout({
           <Toaster />
           <BeerCelebration />
           <ServiceWorkerRegistrar />
+          <InstallPrompt />
         </NextIntlClientProvider>
       </body>
     </html>

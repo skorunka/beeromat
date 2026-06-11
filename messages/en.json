@@ -300,8 +300,8 @@
   },
   "events": {
     "navLabel": "Events",
-    "thisWeek": "This week",
-    "noSessions": "Nothing on this week.",
+    "upcoming": "Upcoming",
+    "noSessions": "No upcoming sessions to RSVP to.",
     "going": "I'm in",
     "notGoing": "Can't make it",
     "whoIsComing": "Who's coming",

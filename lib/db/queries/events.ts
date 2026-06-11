@@ -1,5 +1,5 @@
 import 'server-only';
-import { and, asc, eq, gt, gte, lte, sql } from 'drizzle-orm';
+import { and, asc, count, eq, gt, inArray, lte } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { members } from '@/lib/db/schema/members';
@@ -11,7 +11,7 @@ import {
   type EventSeries,
 } from '@/lib/db/schema/events';
 import { pragueDateParts, pragueLocalToInstant } from '@/lib/events/prague-time';
-import { currentPragueWeekDates, nextOccurrenceDates } from '@/lib/events/window';
+import { nextOccurrenceDates, OPEN_WINDOW_DAYS } from '@/lib/events/window';
 
 const GENERATION_HORIZON_WEEKS = 5;
 
@@ -66,26 +66,18 @@ export interface OpenOccurrenceRow {
   myStatus: 'going' | 'not_going' | null;
 }
 
+// Sessions open for RSVP = scheduled, not yet started, starting within the
+// ROLLING OPEN_WINDOW_DAYS from `now`. No correlated raw SQL (which trips the
+// bare-column bug): occurrences first, then grouped going-counts + the
+// caller's own statuses, merged in JS.
 export async function listOpenThisWeek(
   clubId: string,
   memberId: string,
   now: Date,
 ): Promise<OpenOccurrenceRow[]> {
-  const { monday, sunday } = currentPragueWeekDates(now);
+  const windowEnd = new Date(now.getTime() + OPEN_WINDOW_DAYS * 24 * 60 * 60 * 1000);
 
-  const goingCount = sql<number>`(
-    select count(*)::int from ${eventRsvps}
-    where ${eventRsvps.occurrenceId} = ${eventOccurrences.id}
-      and ${eventRsvps.status} = 'going'
-  )`;
-  const myStatus = sql<'going' | 'not_going' | null>`(
-    select ${eventRsvps.status} from ${eventRsvps}
-    where ${eventRsvps.occurrenceId} = ${eventOccurrences.id}
-      and ${eventRsvps.memberId} = ${memberId}
-    limit 1
-  )`;
-
-  return db
+  const occs = await db
     .select({
       occurrenceId: eventOccurrences.id,
       seriesId: eventOccurrences.seriesId,
@@ -94,8 +86,6 @@ export async function listOpenThisWeek(
       placeLabel: eventOccurrences.placeLabel,
       title: eventSeries.title,
       weekday: eventSeries.weekday,
-      goingCount,
-      myStatus,
     })
     .from(eventOccurrences)
     .innerJoin(eventSeries, eq(eventSeries.id, eventOccurrences.seriesId))
@@ -103,12 +93,33 @@ export async function listOpenThisWeek(
       and(
         eq(eventOccurrences.clubId, clubId),
         eq(eventOccurrences.status, 'scheduled'),
-        gte(eventOccurrences.occurrenceDate, monday),
-        lte(eventOccurrences.occurrenceDate, sunday),
         gt(eventOccurrences.startsAt, now),
+        lte(eventOccurrences.startsAt, windowEnd),
       ),
     )
     .orderBy(asc(eventOccurrences.startsAt));
+
+  if (occs.length === 0) return [];
+  const ids = occs.map((o) => o.occurrenceId);
+
+  const counts = await db
+    .select({ occurrenceId: eventRsvps.occurrenceId, going: count() })
+    .from(eventRsvps)
+    .where(and(inArray(eventRsvps.occurrenceId, ids), eq(eventRsvps.status, 'going')))
+    .groupBy(eventRsvps.occurrenceId);
+  const countMap = new Map(counts.map((c) => [c.occurrenceId, Number(c.going)]));
+
+  const mine = await db
+    .select({ occurrenceId: eventRsvps.occurrenceId, status: eventRsvps.status })
+    .from(eventRsvps)
+    .where(and(inArray(eventRsvps.occurrenceId, ids), eq(eventRsvps.memberId, memberId)));
+  const myMap = new Map(mine.map((m) => [m.occurrenceId, m.status]));
+
+  return occs.map((o) => ({
+    ...o,
+    goingCount: countMap.get(o.occurrenceId) ?? 0,
+    myStatus: myMap.get(o.occurrenceId) ?? null,
+  }));
 }
 
 // ── Occurrence detail: roster + count + optional beer-session link ───

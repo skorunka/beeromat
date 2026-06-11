@@ -66,30 +66,32 @@ describe('window: calendar math', () => {
   });
 });
 
-describe('window: isOccurrenceOpen', () => {
-  const monNow = new Date('2026-06-15T08:00:00Z'); // Monday morning, this week
-  const base = { status: 'scheduled' as const, startsAt: new Date('2026-06-16T15:00:00Z') };
+describe('window: isOccurrenceOpen (rolling 7-day window)', () => {
+  const now = new Date('2026-06-15T08:00:00Z');
+  const open = { status: 'scheduled' as const, occurrenceDate: '2026-06-16', startsAt: new Date('2026-06-16T15:00:00Z') }; // ~31h ahead
 
-  it('open: scheduled, this week, not yet started', () => {
-    expect(isOccurrenceOpen({ ...base, occurrenceDate: '2026-06-16' }, monNow)).toBe(true);
+  it('open: scheduled, within the next 7 days, not yet started', () => {
+    expect(isOccurrenceOpen(open, now)).toBe(true);
   });
 
-  it('closed: next week (out of current window)', () => {
-    expect(isOccurrenceOpen({ ...base, occurrenceDate: '2026-06-23' }, monNow)).toBe(false);
+  it('open: a Thursday-night view still shows next week (no calendar-week dead zone)', () => {
+    // Thursday 21:00 UTC; next Tuesday is ~4.8 days out → still within 7 days.
+    const thuNight = new Date('2026-06-18T21:00:00Z');
+    const nextTue = { status: 'scheduled' as const, occurrenceDate: '2026-06-23', startsAt: new Date('2026-06-23T15:00:00Z') };
+    expect(isOccurrenceOpen(nextTue, thuNight)).toBe(true);
+  });
+
+  it('closed: starts beyond the 7-day window', () => {
+    const far = { status: 'scheduled' as const, occurrenceDate: '2026-06-25', startsAt: new Date('2026-06-25T15:00:00Z') }; // 10d ahead
+    expect(isOccurrenceOpen(far, now)).toBe(false);
   });
 
   it('closed: start time already passed', () => {
-    const after = new Date('2026-06-16T16:00:00Z');
-    expect(isOccurrenceOpen({ ...base, occurrenceDate: '2026-06-16' }, after)).toBe(false);
+    expect(isOccurrenceOpen(open, new Date('2026-06-16T16:00:00Z'))).toBe(false);
   });
 
   it('closed: cancelled', () => {
-    expect(
-      isOccurrenceOpen(
-        { status: 'cancelled', occurrenceDate: '2026-06-16', startsAt: base.startsAt },
-        monNow,
-      ),
-    ).toBe(false);
+    expect(isOccurrenceOpen({ ...open, status: 'cancelled' }, now)).toBe(false);
   });
 });
 

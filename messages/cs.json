@@ -300,8 +300,8 @@
   },
   "events": {
     "navLabel": "Sraz",
-    "thisWeek": "Tento týden",
-    "noSessions": "Tento týden se nic nehraje.",
+    "upcoming": "Nejbližší srazy",
+    "noSessions": "Žádné nadcházející srazy k přihlášení.",
     "going": "Přijdu",
     "notGoing": "Nejdu",
     "whoIsComing": "Kdo přijde",

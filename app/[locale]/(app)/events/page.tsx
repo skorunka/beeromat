@@ -35,7 +35,7 @@ export default async function EventsPage({
   return (
     <main className="mx-auto max-w-md p-5">
       <header className="mb-4">
-        <h1 className="text-2xl font-bold">{t('thisWeek')}</h1>
+        <h1 className="text-2xl font-bold">{t('upcoming')}</h1>
       </header>
 
       {rows.length === 0 ? (

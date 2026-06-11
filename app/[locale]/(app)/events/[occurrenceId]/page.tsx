@@ -65,7 +65,7 @@ export default async function OccurrenceDetailPage({
           </p>
         </div>
         <Link href={'/events' as Route} className="text-primary shrink-0 text-sm underline">
-          ← {t('thisWeek')}
+          ← {t('upcoming')}
         </Link>
       </header>
 

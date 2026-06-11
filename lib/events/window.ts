@@ -31,15 +31,20 @@ export interface OccurrenceOpenInput {
   startsAt: Date; // absolute instant
 }
 
+// RSVP is open for sessions starting within this ROLLING window from now.
+// 7 days = the next instance of each weekly series, always — no calendar-
+// week dead zone (e.g. Thursday night still shows next week's Tue/Thu).
+export const OPEN_WINDOW_DAYS = 7;
+const OPEN_WINDOW_MS = OPEN_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+
 /**
- * Open for RSVP iff: scheduled, its date falls in the current Prague week,
- * and its start time has not passed. Pure function of `now`.
+ * Open for RSVP iff: scheduled, its start time hasn't passed, and it starts
+ * within the rolling OPEN_WINDOW_DAYS from `now`. Pure function of `now`.
  */
 export function isOccurrenceOpen(o: OccurrenceOpenInput, now: Date): boolean {
   if (o.status !== 'scheduled') return false;
-  if (now.getTime() >= o.startsAt.getTime()) return false;
-  const { monday, sunday } = currentPragueWeekDates(now);
-  return o.occurrenceDate >= monday && o.occurrenceDate <= sunday;
+  const delta = o.startsAt.getTime() - now.getTime();
+  return delta > 0 && delta <= OPEN_WINDOW_MS;
 }
 
 /**

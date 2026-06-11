@@ -665,6 +665,7 @@
     "kindAdjustment": "Adjustment",
     "kindConsumption": "Drink",
     "kindConsumptionVoid": "Drink scrapped",
+    "stockReasonInitial": "Initial stock",
     "recordPaymentHeading": "Log a payment",
     "manualAmountPlaceholder": "120.00",
     "manualNotePlaceholder": "cash in hand",

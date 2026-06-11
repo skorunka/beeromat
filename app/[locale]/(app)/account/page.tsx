@@ -1,3 +1,4 @@
+import type { Route } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { eq } from 'drizzle-orm';
 import { ChevronRight, Receipt } from 'lucide-react';
@@ -30,6 +31,7 @@ export default async function AccountPage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('account');
+  const tCommon = await getTranslations('common');
   // Spec 021 — pull the stored-upload row so the picker can show
   // the photo on the Upload tile even when a glyph is currently
   // active (lets members switch back without re-uploading).
@@ -44,7 +46,15 @@ export default async function AccountPage({
   return (
     <main className="mx-auto max-w-md p-5">
       <header className="mb-6">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-2xl font-bold">{t('title')}</h1>
+          <Link
+            href={'/' as Route}
+            className="text-primary shrink-0 text-sm underline"
+          >
+            ← {tCommon('backHome')}
+          </Link>
+        </div>
         {/* Email shown as identity subtitle — read-only, visible at
             a glance. Not editable: members are identified by the
             address that received their original magic link. */}

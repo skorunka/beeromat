@@ -96,7 +96,11 @@ export async function createBeerTypeAction(rawInput: unknown): Promise<CreateBee
         beerTypeId: row.id,
         delta: input.initialStock,
         kind: 'restock',
-        reason: 'initial stock',
+        // Stable marker (not display prose) — the stock-history view
+        // maps it to a localized label. Storing English here is the
+        // bug we're fixing: `reason` is free-text for adjustments, so
+        // this sentinel is the one value the UI translates.
+        reason: 'initial',
         createdByUserId: ctx.user.id,
       });
     }

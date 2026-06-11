@@ -33,6 +33,15 @@ export default async function StockHistoryPage({
     consumption_void_increment: t('kindConsumptionVoid'),
   };
 
+  // `reason` is free-text (admin adjustment notes), shown as-is — except
+  // the initial-stock sentinel written at beer creation, which is a
+  // stable marker we localize. 'initial stock' covers rows created
+  // before the marker switched to 'initial'.
+  const reasonLabel = (reason: string | null): string | null => {
+    if (reason === 'initial' || reason === 'initial stock') return t('stockReasonInitial');
+    return reason;
+  };
+
   const history = await getStockHistory({ clubId: ctx.club.id, beerTypeId: id });
   const dateFmt = new Intl.DateTimeFormat(ctx.club.defaultLocale, {
     dateStyle: 'medium',
@@ -61,7 +70,7 @@ export default async function StockHistoryPage({
                 <div className="font-medium">{kindLabel[row.kind] ?? row.kind}</div>
                 <div className="text-muted-foreground text-xs">
                   {dateFmt.format(row.createdAt)} · {row.createdByDisplayName}
-                  {row.reason ? ` · ${row.reason}` : ''}
+                  {reasonLabel(row.reason) ? ` · ${reasonLabel(row.reason)}` : ''}
                 </div>
               </div>
               <div

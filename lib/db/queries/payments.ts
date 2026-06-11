@@ -404,3 +404,35 @@ export async function getRecentlyConfirmedPayments(
     .limit(limit);
   return rows;
 }
+
+// Spec 031 — admin data correction. A member's CONFIRMED payments
+// (club-scoped, newest first), so an admin can reverse one that was
+// confirmed in error via voidConfirmedPaymentAction. Only 'confirmed'
+// rows are reversible, so that is the only status listed.
+export interface AdminConfirmedPayment {
+  paymentId: string;
+  amountMinor: bigint;
+  createdAt: Date;
+}
+
+export async function getMemberConfirmedPayments(
+  memberId: string,
+  clubId: string,
+): Promise<AdminConfirmedPayment[]> {
+  const rows = await db
+    .select({
+      paymentId: payments.id,
+      amountMinor: payments.amountMinor,
+      createdAt: payments.createdAt,
+    })
+    .from(payments)
+    .where(
+      and(
+        eq(payments.memberId, memberId),
+        eq(payments.clubId, clubId),
+        eq(payments.status, 'confirmed'),
+      ),
+    )
+    .orderBy(desc(payments.createdAt));
+  return rows;
+}

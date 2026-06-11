@@ -6,14 +6,18 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { ManualPaymentForm } from '@/components/treasurer/manual-payment-form';
 import { TabEntryRow } from '@/components/tab/tab-entry-row';
+import { AdminVoidConsumptionButton } from '@/components/admin/admin-void-consumption-button';
+import { AdminReversePaymentButton } from '@/components/admin/admin-reverse-payment-button';
 import { Card } from '@/components/ui/card';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { requireRole } from '@/lib/auth/session';
 import { memberBalance, paymentsTotal } from '@/lib/balance/calculate';
+import { roleSatisfies } from '@/lib/permissions';
 import { db } from '@/lib/db/client';
 import { members } from '@/lib/db/schema/members';
-import { getMemberTabForAdmin } from '@/lib/db/queries/consumption';
+import { getMemberChargesForAdmin, getMemberTabForAdmin } from '@/lib/db/queries/consumption';
+import { getMemberConfirmedPayments } from '@/lib/db/queries/payments';
 import { getOpenSessionForClub } from '@/lib/db/queries/sessions';
 import { formatMoney } from '@/lib/format';
 
@@ -36,13 +40,20 @@ export default async function MemberBalanceDetailPage({
   });
   if (!member) notFound();
 
+  // Spec 031 — correction controls are club_admin-only, even though this
+  // page is also reachable by treasurers (who use the payment form).
+  const isAdmin = roleSatisfies(ctx.member.role, 'club_admin');
+
   const openSession = await getOpenSessionForClub(ctx.club.id);
-  const [balanceMinor, pendingMinor, tab] = await Promise.all([
+  const [balanceMinor, pendingMinor, tab, charges, confirmedPayments] = await Promise.all([
     memberBalance(member.id),
     paymentsTotal(member.id, 'claimed'),
     getMemberTabForAdmin({ memberId: member.id, session: openSession }),
+    isAdmin ? getMemberChargesForAdmin(member.id, ctx.club.id) : Promise.resolve([]),
+    isAdmin ? getMemberConfirmedPayments(member.id, ctx.club.id) : Promise.resolve([]),
   ]);
   const { currencyCode, defaultLocale } = ctx.club;
+  const dateFmt = new Intl.DateTimeFormat(defaultLocale, { dateStyle: 'medium' });
 
   return (
     <main className="mx-auto max-w-md p-5">
@@ -95,6 +106,61 @@ export default async function MemberBalanceDetailPage({
                 currencyCode={currencyCode}
                 locale={defaultLocale}
               />
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {/* Spec 031 — admin data correction. Club-admin-only surgical
+          controls: void any of the member's charges (all sessions) and
+          reverse a confirmed payment. Both reuse the existing audited
+          actions (compensating rows; balance invariant preserved). */}
+      {isAdmin && charges.length > 0 ? (
+        <section className="mb-6">
+          <h2 className="mb-2 text-sm font-medium">{tAdmin('correctChargesHeading')}</h2>
+          <ul className="flex flex-col gap-2">
+            {charges.map((c) => (
+              <li key={c.consumptionId}>
+                <Card className="flex flex-row items-center gap-3 p-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-medium">{c.beerTypeName}</div>
+                    <div className="text-muted-foreground text-xs">
+                      {dateFmt.format(c.createdAt)} ·{' '}
+                      {formatMoney(c.unitPriceMinor, currencyCode, defaultLocale)}
+                    </div>
+                  </div>
+                  <AdminVoidConsumptionButton
+                    consumptionId={c.consumptionId}
+                    label={c.beerTypeName}
+                  />
+                </Card>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {isAdmin && confirmedPayments.length > 0 ? (
+        <section className="mb-6">
+          <h2 className="mb-2 text-sm font-medium">{tAdmin('reversePaymentsHeading')}</h2>
+          <ul className="flex flex-col gap-2">
+            {confirmedPayments.map((p) => (
+              <li key={p.paymentId}>
+                <Card className="flex flex-row items-center gap-3 p-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium">
+                      {formatMoney(p.amountMinor, currencyCode, defaultLocale)}
+                    </div>
+                    <div className="text-muted-foreground text-xs">
+                      {dateFmt.format(p.createdAt)}
+                    </div>
+                  </div>
+                  <AdminReversePaymentButton
+                    paymentId={p.paymentId}
+                    amountLabel={formatMoney(p.amountMinor, currencyCode, defaultLocale)}
+                  />
+                </Card>
+              </li>
             ))}
           </ul>
         </section>

@@ -627,3 +627,42 @@ export async function getSessionDetail(args: {
 
   return { session, entries: tab.entries, totalMinor };
 }
+
+// Spec 031 — admin data correction. The member's own consumptions across
+// ALL sessions (non-voided), flat — these are exactly the rows an admin can
+// remove via voidConsumptionAction (won/lost-bet legs are corrected through
+// the match, not here). Newest first. Used by the admin member-detail
+// "correct charges" surface; intentionally simpler than getMemberTabForAdmin
+// (no bet-transfer fan-out) because the void target is always an own
+// consumption row.
+export interface AdminCharge {
+  consumptionId: string;
+  beerTypeName: string;
+  unitPriceMinor: bigint;
+  createdAt: Date;
+}
+
+export async function getMemberChargesForAdmin(
+  memberId: string,
+  clubId: string,
+): Promise<AdminCharge[]> {
+  const rows = await db
+    .select({
+      consumptionId: consumptions.id,
+      beerTypeName: beerTypes.name,
+      unitPriceMinor: consumptions.unitPriceMinorSnapshot,
+      createdAt: consumptions.createdAt,
+    })
+    .from(consumptions)
+    .innerJoin(beerTypes, eq(beerTypes.id, consumptions.beerTypeId))
+    .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
+    .where(
+      and(
+        eq(consumptions.memberId, memberId),
+        eq(consumptions.clubId, clubId),
+        isNull(consumptionVoids.consumptionId),
+      ),
+    )
+    .orderBy(desc(consumptions.createdAt));
+  return rows;
+}

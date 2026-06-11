@@ -120,7 +120,9 @@ describe('createBeerTypeAction', () => {
     expect(audit).toHaveLength(1);
     expect(audit[0]?.delta).toBe(10);
     expect(audit[0]?.kind).toBe('restock');
-    expect(audit[0]?.reason).toBe('initial stock');
+    // Spec 031 localization fix — the initial-stock reason is now a stable
+    // marker ('initial'), mapped to a localized label in the UI.
+    expect(audit[0]?.reason).toBe('initial');
   });
 
   it('initialStock = 0 — no stockChanges audit row written', async () => {

@@ -592,6 +592,8 @@
     "bankingDesc": "Where members send their money",
     "beerTypes": "Beers & stock",
     "beerTypesDesc": "Look after the fridge",
+    "events": "Events",
+    "eventsDesc": "Recurring sessions and who's coming",
     "pendingDesc": "Confirm or flag members' payments",
     "balancesDesc": "Who owes what",
     "config": "Club config",

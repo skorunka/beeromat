@@ -37,6 +37,7 @@ export default async function AdminHubPage({
       title: tTreasurer('balancesTitle'),
       desc: t('balancesDesc'),
     },
+    { href: '/admin/events' as Route, title: t('events'), desc: t('eventsDesc') },
     { href: '/admin/members' as Route, title: t('members'), desc: t('membersDesc') },
     {
       href: '/admin/config' as Route,

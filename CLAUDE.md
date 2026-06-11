@@ -1,5 +1,29 @@
 <!-- SPECKIT START -->
-Most recently shipped: spec 030 (match-bet-iou — match bets no longer
+Most recently shipped: spec 031 (admin-data-correction — surgical
+admin corrections to keep balances honest; club-wide reset was
+descoped at user request. Admin member-detail
+(/admin/balances/[memberId]) gained club_admin-only controls:
+"Opravit útratu / Correct charges" lists the member's all-time
+non-voided consumptions (new getMemberChargesForAdmin in
+lib/db/queries/consumption.ts) each with a delete control
+(AdminVoidConsumptionButton → existing voidConsumptionAction, whose
+stock_manager override already covers club_admin, no age/settled
+gate); "Vrátit platbu / Reverse payment" lists confirmed payments
+(new getMemberConfirmedPayments in payments.ts) each with a reverse
+control (AdminReversePaymentButton → existing voidConfirmedPaymentAction,
+confirmed→voided, reason 'admin-correction'). Both reuse the AUDITED
+compensating-row paths — no new transaction, no hard delete, balance
+invariant preserved (voiding a settled charge → member credit). Controls
+gated on roleSatisfies(role,'club_admin') though the page is
+treasurer-reachable. US3 (match/bet reversal) needed no change —
+canRecordMatchResult already admits club_admin on /match. Tests:
+tests/integration/admin-data-correction.spec.ts (5) +
+tests/component/admin-{void-consumption,reverse-payment}-button.spec.tsx
+(6). Full SDD in specs/031-admin-data-correction/. Also shipped
+alongside (no spec): account back-links, "initial stock" localization
+(stored marker 'initial' → admin.stockReasonInitial), and the stock
+"Adjust"→"Upravit zásobu / Edit stock" relabel.), then spec 030
+(match-bet-iou — match bets no longer
 auto-settle at result time. recordResultTx creates a PENDING
 match_bet_debt per loser↔winner pair (no money/stock); both parties
 see the IOU ("Dluží ti pivo {x}" / "Dlužíš pivo {x}") on home + the

@@ -13,7 +13,7 @@ import { requireUnlocked } from '@/lib/auth/session';
 import { roleSatisfies } from '@/lib/permissions';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { getOccurrenceDetail } from '@/lib/db/queries/events';
-import { isOccurrenceOpen, lowTurnoutKey } from '@/lib/events/window';
+import { isOccurrenceOpen, turnoutVibe } from '@/lib/events/window';
 
 export default async function OccurrenceDetailPage({
   params,
@@ -52,7 +52,19 @@ export default async function OccurrenceDetailPage({
     timeZone: 'Europe/Prague',
   }).format(detail.occurrence.startsAt);
 
-  const turnout = lowTurnoutKey(detail.goingCount);
+  const vibe = turnoutVibe(detail.goingCount);
+  // Typed map → TS enforces every vibe has copy; keeps the t() key literal-free
+  // so the i18n checker doesn't choke on a template key (the keys live under
+  // events.vibe.* in both catalogs).
+  const vibeKey: Record<typeof vibe, string> = {
+    none: 'vibe.none',
+    solo: 'vibe.solo',
+    single: 'vibe.single',
+    threesome: 'vibe.threesome',
+    doubles: 'vibe.doubles',
+    fiver: 'vibe.fiver',
+    crowd: 'vibe.crowd',
+  };
 
   return (
     <main className="mx-auto max-w-md p-5">
@@ -76,15 +88,13 @@ export default async function OccurrenceDetailPage({
         </div>
       ) : null}
 
-      {/* Headcount + low-turnout line */}
+      {/* Headcount + tennis-math vibe line */}
       <Card className="mb-4 p-4 text-center">
-        <div className="text-3xl font-bold">{detail.goingCount}</div>
+        <div className="text-4xl font-bold">{detail.goingCount}</div>
         <div className="text-muted-foreground text-sm">{t('whoIsComing')}</div>
-        {turnout ? (
-          <p className="text-muted-foreground mt-1 text-sm">
-            {turnout === 'none' ? t('turnoutNone') : t('turnoutLow')}
-          </p>
-        ) : null}
+        <p className="mt-2 text-sm font-medium">
+          {t(vibeKey[vibe], { count: detail.goingCount })}
+        </p>
       </Card>
 
       {/* Optional: beers tied to this evening */}

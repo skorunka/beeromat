@@ -6,7 +6,7 @@ import {
   currentPragueWeekDates,
   isOccurrenceOpen,
   nextOccurrenceDates,
-  lowTurnoutKey,
+  turnoutVibe,
 } from '@/lib/events/window';
 
 describe('prague-time: local wall-clock → UTC instant (DST-aware)', () => {
@@ -95,10 +95,15 @@ describe('window: isOccurrenceOpen (rolling 7-day window)', () => {
   });
 });
 
-describe('window: lowTurnoutKey', () => {
-  it('none / low / fine', () => {
-    expect(lowTurnoutKey(0)).toBe('none');
-    expect(lowTurnoutKey(2)).toBe('low');
-    expect(lowTurnoutKey(3)).toBeNull();
+describe('window: turnoutVibe (tennis math)', () => {
+  it('maps each headcount to its play format', () => {
+    expect(turnoutVibe(0)).toBe('none');
+    expect(turnoutVibe(1)).toBe('solo');
+    expect(turnoutVibe(2)).toBe('single');
+    expect(turnoutVibe(3)).toBe('threesome');
+    expect(turnoutVibe(4)).toBe('doubles');
+    expect(turnoutVibe(5)).toBe('fiver');
+    expect(turnoutVibe(6)).toBe('crowd');
+    expect(turnoutVibe(12)).toBe('crowd');
   });
 });

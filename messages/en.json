@@ -307,12 +307,21 @@
     "whoIsComing": "Who's coming",
     "goingCount": "{count, plural, =0 {Nobody yet} one {# coming} other {# coming}}",
     "noAnswer": "No answer",
-    "turnoutNone": "Nobody yet. Grim :(",
-    "turnoutLow": "A bit thin so far…",
+    "vibe": {
+      "none": "Nobody yet — the court's feeling lonely 🎾💨",
+      "solo": "Just you so far. Bring a wall to rally against 🧱🎾",
+      "single": "Two in — that's a singles match! 🎾 Game on.",
+      "threesome": "Three — someone sits out, or you go Canadian doubles 🎾😅",
+      "doubles": "Four — perfect for doubles! 🎾🎾 Let's go.",
+      "fiver": "Five — doubles plus a sub keeping the beers cold 🍺",
+      "crowd": "{count} in — enough for a proper rotation. Tournament vibes 🏆"
+    },
     "closed": "Closed",
     "cancelled": "Cancelled",
     "beersFromNight": "Beers from this night →",
     "savedToast": "Saved.",
+    "goingToast": "You're in! 🎾",
+    "notGoingToast": "No worries — next time 🍺",
     "failedToast": "Didn't work. Try again.",
     "closedToast": "This session is already closed.",
     "admin": {

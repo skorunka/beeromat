@@ -28,7 +28,7 @@ export function RsvpToggle({
     if (disabled || isPending) return;
     startTransition(async () => {
       const r = await setMyRsvpAction({ occurrenceId, status: next });
-      if (r.ok) toast.success(t('savedToast'));
+      if (r.ok) toast.success(next === 'going' ? t('goingToast') : t('notGoingToast'));
       else toast.error(r.code === 'CLOSED' ? t('closedToast') : t('failedToast'));
       router.refresh();
     });

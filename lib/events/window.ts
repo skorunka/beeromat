@@ -70,11 +70,25 @@ export function nextOccurrenceDates(
 }
 
 /**
- * Which playful low-turnout line (if any) for a going-count. Returns an i18n
- * key suffix or null when turnout is fine. The component maps it to copy.
+ * Tennis-math turnout "vibe" for a going-count — drives a playful, always-on
+ * one-liner on the occurrence card (2 → a singles match, 4 → doubles, …).
+ * Returns an i18n key suffix; the component maps it to copy (+ the count).
  */
-export function lowTurnoutKey(goingCount: number): 'none' | 'low' | null {
+export type TurnoutVibe =
+  | 'none' // 0 — empty court
+  | 'solo' // 1 — hit against the wall
+  | 'single' // 2 — singles match
+  | 'threesome' // 3 — odd one out / Canadian doubles
+  | 'doubles' // 4 — perfect doubles
+  | 'fiver' // 5 — doubles + a sub
+  | 'crowd'; // 6+ — rotation / tournament
+
+export function turnoutVibe(goingCount: number): TurnoutVibe {
   if (goingCount <= 0) return 'none';
-  if (goingCount <= 2) return 'low';
-  return null;
+  if (goingCount === 1) return 'solo';
+  if (goingCount === 2) return 'single';
+  if (goingCount === 3) return 'threesome';
+  if (goingCount === 4) return 'doubles';
+  if (goingCount === 5) return 'fiver';
+  return 'crowd';
 }

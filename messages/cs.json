@@ -307,12 +307,21 @@
     "whoIsComing": "Kdo přijde",
     "goingCount": "{count, plural, =0 {Zatím nikdo} one {# přijde} few {# přijdou} other {# přijde}}",
     "noAnswer": "Bez odpovědi",
-    "turnoutNone": "Zatím nikdo. Je to bída :(",
-    "turnoutLow": "Zatím málo lidí…",
+    "vibe": {
+      "none": "Zatím nikdo — antuka smutní 🎾💨",
+      "solo": "Zatím jen ty. Vezmi si na trénink zeď 🧱🎾",
+      "single": "Dva — akorát na dvouhru! 🎾 Jdem na to.",
+      "threesome": "Tři — jeden sedí, nebo kanadský debl 🎾😅",
+      "doubles": "Čtyři — ideál na čtyřhru! 🎾🎾 Jdem.",
+      "fiver": "Pět — čtyřhra a jeden hlídá vychlazená piva 🍺",
+      "crowd": "{count} přihlášených — to je na pořádnou rotaci. Turnaj! 🏆"
+    },
     "closed": "Zavřeno",
     "cancelled": "Zrušeno",
     "beersFromNight": "Piva z tohohle večera →",
     "savedToast": "Uloženo.",
+    "goingToast": "Jdeš do toho! 🎾",
+    "notGoingToast": "V pohodě — příště 🍺",
     "failedToast": "Nepovedlo se. Zkus to znovu.",
     "closedToast": "Tahle akce už je zavřená.",
     "admin": {

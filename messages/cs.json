@@ -338,6 +338,7 @@
   },
   "account": {
     "title": "Tvůj účet",
+    "paymentHistory": "Historie plateb",
     "displayNameLabel": "Tvoje jméno",
     "displayNamePlaceholder": "Jak ti říkají v partě",
     "displayNameHint": "Pod tímhle jménem tě uvidí ostatní členové.",

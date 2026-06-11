@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { eq } from 'drizzle-orm';
+import { ChevronRight, Receipt } from 'lucide-react';
 
 import { AccountForm } from './AccountForm';
 import { AvatarPicker } from '@/components/account/avatar-picker';
@@ -7,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { ChangePinForm } from '@/components/account/change-pin-form';
 import { SignOutAllButton } from '@/components/account/sign-out-all-button';
 import { SignOutButton } from '@/components/account/sign-out-button';
+import { Link } from '@/lib/i18n/navigation';
 import { requireUnlocked } from '@/lib/auth/session';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { db } from '@/lib/db/client';
@@ -15,9 +17,8 @@ import { avatarUploads } from '@/lib/db/schema/avatar-uploads';
 // Spec 010 — the member account page.
 //
 // Augments the v1.3 account hub with an editable display name (the
-// page's primary action), plus three stub rows (email, PIN, sign-out-
-// all) that signal where future specs slot in. The existing payment-
-// history link + single-device sign-out card stay below, unchanged.
+// page's primary action), plus PIN change + sign-out-all rows. The
+// payment-history link and single-device sign-out card sit below.
 
 export default async function AccountPage({
   params,
@@ -81,9 +82,25 @@ export default async function AccountPage({
         </Card>
       </section>
 
-      {/* Single-device sign-out — destructive CTA at the bottom of
-          the page. Payment-history link was here too but moved out
-          (overlapped with the bottom-nav History tab). */}
+      {/* Payment history — the member's own timeline of money paid
+          (incl. confirmed). Distinct from the bottom-nav History tab,
+          which lists beer sessions, not payments. */}
+      <section className="mb-6">
+        <Card className="p-0">
+          <Link
+            href="/account/payments"
+            className="hover:bg-muted/50 flex items-center justify-between gap-3 rounded-[inherit] px-4 py-3.5 transition-colors"
+          >
+            <span className="flex items-center gap-2.5 font-medium">
+              <Receipt className="text-muted-foreground h-5 w-5" aria-hidden />
+              {t('paymentHistory')}
+            </span>
+            <ChevronRight className="text-muted-foreground h-4 w-4" aria-hidden />
+          </Link>
+        </Card>
+      </section>
+
+      {/* Single-device sign-out — destructive CTA at the bottom. */}
       <SignOutButton />
     </main>
   );

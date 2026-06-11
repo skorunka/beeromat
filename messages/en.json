@@ -338,6 +338,7 @@
   },
   "account": {
     "title": "Your account",
+    "paymentHistory": "Payment history",
     "displayNameLabel": "Your name",
     "displayNamePlaceholder": "What your mates call you",
     "displayNameHint": "Other members see you under this name.",

@@ -330,6 +330,8 @@
       "edit": "Upravit",
       "activate": "Aktivovat",
       "inactive": "Neaktivní",
+      "generateNow": "Vygenerovat termíny",
+      "generatedToast": "Termíny vygenerovány ({count}).",
       "cancelOccurrence": "Zrušit tenhle termín",
       "deactivate": "Deaktivovat",
       "setForMember": "Nastavit za člena",

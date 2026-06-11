@@ -188,3 +188,19 @@ export async function cancelOccurrenceAction(input: unknown): Promise<MutateResu
   revalidatePath('/admin/events');
   return { ok: true };
 }
+
+// Admin convenience — run occurrence generation for this club NOW, instead
+// of waiting for the nightly cron. Same idempotent ensureOccurrences the
+// cron calls, but authenticated as the admin (no CRON_SECRET needed). Handy
+// for testing and right after creating/reactivating a series.
+export type GenerateResult =
+  | { ok: true; created: number }
+  | { ok: false; code: 'FORBIDDEN' };
+
+export async function generateOccurrencesAction(): Promise<GenerateResult> {
+  const ctx = await requireRole('club_admin');
+  const created = await ensureOccurrences(new Date(), ctx.club.id);
+  revalidatePath('/admin/events');
+  revalidatePath('/events');
+  return { ok: true, created };
+}

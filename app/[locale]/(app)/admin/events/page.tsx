@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Card } from '@/components/ui/card';
 import { SeriesForm } from '@/components/events/series-form';
 import { SeriesRow } from '@/components/events/series-row';
+import { GenerateOccurrencesButton } from '@/components/events/generate-occurrences-button';
 import { requireRole } from '@/lib/auth/session';
 import { listSeries } from '@/lib/db/queries/events';
 
@@ -26,6 +27,9 @@ export default async function AdminEventsPage({
       <header className="mb-4">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
         <p className="text-muted-foreground mt-1 text-sm">{t('manageHint')}</p>
+        <div className="mt-3">
+          <GenerateOccurrencesButton />
+        </div>
       </header>
 
       {series.length > 0 ? (

@@ -330,6 +330,8 @@
       "edit": "Edit",
       "activate": "Activate",
       "inactive": "Inactive",
+      "generateNow": "Generate dates",
+      "generatedToast": "Dates generated ({count}).",
       "cancelOccurrence": "Cancel this date",
       "deactivate": "Deactivate",
       "setForMember": "Set for member",

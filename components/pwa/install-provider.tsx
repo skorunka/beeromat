@@ -46,6 +46,9 @@ export function PwaInstallProvider({ children }: { children: React.ReactNode }) 
   const [isIosSafari, setIsIosSafari] = useState(false);
 
   useEffect(() => {
+    // Client-only detection after mount (window APIs); setState here is the
+    // correct pattern for post-hydration values.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsStandalone(
       window.matchMedia('(display-mode: standalone)').matches ||
         (window.navigator as Navigator & { standalone?: boolean }).standalone === true,

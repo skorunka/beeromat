@@ -42,6 +42,8 @@ export function InstallPrompt() {
   const [shown, setShown] = useState(false);
 
   useEffect(() => {
+    // Client-only localStorage read after mount — the canonical place for it.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDismissed(dismissedRecently());
   }, []);
 
@@ -63,6 +65,7 @@ export function InstallPrompt() {
 
   useEffect(() => {
     if (mode === 'none') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShown(false);
       return;
     }

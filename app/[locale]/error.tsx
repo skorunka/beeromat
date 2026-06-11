@@ -39,10 +39,15 @@ export default function LocaleError({
         <Button size="lg" className="h-14 text-lg" onClick={() => reset()}>
           {t('boundaryRetry')}
         </Button>
-        {/* Hard navigation, not a client Link: the React tree is in an
-            errored state, so a full document load is the most reliable
-            way back to a clean home. */}
-        <Button variant="ghost" render={<a href="/" />}>
+        {/* Hard navigation (window.location, not a client Link): the React
+            tree is in an errored state, so a full document load is the most
+            reliable way back to a clean home. */}
+        <Button
+          variant="ghost"
+          onClick={() => {
+            window.location.href = '/';
+          }}
+        >
           {t('boundaryHome')}
         </Button>
       </div>

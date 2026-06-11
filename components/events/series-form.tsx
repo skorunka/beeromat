@@ -17,7 +17,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { createSeriesAction } from '@/app/[locale]/(app)/events/actions';
+import { createSeriesAction, updateSeriesAction } from '@/app/[locale]/(app)/events/actions';
 import { createSeriesSchema, type CreateSeriesInput } from '@/lib/validation/events';
 
 // Weekday labels (1=Mon…7=Sun) localized via Intl — 2024-01-01 is a Monday.
@@ -29,23 +29,53 @@ function weekdayLabels(locale: string): { value: number; label: string }[] {
   }));
 }
 
-export function SeriesForm() {
+export interface EditableSeries {
+  id: string;
+  weekday: number;
+  startLocalTime: string;
+  placeLabel: string;
+  title: string | null;
+}
+
+// Create when `series` is absent; edit it when present. `onDone` collapses
+// the inline editor after a successful save.
+export function SeriesForm({
+  series,
+  onDone,
+}: {
+  series?: EditableSeries;
+  onDone?: () => void;
+} = {}) {
   const t = useTranslations('events.admin');
   const locale = useLocale();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const isEdit = series != null;
 
   const form = useForm<CreateSeriesInput>({
     resolver: zodResolver(createSeriesSchema),
-    defaultValues: { weekday: 2, startLocalTime: '17:00', placeLabel: '', title: undefined },
+    defaultValues: series
+      ? {
+          weekday: series.weekday,
+          startLocalTime: series.startLocalTime,
+          placeLabel: series.placeLabel,
+          title: series.title ?? undefined,
+        }
+      : { weekday: 2, startLocalTime: '17:00', placeLabel: '', title: undefined },
   });
 
   function onSubmit(values: CreateSeriesInput) {
     startTransition(async () => {
-      const r = await createSeriesAction(values);
+      const r = isEdit
+        ? await updateSeriesAction({ seriesId: series.id, ...values, title: values.title ?? null })
+        : await createSeriesAction(values);
       if (r.ok) {
-        toast.success(t('createdToast'));
-        form.reset({ weekday: values.weekday, startLocalTime: values.startLocalTime, placeLabel: '' });
+        toast.success(t(isEdit ? 'updatedToast' : 'createdToast'));
+        if (isEdit) {
+          onDone?.();
+        } else {
+          form.reset({ weekday: values.weekday, startLocalTime: values.startLocalTime, placeLabel: '' });
+        }
         router.refresh();
       } else {
         form.setError('root', { message: 'events.errors.placeRequired' });
@@ -121,7 +151,7 @@ export function SeriesForm() {
           )}
         />
         <Button type="submit" size="lg" disabled={isPending} isPending={isPending}>
-          {t('create')}
+          {t(isEdit ? 'save' : 'create')}
         </Button>
       </form>
     </Form>

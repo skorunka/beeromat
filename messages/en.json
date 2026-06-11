@@ -43,6 +43,7 @@
       "emailPlaceholder": "you@example.com",
       "submit": "Send me a link",
       "linkExpiresIn": "The link's good for 5 minutes.",
+      "expiredLink": "That link's expired or already used. We'll send you a fresh one.",
       "linkSent": "Sign-in link sent.",
       "sentToPrefix": "Sent it to:",
       "notOnListHeadline": "Not a member, tough luck.",

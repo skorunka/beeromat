@@ -7,7 +7,7 @@ import { auth, withBootstrapLocale } from '@/lib/auth/better-auth';
 import { createClubAndAdminUserTx } from '@/lib/auth/bootstrap';
 import { invalidateFreshDeploymentCache } from '@/lib/db/queries/bootstrap-state';
 import { setLocaleCookie } from '@/lib/i18n/actions';
-import type { Locale } from '@/lib/i18n/routing';
+import { routing, type Locale } from '@/lib/i18n/routing';
 import { onboardingSchema } from '@/lib/validation/onboarding';
 
 // Spec 009 contracts/onboarding.md §1 — bootstrapClubAction.
@@ -60,9 +60,15 @@ export async function bootstrapClubAction(
     // sendMagicLink callback uses the chosen club default locale,
     // not the URL prefix locale — see lib/auth/better-auth.ts.
     const requestHeaders = await headers();
+    // Land a failed verify (expired bootstrap link) on the sign-in
+    // recovery banner, in the chosen club-default locale.
+    const errorCallbackURL =
+      input.defaultLocale === routing.defaultLocale
+        ? '/sign-in'
+        : `/${input.defaultLocale}/sign-in`;
     await withBootstrapLocale(input.defaultLocale as Locale, () =>
       auth.api.signInMagicLink({
-        body: { email: input.adminEmail },
+        body: { email: input.adminEmail, errorCallbackURL },
         headers: requestHeaders,
       }),
     );

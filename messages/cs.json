@@ -43,6 +43,7 @@
       "emailPlaceholder": "ty@example.com",
       "submit": "Pošli mi odkaz",
       "linkExpiresIn": "Odkaz platí 5 minut.",
+      "expiredLink": "Ten odkaz už vypršel nebo byl použitý. Pošleme ti nový.",
       "linkSent": "Odkaz pro přihlášení odeslán.",
       "sentToPrefix": "Poslali jsme ho na:",
       "notOnListHeadline": "Nejsi členem, máš smůlu.",

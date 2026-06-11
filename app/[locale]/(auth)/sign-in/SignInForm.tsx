@@ -22,9 +22,12 @@ import { signInSchema, type SignInValues } from '@/lib/validation/auth';
 
 interface SignInFormProps {
   turnstileSiteKey: string;
+  /** True when the user arrived via a failed magic-link verify
+   *  (expired / already-used / invalid) — shows a recovery banner. */
+  linkFailed?: boolean;
 }
 
-export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
+export function SignInForm({ turnstileSiteKey, linkFailed = false }: SignInFormProps) {
   const t = useTranslations('auth.signIn');
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [result, setResult] = useState<{
@@ -100,6 +103,18 @@ export function SignInForm({ turnstileSiteKey }: SignInFormProps) {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-8 p-7">
+      {/* Recovery banner — the user clicked an expired/used magic link
+          and was bounced here. Explain why, then the form below lets
+          them request a fresh one. */}
+      {linkFailed ? (
+        <p
+          role="alert"
+          className="border-primary/30 bg-primary/10 text-foreground rounded-lg border px-4 py-3 text-sm"
+        >
+          {t('expiredLink')}
+        </p>
+      ) : null}
+
       {/* The branded welcome hero — club identity and a warm invitation,
           leading straight into the magic-link form below. */}
       <header className="flex flex-col gap-3">

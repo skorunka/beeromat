@@ -15,7 +15,7 @@ import { hashPin, isValidPinFormat, verifyPin } from '@/lib/auth/pin';
 import { auth } from '@/lib/auth/better-auth';
 import { sendInvitation } from '@/lib/email/mailer';
 import { env } from '@/lib/env';
-import type { Locale } from '@/lib/i18n/routing';
+import { routing, type Locale } from '@/lib/i18n/routing';
 import { verifyTurnstileToken } from '@/lib/turnstile/verify';
 import { checkMagicLinkLimits } from '@/lib/rate-limit';
 import { acceptInvitationSchema } from '@/lib/validation/invitation';
@@ -34,6 +34,17 @@ const deviceCookieOptions = {
 export type AuthActionResult<T = void> =
   | { ok: true; data?: T }
   | { ok: false; code: string; message?: string; attemptsRemaining?: number };
+
+// Where Better Auth sends a failed magic-link verify (expired /
+// already-used / invalid). It encodes this into the verify URL and, on
+// failure, redirects here with ?error=<CODE> appended — so without it
+// the user silently bounces to / → /sign-in with no explanation. The
+// sign-in page reads that error param and shows a recovery banner.
+// Locale-prefixed so an English member lands on /en/sign-in.
+async function magicLinkErrorCallbackURL(): Promise<string> {
+  const locale = (await getLocale().catch(() => routing.defaultLocale)) as Locale;
+  return locale === routing.defaultLocale ? '/sign-in' : `/${locale}/sign-in`;
+}
 
 /**
  * Accept an invitation. Creates Better Auth user + members row + marks
@@ -118,7 +129,7 @@ export async function acceptInvitationAction(input: {
   // setup form.
   try {
     await auth.api.signInMagicLink({
-      body: { email: inv.email },
+      body: { email: inv.email, errorCallbackURL: await magicLinkErrorCallbackURL() },
       headers: await headers(),
     });
   } catch (err) {
@@ -318,7 +329,10 @@ export async function requestMagicLinkAction(input: {
   }
 
   try {
-    await auth.api.signInMagicLink({ body: { email }, headers: reqHeaders });
+    await auth.api.signInMagicLink({
+      body: { email, errorCallbackURL: await magicLinkErrorCallbackURL() },
+      headers: reqHeaders,
+    });
   } catch (err) {
     console.error('[magic-link] dispatch failed', err);
   }

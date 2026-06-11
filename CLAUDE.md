@@ -1,5 +1,30 @@
 <!-- SPECKIT START -->
-Most recently shipped: spec 031 (admin-data-correction — surgical
+Most recently shipped: spec 032 (event-attendance — RSVP for recurring
+weekly sessions, replacing sejdemse. New events domain:
+event_series / event_occurrences / event_rsvps + a nullable
+occurrence_id FK on drink_sessions (optional/additive — beer & matches
+NEVER gated on events; a non-event session has occurrence_id null and
+behaves as before). Migration 0013. Admin (/admin/events) creates
+weekly series (weekday + Europe/Prague local time + place); a nightly
+Vercel cron (/api/cron/events, CRON_SECRET-guarded, idempotent
+ensureOccurrences, vercel.json schedule 0 2 * * *) keeps occurrences
+generated ~5 weeks ahead. "Open for RSVP" is DERIVED, never stored:
+open ⇔ scheduled AND date in current Prague week (Mon–Sun) AND
+now<startsAt — so only this week's not-yet-started sessions accept
+RSVPs (Mon shows the whole week, Fri only what's left). Members set
+ONLY their own going/not-going on /events + /events/[id]
+(setMyRsvpAction); admin-only on-behalf via setMemberRsvpAction +
+AdminMemberRsvp (the sejdemse fix — no accidental edits). Occurrence
+detail = who's-coming roster + going-headcount + playful low-turnout
+line + optional 'beers from this night' link. Admin can cancel an
+occurrence / deactivate a series (soft). Pure Europe/Prague logic in
+lib/events/{prague-time,window}.ts (DST-aware local→UTC, current-week,
+isOccurrenceOpen, generation dates, low-turnout) — unit-tested incl. DST.
+Events bottom-nav entry ('Sraz'). DEPLOY NOTE: set CRON_SECRET in Vercel
+env (the cron auth). Full SDD in specs/032-event-attendance/. BACKLOG
+after 032: set-the-beer-link admin action (US5 surfacing exists, the
+association UI is deferred); per-occurrence notes thread; reminders.),
+then spec 031 (admin-data-correction — surgical
 admin corrections to keep balances honest; club-wide reset was
 descoped at user request. Admin member-detail
 (/admin/balances/[memberId]) gained club_admin-only controls:

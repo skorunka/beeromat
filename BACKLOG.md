@@ -8,23 +8,28 @@ When one matures, run `/speckit-specify` and the item moves into
 
 ## UX
 
-- **Dedupe beer dropdowns onto the shared BeerPickerDropdown.** Spec
-  029 introduced `components/picker/beer-picker-dropdown.tsx` (the
-  common select-style beer dropdown) for the inline on-behalf log.
-  Follow-up: the home one-tap chevron (`home-one-tap-log.tsx`) and
-  the match bet-beer picker (`RecordResultForm.tsx`) each have their
-  own inline beer dropdown — migrate them where the interaction fits
-  (the one-tap chevron logs on tap rather than holding a value, so it
-  may need a variant).
+- ~~**Dedupe beer dropdowns onto the shared BeerPickerDropdown.**~~
+  **— Closed 2026-06-11 as obsolete (not worth doing).** Audited the
+  two alleged consumers: `RecordResultForm.tsx` is now an intentional
+  beer-TILE grid (spec 025/026), and `components/home/home-one-tap-log.tsx`
+  is an action `DropdownMenu` that LOGS on tap (not a value-holding
+  select), with an explicit spec-026 comment documenting why home
+  deliberately stays off the shared pattern (vertical space). The
+  select-style `BeerPickerDropdown` is already shared by the 4 form
+  consumers that genuinely need a value-holding select
+  (NewMatchAgreementForm, home-log-for-other, match-bet-module,
+  beer-iou-row). Nothing meaningful left to merge.
 
-- **Beer breakdown on /settle + /history.** Spec 028 shipped the
-  per-beer breakdown ("Pilsner ×3 · 120 Kč") on /tab only. Follow-ups:
-  (a) /settle — show the breakdown at the literal payment moment;
-  scope is the full outstanding balance which may span multiple
-  unsettled sessions, so the grouping needs a cross-session source
-  (bigger than the single-round /tab case). (b) /history/[sessionId]
-  — reuse groupTabEntriesByBeer over a past session's entries (small;
-  same helper). Both deferred from 028.
+- **Beer breakdown on /settle.** Spec 028 shipped the per-beer
+  breakdown ("Pilsner ×3 · 120 Kč") on /tab; the /history/[sessionId]
+  half **already shipped too** (a "Spec 028 follow-up" — see
+  `history/[sessionId]/page.tsx`, which wires `TabBeerBreakdown` +
+  `groupTabEntriesByBeer`). The remaining open part is **/settle**:
+  show the breakdown at the literal payment moment. Scope is the full
+  outstanding balance, which may span multiple unsettled sessions, so
+  the grouping needs a NEW cross-session entries source (bigger than
+  the single-round /tab case — `groupTabEntriesByBeer` is reusable but
+  there's no cross-session `MemberTabEntry[]` query yet). Speckit-worthy.
 
 - **Per-row "repeat this match".** Spec 027 shipped one-tap recreate
   of the member's *single* last match on the /match hub. Follow-up:

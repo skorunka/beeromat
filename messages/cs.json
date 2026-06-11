@@ -93,7 +93,8 @@
       "label": "Zopakovat:",
       "created": "Zápas zopakován.",
       "staleParticipant": "Nelze zopakovat — {name} už není v klubu.",
-      "failed": "Zápas se nepodařilo zopakovat. Zkus to znovu."
+      "failed": "Zápas se nepodařilo zopakovat. Zkus to znovu.",
+      "repeatAria": "Zopakovat tento zápas"
     },
     "closeRound": {
       "cta": "Ukončit posezení",

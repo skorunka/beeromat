@@ -93,7 +93,8 @@
       "label": "Recreate:",
       "created": "Match recreated.",
       "staleParticipant": "Can't recreate — {name} is no longer in the club.",
-      "failed": "Couldn't recreate the match. Try again."
+      "failed": "Couldn't recreate the match. Try again.",
+      "repeatAria": "Repeat this match"
     },
     "closeRound": {
       "cta": "Close this round",

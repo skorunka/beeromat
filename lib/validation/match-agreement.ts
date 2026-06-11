@@ -138,3 +138,11 @@ export const reverseResultSchema = z.object({
 });
 
 export type ReverseResultInput = z.infer<typeof reverseResultSchema>;
+
+// Per-row "repeat this match" — clone an arbitrary past agreement
+// (validated club-scoped server-side) into a new OPEN one.
+export const recreateMatchSchema = z.object({
+  agreementId: z.string().uuid({ error: 'match.errors.agreementIdRequired' }),
+});
+
+export type RecreateMatchInput = z.infer<typeof recreateMatchSchema>;

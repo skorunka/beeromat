@@ -30,6 +30,7 @@ import {
   deliverBeerDebtSchema,
   editAgreementSchema,
   recordResultSchema,
+  recreateMatchSchema,
   reverseResultSchema,
   undeliverBeerDebtSchema,
   voidBeerDebtSchema,
@@ -364,6 +365,47 @@ function summaryToCreateInput(summary: OpenAgreementSummary): CreateAgreementInp
   };
 }
 
+// Shared core for both recreate paths (spec 027 last-match + the
+// per-row repeat). Active-participant guard, then clone the lineup
+// into a new OPEN agreement. createAgreementTx validates club
+// membership but NOT active status — a deactivated-but-still-in-club
+// player would pass it and produce a match with a blocked participant.
+// Block here with a clear, named error (FR-007). The caller is
+// responsible for resolving `summary` server-side (never a
+// client-trusted lineup).
+type CloneAgreementResult =
+  | { ok: true; agreementId: string }
+  | { ok: false; code: 'STALE_PARTICIPANT'; memberName: string | null }
+  | { ok: false; code: 'DUPLICATE_MEMBER' }
+  | { ok: false; code: 'MEMBER_NOT_IN_CLUB' };
+
+async function cloneAgreement(
+  clubId: string,
+  createdByUserId: string,
+  summary: OpenAgreementSummary,
+): Promise<CloneAgreementResult> {
+  const seats = [...summary.sides.A, ...summary.sides.B];
+  const activeRows = await db
+    .select({ id: members.id, isActive: members.isActive })
+    .from(members)
+    .where(
+      and(eq(members.clubId, clubId), inArray(members.id, seats.map((s) => s.memberId))),
+    );
+  const activeIds = new Set(activeRows.filter((r) => r.isActive).map((r) => r.id));
+  const staleSeat = seats.find((s) => !activeIds.has(s.memberId));
+  if (staleSeat) {
+    return { ok: false, code: 'STALE_PARTICIPANT', memberName: staleSeat.displayName };
+  }
+
+  const result = await createAgreementTx({
+    clubId,
+    createdByUserId,
+    input: summaryToCreateInput(summary),
+  });
+  if (result.ok) revalidatePath('/match');
+  return result;
+}
+
 export async function recreateLastMatchAction(): Promise<RecreateLastMatchResult> {
   const ctx = await requireUnlocked();
 
@@ -371,29 +413,33 @@ export async function recreateLastMatchAction(): Promise<RecreateLastMatchResult
   const last = await lastAgreementForMember(ctx.club.id, ctx.member.id);
   if (!last) return { ok: false, code: 'NO_LAST_MATCH' };
 
-  // Active-participant guard. createAgreementTx validates club
-  // membership but NOT active status — a deactivated-but-still-in-club
-  // player would pass it and produce a match with a blocked
-  // participant. Block here with a clear, named error (FR-007).
-  const participantIds = [...last.sides.A, ...last.sides.B].map((s) => s.memberId);
-  const activeRows = await db
-    .select({ id: members.id, isActive: members.isActive })
-    .from(members)
-    .where(and(eq(members.clubId, ctx.club.id), inArray(members.id, participantIds)));
-  const activeIds = new Set(activeRows.filter((r) => r.isActive).map((r) => r.id));
-  const staleSeat = [...last.sides.A, ...last.sides.B].find(
-    (s) => !activeIds.has(s.memberId),
-  );
-  if (staleSeat) {
-    return { ok: false, code: 'STALE_PARTICIPANT', memberName: staleSeat.displayName };
-  }
+  return cloneAgreement(ctx.club.id, ctx.user.id, last);
+}
 
-  const result = await createAgreementTx({
-    clubId: ctx.club.id,
-    createdByUserId: ctx.user.id,
-    input: summaryToCreateInput(last),
-  });
-  if (result.ok) revalidatePath('/match');
-  return result;
+// Spec 027 follow-up — repeat an ARBITRARY past matchup (any row on the
+// /match hub), not just the single most-recent one. The agreementId is
+// re-resolved server-side via getAgreement, which is club-scoped — so a
+// member can only clone matches in their own club (no IDOR). Any club
+// member may repeat any club match (the hub shows all club results);
+// the clone produces a new OPEN agreement with the same lineup.
+export type RecreateMatchResult =
+  | { ok: true; agreementId: string }
+  | { ok: false; code: 'AGREEMENT_NOT_FOUND' }
+  | { ok: false; code: 'STALE_PARTICIPANT'; memberName: string | null }
+  | { ok: false; code: 'DUPLICATE_MEMBER' }
+  | { ok: false; code: 'MEMBER_NOT_IN_CLUB' };
+
+export async function recreateMatchAction(input: {
+  agreementId: string;
+}): Promise<RecreateMatchResult> {
+  const ctx = await requireUnlocked();
+
+  const parsed = recreateMatchSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, code: 'AGREEMENT_NOT_FOUND' };
+
+  const source = await getAgreement(parsed.data.agreementId, ctx.club.id);
+  if (!source) return { ok: false, code: 'AGREEMENT_NOT_FOUND' };
+
+  return cloneAgreement(ctx.club.id, ctx.user.id, source);
 }
 

@@ -1,5 +1,6 @@
 import { Link } from '@/lib/i18n/navigation';
 import { Card } from '@/components/ui/card';
+import { RepeatMatchButton } from '@/components/match/repeat-match-button';
 import { joinSideNames } from '@/lib/format/match-sides';
 import type { RecentResultSummary } from '@/lib/db/queries/match-agreements';
 
@@ -10,7 +11,8 @@ interface RecentResultsListProps {
 // Compact "recently played" list for the /match hub — so the match
 // surface actually shows matches you've played, not just open ones.
 // Winner marked with 🏆 + bold; loser muted (gender-neutral, no verb).
-// Each row links to the recorded agreement detail.
+// The matchup links to the recorded agreement detail; a per-row repeat
+// button (spec 027 follow-up) clones any of these into a new open match.
 export function RecentResultsList({ results }: RecentResultsListProps) {
   return (
     <ul className="flex flex-col gap-2">
@@ -19,8 +21,11 @@ export function RecentResultsList({ results }: RecentResultsListProps) {
         const loser = joinSideNames(r.sides[r.winningSide === 'A' ? 'B' : 'A']);
         return (
           <li key={r.id}>
-            <Link href={`/match/${r.id}`}>
-              <Card className="hover:bg-accent flex flex-row items-center gap-2 p-3 transition-colors">
+            <Card className="flex flex-row items-center gap-1 p-1.5 pr-2">
+              <Link
+                href={`/match/${r.id}`}
+                className="hover:bg-accent flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-1.5 transition-colors"
+              >
                 <span aria-hidden className="shrink-0">
                   🏆
                 </span>
@@ -28,8 +33,9 @@ export function RecentResultsList({ results }: RecentResultsListProps) {
                   <span className="font-semibold">{winner}</span>
                   <span className="text-muted-foreground"> · {loser}</span>
                 </span>
-              </Card>
-            </Link>
+              </Link>
+              <RepeatMatchButton agreementId={r.id} />
+            </Card>
           </li>
         );
       })}

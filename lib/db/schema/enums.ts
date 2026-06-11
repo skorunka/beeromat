@@ -37,3 +37,11 @@ export const stockChangeKind = pgEnum('stock_change_kind', [
   'consumption_decrement',
   'consumption_void_increment',
 ]);
+
+// Spec 032 — event attendance.
+export const eventOccurrenceStatus = pgEnum('event_occurrence_status', [
+  'scheduled',
+  'cancelled',
+]);
+
+export const eventRsvpStatus = pgEnum('event_rsvp_status', ['going', 'not_going']);

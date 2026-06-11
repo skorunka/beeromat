@@ -3,6 +3,7 @@ import { index, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/
 
 import { users } from './auth';
 import { clubs } from './clubs';
+import { eventOccurrences } from './events';
 
 // data-model.md §7 — drink_sessions (after-match drink containers)
 export const drinkSessions = pgTable(
@@ -19,6 +20,10 @@ export const drinkSessions = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: 'restrict' }),
     closedByUserId: uuid().references(() => users.id, { onDelete: 'set null' }),
+    // Spec 032 — OPTIONAL, additive link to an event occurrence (the evening's
+    // beers tied to that day's session). Null for ad-hoc (non-event) sessions,
+    // which behave exactly as before.
+    occurrenceId: uuid().references(() => eventOccurrences.id, { onDelete: 'set null' }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

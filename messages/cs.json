@@ -11,6 +11,10 @@
       "dismiss": "Zavřít",
       "iosTitle": "Přidej beeromat na plochu",
       "iosBody": "Ťukni na Sdílet a pak „Přidat na plochu“."
+    },
+    "menu": {
+      "label": "Nainstalovat aplikaci",
+      "browserHint": "Najdeš v menu prohlížeče — ⋮ → Instalovat, nebo ikona v adresním řádku."
     }
   },
   "common": {

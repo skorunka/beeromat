@@ -8,6 +8,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { BeerCelebration } from '@/components/log/beer-celebration';
 import { ServiceWorkerRegistrar } from '@/components/pwa/service-worker-registrar';
 import { InstallPrompt } from '@/components/pwa/install-prompt';
+import { PwaInstallProvider } from '@/components/pwa/install-provider';
 import { routing } from '@/lib/i18n/routing';
 
 import '../globals.css';
@@ -69,11 +70,13 @@ export default async function LocaleLayout({
     <html lang={locale} className={bricolage.variable}>
       <body className="bg-background text-foreground antialiased">
         <NextIntlClientProvider>
-          {children}
-          <Toaster />
-          <BeerCelebration />
-          <ServiceWorkerRegistrar />
-          <InstallPrompt />
+          <PwaInstallProvider>
+            {children}
+            <Toaster />
+            <BeerCelebration />
+            <ServiceWorkerRegistrar />
+            <InstallPrompt />
+          </PwaInstallProvider>
         </NextIntlClientProvider>
       </body>
     </html>

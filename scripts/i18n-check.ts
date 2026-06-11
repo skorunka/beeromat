@@ -72,6 +72,10 @@ const EXCLUDED = new Set([
   // Promise<…> false-positive as confirm-dialog.tsx). File audited:
   // every user-facing string comes from useTranslations('pwa.install').
   'components/pwa/install-prompt.tsx',
+  // install-provider.tsx — same Promise<…> type-annotation false
+  // positive (BeforeInstallPromptEvent + InstallOutcome). No JSX copy
+  // at all; it's a context provider with zero user-facing strings.
+  'components/pwa/install-provider.tsx',
 ]);
 
 // ── shared ───────────────────────────────────────────────────────────

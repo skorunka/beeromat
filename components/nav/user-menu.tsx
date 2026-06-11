@@ -2,12 +2,14 @@
 
 import { useState, useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { LogOut, User } from 'lucide-react';
+import { toast } from 'sonner';
+import { Download, LogOut, User } from 'lucide-react';
 
 import { Link, usePathname, useRouter } from '@/lib/i18n/navigation';
 import { setLocaleCookie } from '@/lib/i18n/actions';
 import { routing } from '@/lib/i18n/routing';
 import { signOutDeviceAction } from '@/lib/auth/actions';
+import { usePwaInstall } from '@/components/pwa/install-provider';
 import { FlagIcon } from '@/components/ui/flag-icon';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
@@ -61,6 +63,22 @@ export function UserMenu({
   // Controlled open so the menu closes the moment a language is
   // picked. base-ui's RadioItem doesn't auto-close otherwise.
   const [open, setOpen] = useState(false);
+  const { canInstall, isIos, isStandalone, promptInstall } = usePwaInstall();
+
+  // "Install app" row. Hidden once installed. Fires the native prompt
+  // when one is captured (Android/desktop); on iOS, or before the
+  // event has fired, falls back to a toast with the manual route so the
+  // row is always actionable.
+  function handleInstall() {
+    setOpen(false);
+    if (canInstall) {
+      void promptInstall();
+    } else if (isIos) {
+      toast(t('pwa.install.iosTitle'), { description: t('pwa.install.iosBody') });
+    } else {
+      toast(t('pwa.menu.browserHint'));
+    }
+  }
 
   function switchTo(locale: string) {
     setOpen(false);
@@ -106,6 +124,12 @@ export function UserMenu({
           <User aria-hidden />
           {t('nav.account')}
         </DropdownMenuItem>
+        {!isStandalone ? (
+          <DropdownMenuItem onClick={handleInstall}>
+            <Download aria-hidden />
+            {t('pwa.menu.label')}
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuSeparator />
         {/* Language picker — native dropdown radio rows (one per
             locale) with a check mark on the active one. Matches the

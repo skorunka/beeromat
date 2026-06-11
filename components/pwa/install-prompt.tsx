@@ -4,31 +4,18 @@ import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Download, Share, X } from 'lucide-react';
 
-// In-app PWA install banner. Best-practice flow (per web.dev / MDN):
-//   • Chromium (Android + desktop): capture beforeinstallprompt,
-//     preventDefault, stash it, and show our own UI. The native prompt
-//     fires only on a user gesture (the Install button), and the
-//     stashed event is single-use.
-//   • iOS Safari: there is no beforeinstallprompt — show manual
-//     "Share → Add to Home Screen" instructions instead. (Chrome/Edge
-//     on iOS can't install PWAs, so we only hint in Safari.)
-//   • Never nag: hidden once installed (display-mode: standalone),
-//     cleared on `appinstalled`, and suppressed for DISMISS_DAYS after
-//     a dismissal / a declined native prompt.
-//
-// Renders nothing until installable. No NODE_ENV gate needed: in dev
-// the service worker isn't registered (registrar is prod-only), so the
-// install criteria aren't met and beforeinstallprompt never fires; the
-// iOS branch only triggers on a real iOS Safari UA.
+import { usePwaInstall } from '@/components/pwa/install-provider';
 
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
-}
+// Auto install banner. Install capability comes from PwaInstallProvider
+// (shared with the user-menu "Install app" row); this component owns the
+// presentation + the "don't nag" dismissal:
+//   • Chromium: show as soon as the prompt is available.
+//   • iOS Safari: no event — reveal the manual Share hint after a beat.
+//   • Suppressed for DISMISS_DAYS after a dismissal / declined prompt,
+//     and never shown once installed (provider gates canInstall/isIos).
 
 const DISMISS_KEY = 'beeromat-install-dismissed';
-const DISMISS_DAYS = 14;
-const DISMISS_MS = DISMISS_DAYS * 24 * 60 * 60 * 1000;
+const DISMISS_MS = 14 * 24 * 60 * 60 * 1000;
 
 function dismissedRecently(): boolean {
   try {
@@ -43,63 +30,37 @@ function rememberDismissal(): void {
   try {
     localStorage.setItem(DISMISS_KEY, String(Date.now()));
   } catch {
-    /* private mode / storage blocked — fine, we just can't remember */
+    /* storage blocked (private mode) — we just can't remember */
   }
-}
-
-function isStandalone(): boolean {
-  return (
-    window.matchMedia('(display-mode: standalone)').matches ||
-    (window.navigator as Navigator & { standalone?: boolean }).standalone === true
-  );
 }
 
 export function InstallPrompt() {
   const t = useTranslations('pwa.install');
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  const [mode, setMode] = useState<'none' | 'prompt' | 'ios'>('none');
+  const { canInstall, isIos, promptInstall } = usePwaInstall();
+  const [dismissed, setDismissed] = useState(true); // hidden until checked
+  const [iosReady, setIosReady] = useState(false);
   const [shown, setShown] = useState(false);
 
   useEffect(() => {
-    if (isStandalone() || dismissedRecently()) return;
-
-    const ua = window.navigator.userAgent;
-    const isIosSafari =
-      /iphone|ipad|ipod/i.test(ua) && !/crios|fxios|edgios/i.test(ua);
-
-    const onBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault(); // stop Chrome's mini-infobar; we drive the UI
-      setDeferred(e as BeforeInstallPromptEvent);
-      setMode('prompt');
-    };
-    const onInstalled = () => {
-      try {
-        localStorage.removeItem(DISMISS_KEY);
-      } catch {
-        /* ignore */
-      }
-      setDeferred(null);
-      setMode('none');
-    };
-
-    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
-    window.addEventListener('appinstalled', onInstalled);
-
-    // iOS can't fire beforeinstallprompt — surface the manual hint after
-    // a short beat so it doesn't slam in on first paint.
-    let iosTimer: ReturnType<typeof setTimeout> | undefined;
-    if (isIosSafari) {
-      iosTimer = setTimeout(() => setMode((m) => (m === 'none' ? 'ios' : m)), 3000);
-    }
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', onInstalled);
-      if (iosTimer) clearTimeout(iosTimer);
-    };
+    setDismissed(dismissedRecently());
   }, []);
 
-  // Drive the slide-in once a banner becomes visible.
+  // iOS has no beforeinstallprompt — reveal the manual hint after a beat
+  // so it doesn't slam in on first paint.
+  useEffect(() => {
+    if (!isIos) return;
+    const id = setTimeout(() => setIosReady(true), 3000);
+    return () => clearTimeout(id);
+  }, [isIos]);
+
+  const mode: 'prompt' | 'ios' | 'none' = dismissed
+    ? 'none'
+    : canInstall
+      ? 'prompt'
+      : isIos && iosReady
+        ? 'ios'
+        : 'none';
+
   useEffect(() => {
     if (mode === 'none') {
       setShown(false);
@@ -111,20 +72,17 @@ export function InstallPrompt() {
 
   function close() {
     rememberDismissal();
+    setDismissed(true);
     setShown(false);
-    setTimeout(() => setMode('none'), 200);
   }
 
   async function install() {
-    if (!deferred) return;
-    await deferred.prompt();
-    const { outcome } = await deferred.userChoice;
-    // The event is spent either way. On "accepted", `appinstalled` also
-    // fires and clears state; on "dismissed", suppress for the window.
-    if (outcome === 'dismissed') rememberDismissal();
-    setDeferred(null);
+    const outcome = await promptInstall();
+    if (outcome === 'dismissed') {
+      rememberDismissal();
+      setDismissed(true);
+    }
     setShown(false);
-    setTimeout(() => setMode('none'), 200);
   }
 
   if (mode === 'none') return null;

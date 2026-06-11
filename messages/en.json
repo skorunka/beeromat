@@ -11,6 +11,10 @@
       "dismiss": "Dismiss",
       "iosTitle": "Add beeromat to your home screen",
       "iosBody": "Tap Share, then “Add to Home Screen”."
+    },
+    "menu": {
+      "label": "Install app",
+      "browserHint": "Find it in your browser menu — ⋮ → Install, or the address-bar icon."
     }
   },
   "common": {

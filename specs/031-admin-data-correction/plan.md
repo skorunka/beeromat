@@ -49,10 +49,14 @@ verifying/widening admin authz. **No new destructive transaction.**
 
 ### Test layer declaration
 
-- **Unit (`pnpm test:unit`)** — authz predicate(s) for who may correct (club_admin override); any schema added for the admin surfaces.
-- **Integration (`pnpm test:integration`)** — the bulk. `voidConsumptionAction` as admin on a settled/old consumption (balance → credit; idempotent ALREADY_VOIDED; bet-leg consistency); `voidConfirmedPaymentAction` (balance restored; idempotent; club-scoped/authz); the broadened `getMemberTabForAdmin` (returns all-time entries with a per-row admin canVoid).
-- **Component (`pnpm test:component`)** — the admin void/reverse controls (confirm dialog fires the right action, disabled while pending, success/idempotent toasts).
-- **E2E (`pnpm test:e2e`)** — **N/A**. The Playwright stack is dormant (removed 2026-05-26; first journey-spec would reinstate it). This feature is admin correction tooling, not a daily user journey; its risk is concentrated in DB transactions + authz, which the integration layer verifies directly. Consistent with spec 030's declaration.
+Pyramid-honest footprint (the reused actions already have their own
+tests — re-testing them here would only add flake surface; see memory
+`feedback_test_only_what_deserves`):
+
+- **Unit (`pnpm test:unit`)** — N/A; no new pure logic (authz reuses the existing role hierarchy).
+- **Integration (`pnpm test:integration`)** — ONLY the two genuinely-new DB queries: `getMemberChargesForAdmin` (non-voided own consumptions, club-scoped) and `getMemberConfirmedPayments` (confirmed-only, club-scoped). The reused `voidConsumptionAction` / `voidConfirmedPaymentAction` and the balance invariant are already covered by their own specs — NOT re-tested here.
+- **Component (`pnpm test:component`)** — the two correction controls (confirm fires the right action with the right args; success + ALREADY_VOIDED/INVALID_STATE branches). This is where the new behaviour lives.
+- **E2E (`pnpm test:e2e`)** — **N/A**. Playwright stack dormant; admin correction tooling, not a daily journey.
 
 ## Project Structure
 

@@ -11,7 +11,14 @@ export const clubs = pgTable('clubs', {
   defaultLocale: varchar({ length: 8 }).notNull().default('cs-CZ'),
   defaultLowStockThreshold: integer().notNull().default(5),
   consumptionUndoWindowSeconds: integer().notNull().default(300),
-  deviceInactivityLockSeconds: integer().notNull().default(28800),
+  // PIN re-prompt threshold: how long a device stays unlocked between
+  // PIN entries. The magic-link sign-in is the root of trust; the PIN
+  // is just a fast per-device re-unlock, so a long window is fine for
+  // this low-stakes beer-tab app. 30 days == the Better Auth session
+  // lifetime, so a member effectively re-PINs only when they'd have to
+  // re-sign-in anyway. (Was 8h; widened 2026-06-11 — too aggressive for
+  // weekly-after-match usage.)
+  deviceInactivityLockSeconds: integer().notNull().default(2592000),
   // Spec 012 — how many beers the loser owes after losing a match.
   // Editable via /admin/config. Defaults to 1 (the canonical "loser
   // buys the winner one beer" rule).

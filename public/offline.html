@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>beeromat — offline</title>
+    <style>
+      :root { color-scheme: light; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        padding: 2rem;
+        text-align: center;
+        font-family: system-ui, -apple-system, sans-serif;
+        background: #f6eedd;
+        color: #1c1917;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #b5701a;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        font-size: 0.75rem;
+      }
+      h1 { font-size: 1.5rem; font-weight: 700; margin: 0; }
+      p { font-size: 0.9rem; color: #78716c; margin: 0; max-width: 22rem; }
+      button {
+        height: 3.5rem;
+        padding: 0 1.5rem;
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #fff;
+        background: #b5701a;
+        border: none;
+        border-radius: 0.5rem;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="brand"><span aria-hidden="true">🍺</span><span>beeromat</span></div>
+    <div style="display: flex; flex-direction: column; gap: 0.5rem">
+      <h1>Jsi offline.</h1>
+      <p>Připojení se ztratilo. Jakmile budeš zase online, zkus to znovu.</p>
+    </div>
+    <button type="button" onclick="location.reload()">Zkusit znovu</button>
+  </body>
+</html>

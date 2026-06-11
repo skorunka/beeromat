@@ -6,6 +6,7 @@ import { Bricolage_Grotesque } from 'next/font/google';
 
 import { Toaster } from '@/components/ui/sonner';
 import { BeerCelebration } from '@/components/log/beer-celebration';
+import { ServiceWorkerRegistrar } from '@/components/pwa/service-worker-registrar';
 import { routing } from '@/lib/i18n/routing';
 
 import '../globals.css';
@@ -13,6 +14,16 @@ import '../globals.css';
 export const metadata: Metadata = {
   title: 'beeromat',
   description: 'After-match beer tab tracker for tennis clubs',
+  // PWA: declare the manifest + iOS standalone behaviour (Android reads
+  // the manifest directly; iOS Safari needs these apple-specific hints
+  // to launch full-screen from the home screen with the right title +
+  // status-bar treatment).
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    title: 'beeromat',
+    statusBarStyle: 'default',
+  },
 };
 
 // `viewportFit: 'cover'` lets content (and the bottom nav's
@@ -60,6 +71,7 @@ export default async function LocaleLayout({
           {children}
           <Toaster />
           <BeerCelebration />
+          <ServiceWorkerRegistrar />
         </NextIntlClientProvider>
       </body>
     </html>

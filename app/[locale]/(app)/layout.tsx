@@ -83,6 +83,7 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
   // section inside the /match hub, so the separate Bet tab is gone.
   const navItems: NavItem[] = [
     { key: 'home', href: '/' as Route },
+    { key: 'events', href: '/events' as Route },
     { key: 'match', href: '/match' as Route },
     { key: 'history', href: '/history' as Route },
     { key: 'account', href: '/account' as Route },

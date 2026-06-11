@@ -41,6 +41,7 @@
     "tab": "Tab",
     "bet": "Bet",
     "match": "Match",
+    "events": "Events",
     "history": "History",
     "treasurer": "Treasurer",
     "stock": "Stock",
@@ -295,6 +296,43 @@
       "fallbackLinkLabel": "Or paste this link into your browser:",
       "expiryNote": "Invitation valid for 14 days.",
       "ignoreNote": "If you don't recognise {inviterName}, you can safely ignore this email."
+    }
+  },
+  "events": {
+    "navLabel": "Events",
+    "thisWeek": "This week",
+    "noSessions": "Nothing on this week.",
+    "going": "I'm in",
+    "notGoing": "Can't make it",
+    "whoIsComing": "Who's coming",
+    "goingCount": "{count, plural, =0 {Nobody yet} one {# coming} other {# coming}}",
+    "noAnswer": "No answer",
+    "turnoutNone": "Nobody yet. Grim :(",
+    "turnoutLow": "A bit thin so far…",
+    "closed": "Closed",
+    "cancelled": "Cancelled",
+    "beersFromNight": "Beers from this night →",
+    "savedToast": "Saved.",
+    "failedToast": "Didn't work. Try again.",
+    "closedToast": "This session is already closed.",
+    "admin": {
+      "title": "Events",
+      "newSeries": "New recurring session",
+      "weekday": "Weekday",
+      "time": "Time",
+      "place": "Place",
+      "placePlaceholder": "Clay court",
+      "titleLabel": "Title (optional)",
+      "create": "Create",
+      "cancelOccurrence": "Cancel this date",
+      "deactivate": "Deactivate session",
+      "setForMember": "Set for member",
+      "manageHint": "Recurring sessions are generated automatically every night."
+    },
+    "errors": {
+      "weekdayRequired": "Pick a weekday.",
+      "timeInvalid": "Enter a time as HH:MM.",
+      "placeRequired": "Add a place."
     }
   },
   "home": {

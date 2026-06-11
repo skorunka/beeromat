@@ -41,6 +41,7 @@
     "tab": "Útrata",
     "bet": "Sázka",
     "match": "Zápas",
+    "events": "Sraz",
     "history": "Historie",
     "treasurer": "Pokladník",
     "stock": "Sklad",
@@ -295,6 +296,43 @@
       "fallbackLinkLabel": "Nebo si zkopíruj tenhle odkaz do prohlížeče:",
       "expiryNote": "Pozvánka platí 14 dní.",
       "ignoreNote": "Pokud {inviterName} neznáš, klidně tenhle e‑mail ignoruj."
+    }
+  },
+  "events": {
+    "navLabel": "Sraz",
+    "thisWeek": "Tento týden",
+    "noSessions": "Tento týden se nic nehraje.",
+    "going": "Přijdu",
+    "notGoing": "Nejdu",
+    "whoIsComing": "Kdo přijde",
+    "goingCount": "{count, plural, =0 {Zatím nikdo} one {# přijde} few {# přijdou} other {# přijde}}",
+    "noAnswer": "Bez odpovědi",
+    "turnoutNone": "Zatím nikdo. Je to bída :(",
+    "turnoutLow": "Zatím málo lidí…",
+    "closed": "Zavřeno",
+    "cancelled": "Zrušeno",
+    "beersFromNight": "Piva z tohohle večera →",
+    "savedToast": "Uloženo.",
+    "failedToast": "Nepovedlo se. Zkus to znovu.",
+    "closedToast": "Tahle akce už je zavřená.",
+    "admin": {
+      "title": "Srazy",
+      "newSeries": "Nový pravidelný sraz",
+      "weekday": "Den v týdnu",
+      "time": "Čas",
+      "place": "Místo",
+      "placePlaceholder": "Antuka",
+      "titleLabel": "Název (nepovinné)",
+      "create": "Vytvořit",
+      "cancelOccurrence": "Zrušit tenhle termín",
+      "deactivate": "Deaktivovat sraz",
+      "setForMember": "Nastavit za člena",
+      "manageHint": "Pravidelné srazy se generují automaticky každou noc."
+    },
+    "errors": {
+      "weekdayRequired": "Vyber den v týdnu.",
+      "timeInvalid": "Zadej čas ve formátu HH:MM.",
+      "placeRequired": "Doplň místo."
     }
   },
   "home": {

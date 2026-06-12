@@ -64,7 +64,7 @@ export function MemberMultiSelect({
         </div>
       ) : null}
 
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-5 gap-1.5">
         {members.map((m) => {
           const isSelected = selected.has(m.id);
           const label = m.isSelf ? selfLabel : m.displayName.split(' ')[0];
@@ -76,7 +76,7 @@ export function MemberMultiSelect({
               aria-pressed={isSelected}
               aria-label={m.isSelf ? `${m.displayName} (${selfLabel})` : m.displayName}
               className={cn(
-                'relative inline-flex w-16 flex-col items-center gap-1 rounded-lg p-1.5 transition',
+                'relative flex w-full flex-col items-center gap-1 rounded-lg p-1.5 transition',
                 isSelected
                   ? 'bg-primary/10 ring-primary ring-2'
                   : 'opacity-55 hover:opacity-90',

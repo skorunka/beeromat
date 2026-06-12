@@ -259,17 +259,9 @@ export default async function AppHomePage({
         ) : null}
       </Card>
 
-      {/* Below the money cluster: the social surfaces — tonight's
-          session, your open match, beer-IOUs. */}
-      {nextEvent ? (
-        <NextSessionCard
-          session={nextEvent}
-          going={nextEventGoing}
-          now={now}
-          locale={ctx.club.defaultLocale}
-        />
-      ) : null}
-
+      {/* The beer-bet match and the "Piva k předání" IOUs it produces are
+          one connected story — keep them together, right under the money
+          card: record a match → it mints the beer-IOUs just below it. */}
       <OpenMatchPrompt matches={myOpenMatches} />
 
       <MatchBetModule
@@ -279,6 +271,16 @@ export default async function AppHomePage({
         locale={ctx.club.defaultLocale}
         now={now}
       />
+
+      {/* Tonight's session RSVP — a separate concern, below the match pair. */}
+      {nextEvent ? (
+        <NextSessionCard
+          session={nextEvent}
+          going={nextEventGoing}
+          now={now}
+          locale={ctx.club.defaultLocale}
+        />
+      ) : null}
 
       {otherMembers.length > 0 ? (
         <HomeLogForOther

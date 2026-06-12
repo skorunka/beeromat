@@ -214,6 +214,17 @@ export default async function AppHomePage({
           locale={ctx.club.defaultLocale}
         />
 
+        {/* Log for someone else — directly under the one-tap log, the
+            two logging actions paired inside the Útrata card. */}
+        {otherMembers.length > 0 ? (
+          <HomeLogForOther
+            members={otherMembers}
+            beers={inStockCatalog}
+            currencyCode={ctx.club.currencyCode}
+            locale={ctx.club.defaultLocale}
+          />
+        ) : null}
+
         {/* Onboarding nudge for a fresh club with no beers: the one-tap
             button above renders disabled but gives no clue what to do
             about it. Stock-managers+ get a direct link to seed the
@@ -258,18 +269,6 @@ export default async function AppHomePage({
           </Link>
         ) : null}
       </Card>
-
-      {/* Log for someone else — a logging action, so it sits with the
-          consumption flow right under the Útrata card (log for yourself
-          → log for a teammate), not stranded below the match/event. */}
-      {otherMembers.length > 0 ? (
-        <HomeLogForOther
-          members={otherMembers}
-          beers={inStockCatalog}
-          currencyCode={ctx.club.currencyCode}
-          locale={ctx.club.defaultLocale}
-        />
-      ) : null}
 
       {/* The beer-bet match and the "Piva k předání" IOUs it produces are
           one connected story — keep them together, right under the money

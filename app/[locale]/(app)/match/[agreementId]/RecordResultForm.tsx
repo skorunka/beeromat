@@ -108,7 +108,7 @@ export function RecordResultForm({
           className="h-16 gap-2 text-base"
         >
           <Trophy className="h-5 w-5" aria-hidden />
-          {t('sideWonCta', { side: sideALabel })}
+          {sideALabel}
         </Button>
         <Button
           type="button"
@@ -118,7 +118,7 @@ export function RecordResultForm({
           className="h-16 gap-2 text-base"
         >
           <Trophy className="h-5 w-5" aria-hidden />
-          {t('sideWonCta', { side: sideBLabel })}
+          {sideBLabel}
         </Button>
       </div>
     </div>

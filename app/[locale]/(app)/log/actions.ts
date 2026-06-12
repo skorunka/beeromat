@@ -11,6 +11,7 @@ import { members } from '@/lib/db/schema/members';
 import { drinkSessions } from '@/lib/db/schema/sessions';
 import { hasAnyRole } from '@/lib/permissions';
 import { memberBalance } from '@/lib/balance/calculate';
+import { logRoundSchema } from '@/lib/validation/round';
 
 export type LogBeerResult =
   | {
@@ -244,6 +245,153 @@ export async function logBeerOnBehalfAction(input: {
       targetMemberId: targetMember.id,
     } as const;
   });
+}
+
+// Spec 033 — log a "round": one beer per selected drinker, each on
+// that drinker's OWN tab, written in a single transaction. A self-item
+// (memberId == actor's member) is an ordinary self-log (no "logged for
+// you" review, because created_by == the member's own user); every
+// other item is an on-behalf log (one review item each). Out-of-stock /
+// unavailable / not-in-club items are SKIPPED and reported — the round
+// is not rejected wholesale (FR-009). The drink session is opened
+// lazily on the first logged item, so an all-skipped round writes
+// nothing (no empty session).
+export type LogRoundSkip = {
+  memberId: string;
+  beerTypeId: string;
+  reason: 'OUT_OF_STOCK' | 'BEER_NOT_AVAILABLE' | 'TARGET_NOT_IN_CLUB';
+};
+
+export type LogRoundResult =
+  | {
+      ok: true;
+      logged: { memberId: string; beerTypeId: string; consumptionId: string }[];
+      skipped: LogRoundSkip[];
+      sessionId: string;
+      /** Actor's balance AFTER commit — changes only if the actor was a drinker. */
+      balanceAfterMinor: bigint;
+    }
+  | { ok: false; code: 'EMPTY' | 'ALL_SKIPPED' };
+
+export async function logRoundAction(input: {
+  items: { memberId: string; beerTypeId: string }[];
+}): Promise<LogRoundResult> {
+  const ctx = await requireUnlocked();
+
+  const parsed = logRoundSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, code: 'EMPTY' } as const;
+  const items = parsed.data.items;
+
+  const txResult = await db.transaction(async (tx) => {
+    // Lazy session: opened on the first item that actually logs, so an
+    // all-skipped round leaves no empty session behind. Race-safe via
+    // onConflictDoNothing + re-select (see logBeerAction).
+    let openSessionId: string | null = null;
+    async function ensureSession(): Promise<string> {
+      if (openSessionId) return openSessionId;
+      let session = await tx.query.drinkSessions.findFirst({
+        where: and(eq(drinkSessions.clubId, ctx.club.id), isNull(drinkSessions.endedAt)),
+      });
+      if (!session) {
+        await tx
+          .insert(drinkSessions)
+          .values({ clubId: ctx.club.id, openedByUserId: ctx.user.id, startedAt: new Date() })
+          .onConflictDoNothing();
+        session = await tx.query.drinkSessions.findFirst({
+          where: and(eq(drinkSessions.clubId, ctx.club.id), isNull(drinkSessions.endedAt)),
+        });
+        if (!session) throw new Error('Failed to auto-open drink session');
+      }
+      openSessionId = session.id;
+      return openSessionId;
+    }
+
+    const logged: { memberId: string; beerTypeId: string; consumptionId: string }[] = [];
+    const skipped: LogRoundSkip[] = [];
+
+    for (const item of items) {
+      // 1. Drinker must be an active member of the actor's club (self
+      //    qualifies). A foreign/inactive member can't mint a tab row.
+      const target = await tx.query.members.findFirst({
+        where: and(
+          eq(members.id, item.memberId),
+          eq(members.clubId, ctx.club.id),
+          eq(members.isActive, true),
+        ),
+      });
+      if (!target) {
+        skipped.push({ ...item, reason: 'TARGET_NOT_IN_CLUB' });
+        continue;
+      }
+
+      // 2. Beer must belong to the club + not be archived.
+      const beer = await tx.query.beerTypes.findFirst({
+        where: and(
+          eq(beerTypes.id, item.beerTypeId),
+          eq(beerTypes.clubId, ctx.club.id),
+          eq(beerTypes.isArchived, false),
+        ),
+      });
+      if (!beer) {
+        skipped.push({ ...item, reason: 'BEER_NOT_AVAILABLE' });
+        continue;
+      }
+
+      // 3. Atomic conditional decrement; no row → out of stock, skip.
+      const decremented = await tx
+        .update(beerTypes)
+        .set({ currentStock: sql`${beerTypes.currentStock} - 1` })
+        .where(and(eq(beerTypes.id, beer.id), sql`${beerTypes.currentStock} > 0`))
+        .returning({ currentStock: beerTypes.currentStock });
+      if (decremented.length === 0) {
+        skipped.push({ ...item, reason: 'OUT_OF_STOCK' });
+        continue;
+      }
+
+      // 4. Stock audit row (only for logged items).
+      await tx.insert(stockChanges).values({
+        clubId: ctx.club.id,
+        beerTypeId: beer.id,
+        delta: -1,
+        kind: 'consumption_decrement',
+        createdByUserId: ctx.user.id,
+      });
+
+      // 5. Consumption on the DRINKER, attributed to the ACTOR.
+      const sessionId = await ensureSession();
+      const [consumption] = await tx
+        .insert(consumptions)
+        .values({
+          clubId: ctx.club.id,
+          drinkSessionId: sessionId,
+          memberId: target.id,
+          beerTypeId: beer.id,
+          unitPriceMinorSnapshot: beer.unitPriceMinor,
+          createdByUserId: ctx.user.id,
+        })
+        .returning();
+      if (!consumption) throw new Error('Failed to insert consumption');
+      logged.push({ memberId: target.id, beerTypeId: beer.id, consumptionId: consumption.id });
+    }
+
+    if (logged.length === 0) {
+      // Nothing logged (all out of stock / unavailable / not-in-club).
+      // ensureSession was never reached → no rows written this tx.
+      return { ok: false, code: 'ALL_SKIPPED' } as const;
+    }
+
+    revalidatePath('/');
+    revalidatePath('/log');
+    revalidatePath('/tab');
+
+    return { ok: true as const, logged, skipped, sessionId: openSessionId! };
+  });
+
+  if (!txResult.ok) return txResult;
+  return {
+    ...txResult,
+    balanceAfterMinor: await memberBalance(ctx.member.id),
+  };
 }
 
 // Spec 019 — dismiss an on-behalf review banner row by stamping

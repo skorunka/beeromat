@@ -38,3 +38,31 @@ export async function listOtherActiveMembers(
     )
     .orderBy(asc(members.displayName));
 }
+
+// Spec 033 — roster for the "log a round" multi-select. Unlike
+// listOtherActiveMembers, this INCLUDES the caller (the fetcher is
+// normally drinking too) and flags them so the picker can pre-select +
+// label "(ty)". Self is sorted first, then everyone by display name.
+export interface RoundMemberRow extends PickerMemberRow {
+  isSelf: boolean;
+}
+
+export async function listActiveMembersForRound(
+  clubId: string,
+  selfMemberId: string,
+): Promise<RoundMemberRow[]> {
+  const rows = await db
+    .select({
+      id: members.id,
+      displayName: members.displayName,
+      avatarKey: members.avatarKey,
+      avatarUploadAt: members.avatarUploadAt,
+    })
+    .from(members)
+    .where(and(eq(members.clubId, clubId), eq(members.isActive, true)))
+    .orderBy(asc(members.displayName));
+  // Stable sort: self first, the rest keep the displayName order above.
+  return rows
+    .map((r) => ({ ...r, isSelf: r.id === selfMemberId }))
+    .sort((a, b) => (a.isSelf === b.isSelf ? 0 : a.isSelf ? -1 : 1));
+}

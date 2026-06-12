@@ -229,6 +229,26 @@
     "iouHeading": "Piva k předání",
     "nothingToSettle": "Žádné sázky k vyrovnání."
   },
+  "round": {
+    "ctaLink": "Zapsat rundu",
+    "title": "Runda",
+    "collapse": "Zavřít",
+    "defaultBeerHint": "Jaké pivo pro rundu?",
+    "drinkersHint": "Kdo pije?",
+    "self": "ty",
+    "count": "{count, plural, one {# pivo} few {# piva} other {# piv}}",
+    "submitCta": "Zapsat rundu · {count, plural, one {# pivo} few {# piva} other {# piv}}",
+    "toastLogged": "Runda zapsána · {count, plural, one {# pivo} few {# piva} other {# piv}} 🍺",
+    "toastLoggedPartial": "Zapsáno, ale na {names} nezbylo pivo 🍺",
+    "toastAllSkipped": "Rundu se nepovedlo zapsat — pivo došlo.",
+    "toastError": "Nepovedlo se to — zkus to prosím znovu.",
+    "overrideHint": "Jiné pivo pro {name}",
+    "clearOverride": "Zpět na výchozí pivo",
+    "errors": {
+      "empty": "Vyber aspoň jednoho, kdo pije.",
+      "duplicateMember": "Každý může mít v rundě jen jedno pivo."
+    }
+  },
   "onboarding": {
     "title": "Vítej",
     "subtitle": "Pár věcí a jdeme na první pivo.",

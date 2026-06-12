@@ -229,6 +229,26 @@
     "iouHeading": "Beer IOUs",
     "nothingToSettle": "No bets to settle."
   },
+  "round": {
+    "ctaLink": "Log a round",
+    "title": "Round",
+    "collapse": "Close",
+    "defaultBeerHint": "Which beer for the round?",
+    "drinkersHint": "Who's drinking?",
+    "self": "you",
+    "count": "{count, plural, one {# beer} other {# beers}}",
+    "submitCta": "Log round · {count, plural, one {# beer} other {# beers}}",
+    "toastLogged": "Round logged · {count, plural, one {# beer} other {# beers}} 🍺",
+    "toastLoggedPartial": "Logged, but {names} missed out — out of beer 🍺",
+    "toastAllSkipped": "Couldn't log the round — out of beer.",
+    "toastError": "Couldn't do that — please try again.",
+    "overrideHint": "Different beer for {name}",
+    "clearOverride": "Back to the default beer",
+    "errors": {
+      "empty": "Pick at least one drinker.",
+      "duplicateMember": "Each person can have only one beer per round."
+    }
+  },
   "onboarding": {
     "title": "Welcome",
     "subtitle": "A few details and we're on to the first beer.",

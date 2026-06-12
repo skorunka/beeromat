@@ -1,4 +1,23 @@
 <!-- SPECKIT START -->
+Currently planning: spec 034 (leaderboards-profiles — read-only stats
+layer, NO schema change. Two surfaces: /leaderboards (7 aggregate
+boards — beers/tab/wins/played/winRate/streak/boughtForOthers, all-time
+vs rolling-90d "season" toggle via ?scope, podium top-3 + viewer-row
+highlight) and /members/[memberId] profile (record/streaks/nemesis+
+favouriteVictim/best+jinxPartner/beersPerNight/favouriteBeer/
+roundsPoured/tab) + a playful fun-line engine. Architecture: ONE SQL
+GROUP BY per board run via Promise.all (NEVER per-member loops; target
+<1.5s on the heavy seed), plus pure unit-tested selectors in lib/stats/
+{streak,head-to-head,partners,beers-per-night,fun-lines}.ts. Queries:
+lib/db/queries/{leaderboards,player-stats}.ts. Excludes voided
+consumptions + reversed/cancelled/voided matches. Min-games guards
+(winRate ≥10; partner/H2H ≥3). Partners come from match_agreement_sides
+(same side = teammates) → needs DOUBLES data, so a foundational task
+extends scripts/seed-heavy.ts (currently singles-only) to emit valid
+doubles. Tests: unit (selectors, PRIMARY) + integration (board ranking/
+voided-excluded/season/guard + doubles partners) + component; E2E N/A.
+Full SDD in specs/034-leaderboards-profiles/.)
+
 Most recently shipped: spec 033 (log-a-round — batch on-behalf "pour a
 round" logging. The home in-card "log for another member" control became
 components/home/round-logger.tsx (home-log-for-other.tsx deleted): a

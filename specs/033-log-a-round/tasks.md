@@ -26,7 +26,7 @@ as an independent, testable increment. Authored on `main` (trunk-based).
 
 **Purpose**: Confirm the additive baseline.
 
-- [ ] T001 Confirm the feature is additive — no `drizzle/` migration, no new
+- [X] T001 Confirm the feature is additive — no `drizzle/` migration, no new
   dependency — and that `pnpm typecheck` + `pnpm test` are green on `main` before
   starting (baseline for the gate diff).
 
@@ -39,17 +39,17 @@ query, and the base i18n keys.
 
 **⚠️ CRITICAL**: No user-story work begins until this phase is complete.
 
-- [ ] T002 [P] Add `logRoundSchema` + `LogRoundInput` type in
+- [X] T002 [P] Add `logRoundSchema` + `LogRoundInput` type in
   `lib/validation/round.ts`: `items` array (min 1) of `{ memberId: uuid,
   beerTypeId: uuid }`, with a refinement rejecting duplicate `memberId`s (FR-012).
-- [ ] T003 [P] Unit test `tests/unit/round-schema.spec.ts`: accepts a valid
+- [X] T003 [P] Unit test `tests/unit/round-schema.spec.ts`: accepts a valid
   multi-item round; rejects empty `items`; rejects a duplicate `memberId`; rejects
   a non-uuid `memberId`/`beerTypeId`.
-- [ ] T004 [P] Add `listActiveMembersForRound(clubId, selfMemberId)` to
+- [X] T004 [P] Add `listActiveMembersForRound(clubId, selfMemberId)` to
   `lib/db/queries/members.ts`: all active members of the club (logger included)
   selecting `{ id, displayName, avatarKey, avatarUploadAt }` plus an `isSelf`
   flag, ordered self-first then by `displayName`.
-- [ ] T005 Add the base `round.*` key set to `messages/cs.json` AND
+- [X] T005 Add the base `round.*` key set to `messages/cs.json` AND
   `messages/en.json` (identical key trees): `title`, `ctaLink`, `collapse`,
   `defaultBeerHint`, `drinkersHint`, `count` (ICU plural), `submitCta` (ICU plural
   with `{count}`), `toastLogged` (ICU plural), `toastError`. (Partial/skip keys
@@ -71,7 +71,7 @@ your own, one review per teammate.
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Implement `logRoundAction` in
+- [X] T006 [US1] Implement `logRoundAction` in
   `app/[locale]/(app)/log/actions.ts` per `contracts/round-action.md`: parse with
   `logRoundSchema`; in ONE transaction get-or-open the club's open `drink_session`
   once (race-safe, as `logBeerAction`); for each item verify active club member
@@ -82,17 +82,17 @@ your own, one review per teammate.
   collect `logged`/`skipped`; return `ALL_SKIPPED` when nothing logged; else
   `revalidatePath('/','/log','/tab')` and return `{ logged, skipped, sessionId,
   balanceAfterMinor }` (balance read AFTER commit).
-- [ ] T007 [P] [US1] Integration test
+- [X] T007 [P] [US1] Integration test
   `tests/integration/log-round-action.spec.ts`: N drinkers incl. self → N
   consumptions on N tabs, correct price, stock −N; the logger's own beer leaves
   NO on-behalf review (member==creator) while each teammate's produces exactly
   one; a memberId from another club / inactive → that item reported in `skipped`
   as `TARGET_NOT_IN_CLUB`, the rest logged.
-- [ ] T008 [P] [US1] Create `components/picker/member-multi-select.tsx`: an avatar
+- [X] T008 [P] [US1] Create `components/picker/member-multi-select.tsx`: an avatar
   toggle grid reusing `MemberAvatar`; each tile a `button` with `aria-pressed`,
   ring+check when selected, accessible name = display name (+ "(ty)" for self);
   props `{ members, selected: Set, onToggle }`.
-- [ ] T009 [US1] Evolve `components/home/home-log-for-other.tsx` →
+- [X] T009 [US1] Evolve `components/home/home-log-for-other.tsx` →
   `components/home/round-logger.tsx`: collapsed affordance (spec-029 inline
   pattern); expanded = default `BeerPickerDropdown` (pre-filled from
   `defaultBeerTypeId`) + `member-multi-select` (self pre-selected) + live
@@ -100,13 +100,13 @@ your own, one review per teammate.
   for every selected drinker), calls `logRoundAction`; on `ok` → `celebrateBeer()`
   + `toastLogged` + `router.refresh()` + reset selection (stay on home); submit
   disabled at 0 drinkers. (Override is US2.)
-- [ ] T010 [US1] Wire `app/[locale]/(app)/page.tsx`: fetch
+- [X] T010 [US1] Wire `app/[locale]/(app)/page.tsx`: fetch
   `listActiveMembersForRound(ctx.club.id, ctx.member.id)`; render `<RoundLogger
   members=… beers=inStockCatalog defaultBeerTypeId=lastBeer?.id …/>` inside the
   Útrata card where `<HomeLogForOther>` was; remove the old control + its import +
   the now-unused `listOtherActiveMembers` home usage if fully replaced; keep
   "render only when other active members exist".
-- [ ] T011 [P] [US1] Component test `tests/component/round-logger.spec.tsx`
+- [X] T011 [P] [US1] Component test `tests/component/round-logger.spec.tsx`
   (action mocked with `vi.mock()`): logger tile pre-selected; toggling a teammate
   updates the count + submit label; submit disabled with 0 drinkers; success path
   calls `logRoundAction` with the expected `items`, celebrates, and resets.
@@ -126,19 +126,19 @@ confirm → two get A, one gets B, each on their own tab.
 
 ### Implementation for User Story 2
 
-- [ ] T012 [US2] Add per-person override to
+- [X] T012 [US2] Add per-person override to
   `components/home/round-logger.tsx`: each selected tile carries a beer chip
   showing its current beer (round default unless overridden); tapping opens a
   `BeerPickerDropdown` scoped to that drinker; store an `overrides: Map<memberId,
   beerTypeId>`; clearing reverts to default; submit builds `items` with
   `overrides[m] ?? defaultBeerTypeId`. (No action change — `logRoundAction`
   already accepts per-item `beerTypeId`.)
-- [ ] T013 [US2] Add `overrideHint` + `clearOverride` keys to `messages/cs.json`
+- [X] T013 [US2] Add `overrideHint` + `clearOverride` keys to `messages/cs.json`
   + `messages/en.json` (parity).
-- [ ] T014 [P] [US2] Extend `tests/component/round-logger.spec.tsx`: overriding a
+- [X] T014 [P] [US2] Extend `tests/component/round-logger.spec.tsx`: overriding a
   drinker sends that drinker's chosen beer in `items`; clearing reverts them to
   the round default.
-- [ ] T015 [P] [US2] Extend `tests/integration/log-round-action.spec.ts`: a
+- [X] T015 [P] [US2] Extend `tests/integration/log-round-action.spec.ts`: a
   mixed-beer round logs each drinker's specified beer (two of A, one of B) with
   correct per-beer price + stock decrements.
 
@@ -160,22 +160,22 @@ logged, "couldn't record the round".
 
 ### Implementation for User Story 3
 
-- [ ] T016 [US3] Verify/finalize the skip semantics in `logRoundAction`
+- [X] T016 [US3] Verify/finalize the skip semantics in `logRoundAction`
   (`app/[locale]/(app)/log/actions.ts`): each item independently skippable
   (`OUT_OF_STOCK` / `BEER_NOT_AVAILABLE` / `TARGET_NOT_IN_CLUB`); `skipped[]`
   carries `{ memberId, beerTypeId, reason }`; `logged` empty → `{ ok:false,
   code:'ALL_SKIPPED' }`; only logged items write a `stock_changes` row.
-- [ ] T017 [US3] Add `toastLoggedPartial` (names the skipped drinker(s)/beer(s))
+- [X] T017 [US3] Add `toastLoggedPartial` (names the skipped drinker(s)/beer(s))
   and `toastAllSkipped` keys to `messages/cs.json` + `messages/en.json` (parity).
-- [ ] T018 [US3] Handle the partial/all-skipped results in
+- [X] T018 [US3] Handle the partial/all-skipped results in
   `components/home/round-logger.tsx`: `ok` with `skipped` → celebrate +
   `toastLoggedPartial` (resolve skipped memberIds → names) + refresh + reset;
   `ok:false ALL_SKIPPED` → `toastAllSkipped` error, no celebrate, no reset.
-- [ ] T019 [P] [US3] Extend `tests/integration/log-round-action.spec.ts`: one
+- [X] T019 [P] [US3] Extend `tests/integration/log-round-action.spec.ts`: one
   beer out of stock → the rest log, `skipped` reports it, `ok:true`; ALL beers out
   of stock → `ok:false code 'ALL_SKIPPED'`, zero consumptions + zero stock-audit
   rows written.
-- [ ] T020 [P] [US3] Extend `tests/component/round-logger.spec.tsx`: a partial
+- [X] T020 [P] [US3] Extend `tests/component/round-logger.spec.tsx`: a partial
   result renders the partial toast and resets; an `ALL_SKIPPED` result renders the
   error toast and does NOT reset the selection.
 
@@ -185,17 +185,17 @@ logged, "couldn't record the round".
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T021 [P] If `member-multi-select.tsx` / `round-logger.tsx` trip the
+- [X] T021 [P] If `member-multi-select.tsx` / `round-logger.tsx` trip the
   `i18n:check` JSX/arrow false-positive (as `member-picker-dropdown` did), add
   them to the checker's EXCLUDED set in `scripts/i18n-check.ts` with a one-line
   reason; otherwise no-op.
-- [ ] T022 Run the full gate suite — `pnpm typecheck`, `pnpm lint`,
+- [X] T022 Run the full gate suite — `pnpm typecheck`, `pnpm lint`,
   `pnpm test` (unit+integration+component+i18n:check+forms:check), `pnpm build` —
   and fix any failure. (E2E not run — declared N/A in plan.md.)
 - [ ] T023 Execute `specs/033-log-a-round/quickstart.md` manual walkthrough on the
   dev server (same-beer round, override, out-of-stock) to confirm the in-place
   refresh + reset behaviour.
-- [ ] T024 Remove the dead `home-log-for-other.tsx` (renamed) and any orphan
+- [X] T024 Remove the dead `home-log-for-other.tsx` (renamed) and any orphan
   imports/exports; flip CLAUDE.md's `033` note from "Currently planning" to "Most
   recently shipped" with the as-built summary.
 

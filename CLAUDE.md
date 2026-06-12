@@ -1,21 +1,28 @@
 <!-- SPECKIT START -->
-Currently planning: spec 033 (log-a-round — batch on-behalf "pour a
-round" logging. Evolves the home in-card "log for another member"
-control (components/home/home-log-for-other.tsx → round-logger.tsx)
-into a multi-select avatar grid: pick one default beer, tap everyone
-drinking (logger pre-selected), optional per-person beer override, one
-"Zapsat rundu · N piv" button. New logBeerAction/logBeerOnBehalfAction
-sibling logRoundAction writes N consumptions in ONE tx — each beer on
-that drinker's OWN tab (each owes their own; NO money-transfer model).
-Self-beer = item whose member==creator → no "logged for you" review;
-teammates' beers → one review each (emergent from the existing
-predicate, no branching). Out-of-stock = partial success (skip + report,
-not all-or-nothing). NO schema change / NO migration — a "round" is
-transient client state; only ordinary consumptions rows persist. New
-listActiveMembersForRound (roster incl self + avatars), logRoundSchema
-(distinct memberIds). Tests: unit (schema) + integration (batched tx,
-partial skip, review distinction) + component (multi-select/override);
-E2E declared N/A. Full SDD in specs/033-log-a-round/.)
+Most recently shipped: spec 033 (log-a-round — batch on-behalf "pour a
+round" logging. The home in-card "log for another member" control became
+components/home/round-logger.tsx (home-log-for-other.tsx deleted): a
+multi-select avatar grid (components/picker/member-multi-select.tsx,
+aria-pressed toggles) + a default beer + optional per-person override
+(opt-in "Někdo chce jiné pivo?" section) + one "Zapsat rundu · N piv"
+button. New logBeerAction/logBeerOnBehalfAction sibling logRoundAction
+(app/.../log/actions.ts) writes N consumptions in ONE tx — each beer on
+that drinker's OWN tab (each owes their own; NO money-transfer model),
+lazy session-open so an all-skipped round writes nothing. Self-beer =
+item whose member==creator → no "logged for you" review; teammates →
+one review each (EMERGENT from the existing predicate, no branching).
+Out-of-stock/unavailable/not-in-club items are SKIPPED + reported
+(partial success); all-skipped → ok:false ALL_SKIPPED. NO schema change
+/ NO migration — a "round" is transient client state; only ordinary
+consumptions rows persist. New listActiveMembersForRound (roster incl
+self, isSelf flag), logRoundSchema (distinct memberIds). round-logger
+added to the i18n-check EXCLUDED set (arrow/ternary regex
+false-positive, strings via t('round.*')). Tests: unit
+round-schema (4) + integration log-round-action (5: N-tab fan-out,
+review distinction, partial skip, all-skipped, not-in-club, mixed beer)
++ component round-logger (6). E2E N/A (declared). Full SDD in
+specs/033-log-a-round/. BACKLOG after 033: per-person quantity >1;
+whole-round undo; surfacing the round as a grouped history entry.
 
 Most recently shipped: spec 032 (event-attendance — RSVP for recurring
 weekly sessions, replacing sejdemse. New events domain:

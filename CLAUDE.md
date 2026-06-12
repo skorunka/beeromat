@@ -1,4 +1,22 @@
 <!-- SPECKIT START -->
+Currently planning: spec 033 (log-a-round — batch on-behalf "pour a
+round" logging. Evolves the home in-card "log for another member"
+control (components/home/home-log-for-other.tsx → round-logger.tsx)
+into a multi-select avatar grid: pick one default beer, tap everyone
+drinking (logger pre-selected), optional per-person beer override, one
+"Zapsat rundu · N piv" button. New logBeerAction/logBeerOnBehalfAction
+sibling logRoundAction writes N consumptions in ONE tx — each beer on
+that drinker's OWN tab (each owes their own; NO money-transfer model).
+Self-beer = item whose member==creator → no "logged for you" review;
+teammates' beers → one review each (emergent from the existing
+predicate, no branching). Out-of-stock = partial success (skip + report,
+not all-or-nothing). NO schema change / NO migration — a "round" is
+transient client state; only ordinary consumptions rows persist. New
+listActiveMembersForRound (roster incl self + avatars), logRoundSchema
+(distinct memberIds). Tests: unit (schema) + integration (batched tx,
+partial skip, review distinction) + component (multi-select/override);
+E2E declared N/A. Full SDD in specs/033-log-a-round/.)
+
 Most recently shipped: spec 032 (event-attendance — RSVP for recurring
 weekly sessions, replacing sejdemse. New events domain:
 event_series / event_occurrences / event_rsvps + a nullable

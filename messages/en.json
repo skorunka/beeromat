@@ -301,6 +301,7 @@
   "events": {
     "navLabel": "Events",
     "upcoming": "Upcoming",
+    "detail": "Detail",
     "noSessions": "No upcoming sessions to RSVP to.",
     "going": "I'm in",
     "notGoing": "Can't make it",
@@ -315,6 +316,14 @@
       "doubles": "Four — perfect for doubles! 🎾🎾 Let's go.",
       "fiver": "Five — doubles plus a sub keeping the beers cold 🍺",
       "crowd": "{count} in — enough for a proper rotation. Tournament vibes 🏆"
+    },
+    "format": {
+      "solo": "needs a partner",
+      "single": "singles 🎾",
+      "threesome": "odd one out",
+      "doubles": "doubles 🎾🎾",
+      "fiver": "doubles +1",
+      "crowd": "full house 🏆"
     },
     "closed": "Closed",
     "cancelled": "Cancelled",

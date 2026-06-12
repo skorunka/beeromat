@@ -301,6 +301,7 @@
   "events": {
     "navLabel": "Sraz",
     "upcoming": "Nejbližší srazy",
+    "detail": "Detail",
     "noSessions": "Žádné nadcházející srazy k přihlášení.",
     "going": "Přijdu",
     "notGoing": "Nejdu",
@@ -315,6 +316,14 @@
       "doubles": "Čtyři — ideál na čtyřhru! 🎾🎾 Jdem.",
       "fiver": "Pět — čtyřhra a jeden hlídá vychlazená piva 🍺",
       "crowd": "{count} přihlášených — to je na pořádnou rotaci. Turnaj! 🏆"
+    },
+    "format": {
+      "solo": "chybí parťák",
+      "single": "dvouhra 🎾",
+      "threesome": "jeden sedí",
+      "doubles": "čtyřhra 🎾🎾",
+      "fiver": "čtyřhra +1",
+      "crowd": "plno 🏆"
     },
     "closed": "Zavřeno",
     "cancelled": "Zrušeno",

@@ -326,6 +326,35 @@ input[type='search']::-webkit-search-cancel-button:hover {
   }
 }
 
+/* ─── Headcount pop ───────────────────────────────────────────────────
+   The going-count number on the events screens. Re-mounted via a
+   React `key={count}` so the pop replays whenever the headcount
+   changes (someone RSVPs). A touch springier than avatar-pop. */
+@keyframes count-pop {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.4;
+  }
+  55% {
+    transform: scale(1.25);
+  }
+  78% {
+    transform: scale(0.94);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.animate-count-pop {
+  animation: count-pop 0.42s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-count-pop {
+    animation: none;
+  }
+}
+
 /* ─── Beer spinner ────────────────────────────────────────────────────
    Loading indicator (components/ui/beer-spinner). The same lucide
    Beer icon used by the one-tap log button, tilted back and forth

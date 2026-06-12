@@ -90,7 +90,9 @@ export default async function OccurrenceDetailPage({
 
       {/* Headcount + tennis-math vibe line */}
       <Card className="mb-4 p-4 text-center">
-        <div className="text-4xl font-bold">{detail.goingCount}</div>
+        <div key={detail.goingCount} className="animate-count-pop text-4xl font-bold">
+          {detail.goingCount}
+        </div>
         <div className="text-muted-foreground text-sm">{t('whoIsComing')}</div>
         <p className="mt-2 text-sm font-medium">
           {t(vibeKey[vibe], { count: detail.goingCount })}

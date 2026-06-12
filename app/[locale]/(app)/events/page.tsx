@@ -4,10 +4,38 @@ import type { Route } from 'next';
 import { CalendarDays, Check, MapPin, X } from 'lucide-react';
 
 import { Card } from '@/components/ui/card';
+import { MemberAvatar } from '@/components/ui/member-avatar';
+import { RsvpToggle } from '@/components/events/rsvp-toggle';
 import { requireUnlocked } from '@/lib/auth/session';
-import { listOpenThisWeek } from '@/lib/db/queries/events';
+import { avatarUploadUrl } from '@/lib/avatars/upload-url';
+import { getOccurrenceDetail, listOpenThisWeek } from '@/lib/db/queries/events';
+import { turnoutVibe, type TurnoutVibe } from '@/lib/events/window';
 
-// Spec 032 US1 — "this week" list of open sessions for the member.
+// Playful tennis-math copy keyed by going-count. Typed maps so TS enforces
+// every vibe has copy and the i18n checker never sees a template key.
+const VIBE_KEY: Record<TurnoutVibe, string> = {
+  none: 'vibe.none',
+  solo: 'vibe.solo',
+  single: 'vibe.single',
+  threesome: 'vibe.threesome',
+  doubles: 'vibe.doubles',
+  fiver: 'vibe.fiver',
+  crowd: 'vibe.crowd',
+};
+// Short format chip for the collapsed rows ('none' shows nothing — the
+// headcount already says "nobody yet").
+const FORMAT_KEY: Record<TurnoutVibe, string | null> = {
+  none: null,
+  solo: 'format.solo',
+  single: 'format.single',
+  threesome: 'format.threesome',
+  doubles: 'format.doubles',
+  fiver: 'format.fiver',
+  crowd: 'format.crowd',
+};
+
+// Spec 032 US1 — upcoming open sessions for the member. The nearest one is
+// expanded inline (RSVP without tapping through); the rest are compact links.
 export default async function EventsPage({
   params,
 }: {
@@ -20,6 +48,10 @@ export default async function EventsPage({
   const t = await getTranslations('events');
   const now = new Date();
   const rows = await listOpenThisWeek(ctx.club.id, ctx.member.id, now);
+  // Roster for the nearest session powers its expanded who's-coming strip.
+  const firstDetail = rows[0]
+    ? await getOccurrenceDetail(rows[0].occurrenceId, ctx.club.id)
+    : null;
 
   const dateFmt = new Intl.DateTimeFormat(ctx.club.defaultLocale, {
     weekday: 'long',
@@ -32,6 +64,11 @@ export default async function EventsPage({
     timeZone: 'Europe/Prague',
   });
 
+  const fmtDate = (occurrenceDate: string) => {
+    const [y, m, d] = occurrenceDate.split('-').map(Number) as [number, number, number];
+    return dateFmt.format(new Date(y, m - 1, d, 12));
+  };
+
   return (
     <main className="mx-auto max-w-md p-5">
       <header className="mb-4">
@@ -42,9 +79,70 @@ export default async function EventsPage({
         <p className="text-muted-foreground py-8 text-center text-sm">{t('noSessions')}</p>
       ) : (
         <ul className="flex flex-col gap-2">
-          {rows.map((r) => {
-            const [y, m, d] = r.occurrenceDate.split('-').map(Number) as [number, number, number];
-            const dateLabel = dateFmt.format(new Date(y, m - 1, d, 12));
+          {rows.map((r, i) => {
+            const vibe = turnoutVibe(r.goingCount);
+
+            // ── Nearest session: expanded inline card ──────────────────
+            if (i === 0) {
+              const going =
+                firstDetail?.roster.filter((m) => {
+                  return m.status === 'going';
+                }) ?? [];
+              return (
+                <li key={r.occurrenceId}>
+                  <Card className="border-primary/30 flex flex-col gap-3 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-lg font-semibold">
+                          {fmtDate(r.occurrenceDate)} · {timeFmt.format(r.startsAt)}
+                        </div>
+                        <div className="text-muted-foreground flex items-center gap-1 text-xs">
+                          <MapPin className="h-3.5 w-3.5" aria-hidden />
+                          {r.title ?? r.placeLabel}
+                        </div>
+                      </div>
+                      <Link
+                        href={`/events/${r.occurrenceId}` as Route}
+                        className="text-primary shrink-0 text-xs underline"
+                      >
+                        {t('detail')} →
+                      </Link>
+                    </div>
+
+                    <p className="text-sm font-medium">
+                      {t(VIBE_KEY[vibe], { count: r.goingCount })}
+                    </p>
+
+                    <RsvpToggle occurrenceId={r.occurrenceId} status={r.myStatus} />
+
+                    {going.length > 0 ? (
+                      <div className="flex items-center gap-2">
+                        <span
+                          key={r.goingCount}
+                          className="animate-count-pop text-primary text-sm font-bold tabular-nums"
+                        >
+                          {t('goingCount', { count: r.goingCount })}
+                        </span>
+                        <div className="flex -space-x-2">
+                          {going.slice(0, 8).map((m) => (
+                            <MemberAvatar
+                              key={m.memberId}
+                              avatarKey={m.avatarKey}
+                              displayName={m.displayName}
+                              uploadUrl={avatarUploadUrl(m.memberId, m.avatarUploadAt)}
+                              className="ring-card h-7 w-7 ring-2"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </Card>
+                </li>
+              );
+            }
+
+            // ── Later sessions: compact link rows ──────────────────────
+            const format = FORMAT_KEY[vibe];
             return (
               <li key={r.occurrenceId}>
                 <Link href={`/events/${r.occurrenceId}` as Route}>
@@ -52,13 +150,19 @@ export default async function EventsPage({
                     <CalendarDays className="text-primary h-5 w-5 shrink-0" aria-hidden />
                     <div className="min-w-0 flex-1">
                       <div className="font-medium">
-                        {dateLabel} · {timeFmt.format(r.startsAt)}
+                        {fmtDate(r.occurrenceDate)} · {timeFmt.format(r.startsAt)}
                       </div>
                       <div className="text-muted-foreground flex items-center gap-1 text-xs">
                         <MapPin className="h-3.5 w-3.5" aria-hidden />
                         {r.title ?? r.placeLabel}
                         <span aria-hidden>·</span>
                         {t('goingCount', { count: r.goingCount })}
+                        {format ? (
+                          <>
+                            <span aria-hidden>·</span>
+                            <span className="text-primary/80">{t(format)}</span>
+                          </>
+                        ) : null}
                       </div>
                     </div>
                     {r.myStatus === 'going' ? (

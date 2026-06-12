@@ -19,7 +19,7 @@ import { getMyTabForSession, lastBeerForMember } from '@/lib/db/queries/consumpt
 import { listOtherActiveMembers } from '@/lib/db/queries/members';
 import { getOpenSessionForClub } from '@/lib/db/queries/sessions';
 import { listOpenAgreementsForMember } from '@/lib/db/queries/match-agreements';
-import { listOpenThisWeek } from '@/lib/db/queries/events';
+import { getOccurrenceDetail, listOpenThisWeek } from '@/lib/db/queries/events';
 import { listBeerDebtsForMember, wonBeerCountForMember } from '@/lib/db/queries/match-bet-debts';
 import { groupTabEntriesByBeer } from '@/lib/tab/group-beer-breakdown';
 import { onBehalfReviewSummaryForMember } from '@/lib/db/queries/on-behalf-review';
@@ -62,7 +62,23 @@ export default async function AppHomePage({
     listOpenThisWeek(ctx.club.id, ctx.member.id, now),
   ]);
   // The nearest open session (soonest startsAt) for the home RSVP card.
+  // Pull its roster for the who's-going avatar strip (already sorted
+  // going-first / earliest-opt-in-first by getOccurrenceDetail).
   const nextEvent = openEvents[0] ?? null;
+  const nextEventDetail = nextEvent
+    ? await getOccurrenceDetail(nextEvent.occurrenceId, ctx.club.id)
+    : null;
+  const nextEventGoing =
+    nextEventDetail?.roster
+      .filter((r) => {
+        return r.status === 'going';
+      })
+      .map((r) => ({
+        memberId: r.memberId,
+        displayName: r.displayName,
+        avatarKey: r.avatarKey,
+        avatarUploadAt: r.avatarUploadAt,
+      })) ?? [];
 
   // Spec 028 — this round's beer breakdown, shown on home so the
   // member sees what they've had this evening right after logging,
@@ -174,7 +190,11 @@ export default async function AppHomePage({
         }))}
       />
 
-      <HomeNextEvent event={nextEvent} locale={ctx.club.defaultLocale} />
+      <HomeNextEvent
+        event={nextEvent}
+        going={nextEventGoing}
+        locale={ctx.club.defaultLocale}
+      />
 
       <OpenMatchPrompt matches={myOpenMatches} />
 

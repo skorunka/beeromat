@@ -4,7 +4,9 @@ import { CalendarDays, MapPin } from 'lucide-react';
 
 import { Link } from '@/lib/i18n/navigation';
 import { Card } from '@/components/ui/card';
+import { MemberAvatar } from '@/components/ui/member-avatar';
 import { RsvpToggle } from '@/components/events/rsvp-toggle';
+import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { turnoutVibe, type TurnoutVibe } from '@/lib/events/window';
 
 // Spec 032 follow-up — surface the nearest open session on home (the
@@ -31,11 +33,20 @@ export interface HomeNextEventData {
   myStatus: 'going' | 'not_going' | null;
 }
 
+export interface HomeNextEventGoing {
+  memberId: string;
+  displayName: string;
+  avatarKey: string | null;
+  avatarUploadAt: Date | null;
+}
+
 export function HomeNextEvent({
   event,
+  going,
   locale,
 }: {
   event: HomeNextEventData | null;
+  going: HomeNextEventGoing[];
   locale: string;
 }) {
   const t = useTranslations('events');
@@ -79,6 +90,29 @@ export function HomeNextEvent({
       <p className="text-sm font-medium">{t(VIBE_KEY[vibe], { count: event.goingCount })}</p>
 
       <RsvpToggle occurrenceId={event.occurrenceId} status={event.myStatus} />
+
+      {going.length > 0 ? (
+        <div className="flex items-center gap-2">
+          <span className="text-primary text-sm font-bold tabular-nums">
+            {t('goingCount', { count: event.goingCount })}
+          </span>
+          <div className="flex flex-wrap items-center gap-1">
+            {going.slice(0, 10).map((m) => (
+              <span key={m.memberId} title={m.displayName}>
+                <MemberAvatar
+                  size="row"
+                  avatarKey={m.avatarKey}
+                  displayName={m.displayName}
+                  uploadUrl={avatarUploadUrl(m.memberId, m.avatarUploadAt)}
+                />
+              </span>
+            ))}
+            {going.length > 10 ? (
+              <span className="text-muted-foreground text-xs">+{going.length - 10}</span>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </Card>
   );
 }

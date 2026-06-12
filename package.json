@@ -28,6 +28,7 @@
     "db:reset": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/db-reset.ts",
     "db:reset:bootstrap": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/db-reset.ts --with-club",
     "db:reset:operational": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/reset-operational.ts",
+    "db:seed:heavy": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/seed-heavy.ts",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "i18n:check": "tsx scripts/i18n-check.ts",

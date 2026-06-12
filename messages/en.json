@@ -277,6 +277,7 @@
       "boughtForOthers": "Most generous"
     },
     "profile": {
+      "back": "Leaderboards",
       "recordHeading": "Matches",
       "played": "Played",
       "won": "Won",

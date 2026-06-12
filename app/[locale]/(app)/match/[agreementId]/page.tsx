@@ -14,6 +14,7 @@ import { winnerLabel } from '@/lib/match/winner-label';
 import { joinSideNames } from '@/lib/format/match-sides';
 import { canRecordMatchResult } from '@/lib/permissions';
 import { ReverseMatchButton } from '@/components/match/reverse-match-button';
+import { MatchPlayers } from '@/components/match/match-players';
 
 import { EditAgreementForm } from './EditAgreementForm';
 import { RecordResultForm } from './RecordResultForm';
@@ -102,6 +103,8 @@ export default async function AgreementDetailPage({
             </span>
           ) : null}
         </div>
+        {/* Tap a player → their profile/stats (spec 034). */}
+        <MatchPlayers players={[...agreement.sides.A, ...agreement.sides.B]} />
       </header>
 
       {isCancelled ? (

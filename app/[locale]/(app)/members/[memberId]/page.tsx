@@ -1,6 +1,8 @@
+import type { Route } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
+import { Link } from '@/lib/i18n/navigation';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getPlayerStats } from '@/lib/db/queries/player-stats';
 import { MemberAvatar } from '@/components/ui/member-avatar';
@@ -32,14 +34,19 @@ export default async function ProfilePage({
 
   return (
     <main className="mx-auto flex max-w-md flex-col gap-5 p-5">
-      <header className="flex items-center gap-3">
-        <MemberAvatar
-          avatarKey={stats.avatarKey}
-          displayName={stats.displayName}
-          uploadUrl={avatarUploadUrl(stats.memberId, stats.avatarUploadAt)}
-          className="h-14 w-14 text-lg"
-        />
-        <h1 className="text-2xl font-bold">{stats.displayName}</h1>
+      <header className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <MemberAvatar
+            avatarKey={stats.avatarKey}
+            displayName={stats.displayName}
+            uploadUrl={avatarUploadUrl(stats.memberId, stats.avatarUploadAt)}
+            className="h-14 w-14 text-lg"
+          />
+          <h1 className="text-2xl font-bold">{stats.displayName}</h1>
+        </div>
+        <Link href={'/leaderboards' as Route} className="text-primary shrink-0 text-sm underline">
+          ← {t('back')}
+        </Link>
       </header>
 
       <FunLines lines={selectFunLines(stats)} />

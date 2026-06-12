@@ -1,5 +1,5 @@
 <!-- SPECKIT START -->
-Currently planning: spec 034 (leaderboards-profiles — read-only stats
+Most recently shipped: spec 034 (leaderboards-profiles — read-only stats
 layer, NO schema change. Two surfaces: /leaderboards (7 aggregate
 boards — beers/tab/wins/played/winRate/streak/boughtForOthers, all-time
 vs rolling-90d "season" toggle via ?scope, podium top-3 + viewer-row
@@ -14,9 +14,16 @@ consumptions + reversed/cancelled/voided matches. Min-games guards
 (winRate ≥10; partner/H2H ≥3). Partners come from match_agreement_sides
 (same side = teammates) → needs DOUBLES data, so a foundational task
 extends scripts/seed-heavy.ts (currently singles-only) to emit valid
-doubles. Tests: unit (selectors, PRIMARY) + integration (board ranking/
-voided-excluded/season/guard + doubles partners) + component; E2E N/A.
-Full SDD in specs/034-leaderboards-profiles/.)
+doubles. As built: routes /leaderboards (?scope) + /members/[memberId];
+entry via the match hub + account "My stats" + leaderboard rows.
+FunLines (selectFunLines, 6 lines, funline.* ICU plurals) on the
+profile. Heavy seed now emits doubles (~115 doubles / ~193 singles) so
+partner stats populate. Tests: unit (streak/selectors/fun-lines, 13) +
+integration (leaderboards 2 + player-stats 2) + component (board 5 +
+profile 2 + fun-line 4); E2E N/A. Verified live on the heavy dataset
+(all 7 boards + full profile + fun-lines, 0 errors). Full SDD in
+specs/034-leaderboards-profiles/. BACKLOG after 034: per-stat config
+UI, season archives, achievements/badges, match-lineup→profile links.)
 
 Most recently shipped: spec 033 (log-a-round — batch on-behalf "pour a
 round" logging. The home in-card "log for another member" control became

@@ -8,6 +8,7 @@ import { roleSatisfies } from '@/lib/permissions';
 import { HomeOneTapLog } from '@/components/home/home-one-tap-log';
 import { MatchBetModule } from '@/components/home/match-bet-module';
 import { OpenMatchPrompt } from '@/components/home/open-match-prompt';
+import { HomeNextEvent } from '@/components/home/home-next-event';
 import { OnBehalfReviewBanner } from '@/components/home/on-behalf-review-banner';
 import { TabBeerBreakdown } from '@/components/tab/tab-beer-breakdown';
 import { HomeLogForOther } from '@/components/home/home-log-for-other';
@@ -18,6 +19,7 @@ import { getMyTabForSession, lastBeerForMember } from '@/lib/db/queries/consumpt
 import { listOtherActiveMembers } from '@/lib/db/queries/members';
 import { getOpenSessionForClub } from '@/lib/db/queries/sessions';
 import { listOpenAgreementsForMember } from '@/lib/db/queries/match-agreements';
+import { listOpenThisWeek } from '@/lib/db/queries/events';
 import { listBeerDebtsForMember, wonBeerCountForMember } from '@/lib/db/queries/match-bet-debts';
 import { groupTabEntriesByBeer } from '@/lib/tab/group-beer-breakdown';
 import { onBehalfReviewSummaryForMember } from '@/lib/db/queries/on-behalf-review';
@@ -37,6 +39,7 @@ export default async function AppHomePage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('home');
+  const now = new Date();
   const [
     myBalance,
     lastBeer,
@@ -46,6 +49,7 @@ export default async function AppHomePage({
     openAgreements,
     otherMembers,
     onBehalfSummary,
+    openEvents,
   ] = await Promise.all([
     getMyBalance(ctx.member.id, ctx.club.currencyCode),
     lastBeerForMember(ctx.member.id, ctx.club.id),
@@ -55,7 +59,10 @@ export default async function AppHomePage({
     listOpenAgreementsForMember(ctx.club.id, ctx.member.id),
     listOtherActiveMembers(ctx.club.id, ctx.member.id),
     onBehalfReviewSummaryForMember(ctx.member.id, ctx.club.id),
+    listOpenThisWeek(ctx.club.id, ctx.member.id, now),
   ]);
+  // The nearest open session (soonest startsAt) for the home RSVP card.
+  const nextEvent = openEvents[0] ?? null;
 
   // Spec 028 — this round's beer breakdown, shown on home so the
   // member sees what they've had this evening right after logging,
@@ -166,6 +173,8 @@ export default async function AppHomePage({
           beerName: r.beerName,
         }))}
       />
+
+      <HomeNextEvent event={nextEvent} locale={ctx.club.defaultLocale} />
 
       <OpenMatchPrompt matches={myOpenMatches} />
 

@@ -275,6 +275,27 @@
       "winRate": "Win rate",
       "streak": "Win streak",
       "boughtForOthers": "Most generous"
+    },
+    "profile": {
+      "recordHeading": "Matches",
+      "played": "Played",
+      "won": "Won",
+      "lost": "Lost",
+      "winRate": "Win rate",
+      "currentStreak": "Streak",
+      "bestStreak": "Best streak",
+      "rivalsHeading": "Rivals",
+      "nemesis": "Nemesis 😈",
+      "victim": "Favourite victim 😏",
+      "partnersHeading": "Partners",
+      "bestPartner": "Best partner 🤝",
+      "jinxPartner": "Jinx partner 🙈",
+      "beerHeading": "Beer",
+      "totalBeers": "Total beers",
+      "beersPerNight": "Beers/night",
+      "roundsPoured": "Rounds poured",
+      "tab": "Tab",
+      "favouriteBeer": "Go-to: {beer} ×{count} 🍺"
     }
   },
   "onboarding": {
@@ -478,6 +499,7 @@
   "account": {
     "title": "Your account",
     "paymentHistory": "Payment history",
+    "myStats": "My stats",
     "displayNameLabel": "Your name",
     "displayNamePlaceholder": "What your mates call you",
     "displayNameHint": "Other members see you under this name.",

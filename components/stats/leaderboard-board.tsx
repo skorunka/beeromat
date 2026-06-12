@@ -1,5 +1,7 @@
+import type { Route } from 'next';
 import { useTranslations } from 'next-intl';
 
+import { Link } from '@/lib/i18n/navigation';
 import { Card } from '@/components/ui/card';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
@@ -55,10 +57,13 @@ function BoardRowItem({
         displayName={row.displayName}
         uploadUrl={avatarUploadUrl(row.memberId, row.avatarUploadAt)}
       />
-      <span className="min-w-0 flex-1 truncate text-sm font-medium">
+      <Link
+        href={`/members/${row.memberId}` as Route}
+        className="min-w-0 flex-1 truncate text-sm font-medium hover:underline"
+      >
         {row.displayName}
         {isViewer ? ` · ${youLabel}` : ''}
-      </span>
+      </Link>
       <span className="text-primary shrink-0 text-sm font-bold tabular-nums">{valueLabel}</span>
     </li>
   );

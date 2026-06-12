@@ -275,6 +275,27 @@
       "winRate": "Úspěšnost",
       "streak": "Série výher",
       "boughtForOthers": "Nejštědřejší"
+    },
+    "profile": {
+      "recordHeading": "Zápasy",
+      "played": "Odehráno",
+      "won": "Výhry",
+      "lost": "Prohry",
+      "winRate": "Úspěšnost",
+      "currentStreak": "Série",
+      "bestStreak": "Nejlepší série",
+      "rivalsHeading": "Soupeři",
+      "nemesis": "Postrach 😈",
+      "victim": "Oblíbená oběť 😏",
+      "partnersHeading": "Parťáci",
+      "bestPartner": "Nejlepší parťák 🤝",
+      "jinxPartner": "Smolný parťák 🙈",
+      "beerHeading": "Pivo",
+      "totalBeers": "Piv celkem",
+      "beersPerNight": "Piv na večer",
+      "roundsPoured": "Rund naservírováno",
+      "tab": "Dluh",
+      "favouriteBeer": "Nejčastěji: {beer} ×{count} 🍺"
     }
   },
   "onboarding": {
@@ -478,6 +499,7 @@
   "account": {
     "title": "Tvůj účet",
     "paymentHistory": "Historie plateb",
+    "myStats": "Moje statistiky",
     "displayNameLabel": "Tvoje jméno",
     "displayNamePlaceholder": "Jak ti říkají v partě",
     "displayNameHint": "Pod tímhle jménem tě uvidí ostatní členové.",

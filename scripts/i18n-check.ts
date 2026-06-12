@@ -58,6 +58,11 @@ const EXCLUDED = new Set([
   // pickers). File audited: the only user-facing strings come from
   // useTranslations('common') (search placeholder, no-match text).
   'components/picker/member-picker-grid.tsx',
+  // stats/leaderboard-board.tsx — the `board.rows.map((r) => r.memberId)`
+  // arrow trips the JSX_TEXT regex (same =>/ternary root cause). Audited:
+  // every user-facing string comes via useTranslations('stats'); member
+  // names + values are data. (spec 034)
+  'components/stats/leaderboard-board.tsx',
   // round-logger.tsx — the `() => new Set(self ? [self.id] : [])` and
   // `members.find((mm) => mm.id === id)` arrows trip the JSX_TEXT regex
   // (same =>/ternary root cause as the pickers). File audited: every

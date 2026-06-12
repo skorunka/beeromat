@@ -61,6 +61,15 @@ export default async function AccountPage({
         <p className="text-muted-foreground mt-1 text-sm break-all">{ctx.user.email}</p>
       </header>
 
+      {/* Spec 034 — own profile / stats. */}
+      <Link
+        href={`/members/${ctx.member.id}` as Route}
+        className="border-border bg-card hover:bg-accent mb-6 flex items-center justify-between gap-2 rounded-xl border px-4 py-3 text-sm font-medium"
+      >
+        <span>🏆 {t('myStats')}</span>
+        <ChevronRight className="text-muted-foreground h-4 w-4" aria-hidden />
+      </Link>
+
       <section className="mb-6">
         <Card className="p-4">
           <AccountForm initialDisplayName={ctx.member.displayName} />

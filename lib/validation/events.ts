@@ -47,3 +47,10 @@ export const setMemberRsvpSchema = setRsvpSchema.extend({
 export type SetMemberRsvpInput = z.infer<typeof setMemberRsvpSchema>;
 
 export const cancelOccurrenceSchema = z.object({ occurrenceId: z.string().uuid() });
+
+// Reset (delete) a member's RSVP back to "no answer". Admin-only variant adds
+// the target member.
+export const clearRsvpSchema = z.object({ occurrenceId: z.string().uuid() });
+export const clearMemberRsvpSchema = clearRsvpSchema.extend({
+  memberId: z.string().uuid(),
+});

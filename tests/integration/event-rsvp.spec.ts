@@ -23,7 +23,7 @@ vi.mock('@/lib/auth/session', () => ({
 }));
 vi.mock('next/cache', () => ({ revalidatePath: () => {} }));
 
-import { setMyRsvpAction } from '@/app/[locale]/(app)/events/actions';
+import { clearMyRsvpAction, setMyRsvpAction } from '@/app/[locale]/(app)/events/actions';
 import { currentPragueWeekDates } from '@/lib/events/window';
 import { users } from '@/lib/db/schema/auth';
 import { clubs } from '@/lib/db/schema/clubs';
@@ -113,6 +113,18 @@ describe('setMyRsvpAction (spec 032)', () => {
     rows = await testDb.select().from(eventRsvps).where(eq(eventRsvps.occurrenceId, occId));
     expect(rows).toHaveLength(1); // overwrite, not a second row
     expect(rows[0]!.status).toBe('not_going');
+  });
+
+  it('clearMyRsvpAction resets the vote — deletes the row (back to no answer)', async () => {
+    const a = await seedClub('A');
+    const occId = await addOccurrence(a, FUTURE);
+    actAs(a);
+
+    await setMyRsvpAction({ occurrenceId: occId, status: 'going' });
+    expect((await clearMyRsvpAction({ occurrenceId: occId })).ok).toBe(true);
+
+    const rows = await testDb.select().from(eventRsvps).where(eq(eventRsvps.occurrenceId, occId));
+    expect(rows).toHaveLength(0);
   });
 
   it('rejects RSVP on a closed (already-started) occurrence', async () => {

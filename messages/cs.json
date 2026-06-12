@@ -331,6 +331,7 @@
     "savedToast": "Uloženo.",
     "goingToast": "Jdeš do toho! 🎾",
     "notGoingToast": "V pohodě — příště 🍺",
+    "clearedToast": "Zpět na nerozhodnuto 🤷",
     "failedToast": "Nepovedlo se. Zkus to znovu.",
     "closedToast": "Tahle akce už je zavřená.",
     "admin": {

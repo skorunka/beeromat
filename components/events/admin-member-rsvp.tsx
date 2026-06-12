@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Check, X } from 'lucide-react';
 
-import { setMemberRsvpAction } from '@/app/[locale]/(app)/events/actions';
+import { clearMemberRsvpAction, setMemberRsvpAction } from '@/app/[locale]/(app)/events/actions';
 import { cn } from '@/lib/utils';
 
 // Spec 032 US4 — admin-only on-behalf set of a member's status. Rendered ONLY
@@ -27,9 +27,13 @@ export function AdminMemberRsvp({
 
   function set(next: 'going' | 'not_going') {
     if (isPending) return;
+    // Tapping the member's current choice resets it (no answer).
+    const undo = status === next;
     startTransition(async () => {
-      const r = await setMemberRsvpAction({ occurrenceId, memberId, status: next });
-      if (r.ok) toast.success(t('savedToast'));
+      const r = undo
+        ? await clearMemberRsvpAction({ occurrenceId, memberId })
+        : await setMemberRsvpAction({ occurrenceId, memberId, status: next });
+      if (r.ok) toast.success(undo ? t('clearedToast') : t('savedToast'));
       else toast.error(t('failedToast'));
       router.refresh();
     });

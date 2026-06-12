@@ -331,6 +331,7 @@
     "savedToast": "Saved.",
     "goingToast": "You're in! 🎾",
     "notGoingToast": "No worries — next time 🍺",
+    "clearedToast": "Back to undecided 🤷",
     "failedToast": "Didn't work. Try again.",
     "closedToast": "This session is already closed.",
     "admin": {

@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Check, X } from 'lucide-react';
 
-import { setMyRsvpAction } from '@/app/[locale]/(app)/events/actions';
+import { clearMyRsvpAction, setMyRsvpAction } from '@/app/[locale]/(app)/events/actions';
 import { cn } from '@/lib/utils';
 
 // Spec 032 US1 — a member's own going/not-going toggle. Optimistic-feel via
@@ -26,10 +26,19 @@ export function RsvpToggle({
 
   function set(next: 'going' | 'not_going') {
     if (disabled || isPending) return;
+    // Tapping the choice you're already on resets the vote (no answer).
+    const undo = status === next;
     startTransition(async () => {
-      const r = await setMyRsvpAction({ occurrenceId, status: next });
-      if (r.ok) toast.success(next === 'going' ? t('goingToast') : t('notGoingToast'));
-      else toast.error(r.code === 'CLOSED' ? t('closedToast') : t('failedToast'));
+      const r = undo
+        ? await clearMyRsvpAction({ occurrenceId })
+        : await setMyRsvpAction({ occurrenceId, status: next });
+      if (r.ok) {
+        toast.success(
+          undo ? t('clearedToast') : next === 'going' ? t('goingToast') : t('notGoingToast'),
+        );
+      } else {
+        toast.error(r.code === 'CLOSED' ? t('closedToast') : t('failedToast'));
+      }
       router.refresh();
     });
   }

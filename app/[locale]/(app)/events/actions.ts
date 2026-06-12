@@ -11,6 +11,8 @@ import { ensureOccurrences } from '@/lib/db/queries/events';
 import { isOccurrenceOpen } from '@/lib/events/window';
 import {
   cancelOccurrenceSchema,
+  clearMemberRsvpSchema,
+  clearRsvpSchema,
   createSeriesSchema,
   setMemberRsvpSchema,
   setRsvpSchema,
@@ -116,6 +118,57 @@ export async function setMemberRsvpAction(input: {
     status: parsed.data.status,
     setByUserId: ctx.user.id,
   });
+  revalidatePath(`/events/${parsed.data.occurrenceId}`);
+  return { ok: true };
+}
+
+// US1 — a member resets their OWN RSVP back to "no answer" (tap the active
+// choice again to undo). Deleting the row is the canonical undecided state.
+export async function clearMyRsvpAction(input: {
+  occurrenceId: string;
+}): Promise<SetRsvpResult> {
+  const ctx = await requireMember();
+  const parsed = clearRsvpSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, code: 'INVALID_INPUT' };
+
+  const loaded = await loadOpenOccurrence(parsed.data.occurrenceId, ctx.club.id);
+  if (!loaded.ok) return { ok: false, code: loaded.code };
+
+  await db
+    .delete(eventRsvps)
+    .where(
+      and(
+        eq(eventRsvps.occurrenceId, parsed.data.occurrenceId),
+        eq(eventRsvps.memberId, ctx.member.id),
+        eq(eventRsvps.clubId, ctx.club.id),
+      ),
+    );
+  revalidatePath('/events');
+  revalidatePath(`/events/${parsed.data.occurrenceId}`);
+  return { ok: true };
+}
+
+// US4 — admin-only on-behalf reset of ANOTHER member's RSVP.
+export async function clearMemberRsvpAction(input: {
+  occurrenceId: string;
+  memberId: string;
+}): Promise<SetRsvpResult> {
+  const ctx = await requireRole('club_admin');
+  const parsed = clearMemberRsvpSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, code: 'INVALID_INPUT' };
+
+  const loaded = await loadOpenOccurrence(parsed.data.occurrenceId, ctx.club.id);
+  if (!loaded.ok) return { ok: false, code: loaded.code };
+
+  await db
+    .delete(eventRsvps)
+    .where(
+      and(
+        eq(eventRsvps.occurrenceId, parsed.data.occurrenceId),
+        eq(eventRsvps.memberId, parsed.data.memberId),
+        eq(eventRsvps.clubId, ctx.club.id),
+      ),
+    );
   revalidatePath(`/events/${parsed.data.occurrenceId}`);
   return { ok: true };
 }

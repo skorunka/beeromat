@@ -105,3 +105,20 @@ export function formatRelativeDay(
   }
   return formatDayLabel(date, locale);
 }
+
+/**
+ * Compact, locale-aware "time ago" for recent timestamps — "now", "5 min
+ * ago", "2 hr. ago", "yesterday", "3 days ago" (and the localized
+ * equivalents). Picks the coarsest unit under a day, falls back to days.
+ * Pure (takes `now` + `locale`) so it unit-tests deterministically.
+ */
+export function formatTimeAgo(date: Date, now: Date, locale: string): string {
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto', style: 'short' });
+  const ms = date.getTime() - now.getTime(); // negative in the past
+  const min = Math.round(ms / 60_000);
+  if (Math.abs(min) < 1) return rtf.format(0, 'second');
+  if (Math.abs(min) < 60) return rtf.format(min, 'minute');
+  const hr = Math.round(ms / 3_600_000);
+  if (Math.abs(hr) < 24) return rtf.format(hr, 'hour');
+  return rtf.format(Math.round(ms / 86_400_000), 'day');
+}

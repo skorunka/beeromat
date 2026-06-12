@@ -139,6 +139,7 @@ export interface OccurrenceDetail {
     avatarKey: string | null;
     avatarUploadAt: Date | null;
     status: 'going' | 'not_going' | null;
+    rsvpUpdatedAt: Date | null;
   }[];
   goingCount: number;
   linkedSessionId: string | null;
@@ -173,6 +174,7 @@ export async function getOccurrenceDetail(
       avatarKey: members.avatarKey,
       avatarUploadAt: members.avatarUploadAt,
       status: eventRsvps.status,
+      rsvpUpdatedAt: eventRsvps.updatedAt,
     })
     .from(members)
     .leftJoin(
@@ -182,7 +184,20 @@ export async function getOccurrenceDetail(
     .where(and(eq(members.clubId, clubId), eq(members.isActive, true)))
     .orderBy(asc(members.displayName));
 
-  const goingCount = roster.filter((r) => r.status === 'going').length;
+  // Present going first (latest opt-in first), then not-going, then no-answer.
+  // displayName asc from the query is the stable tiebreak within a group.
+  const statusRank = { going: 0, not_going: 1 } as const;
+  const sortedRoster = roster.slice().sort((a, b) => {
+    const ra = a.status ? statusRank[a.status] : 2;
+    const rb = b.status ? statusRank[b.status] : 2;
+    if (ra !== rb) return ra - rb;
+    if (a.status && b.status) {
+      return (b.rsvpUpdatedAt?.getTime() ?? 0) - (a.rsvpUpdatedAt?.getTime() ?? 0);
+    }
+    return 0;
+  });
+
+  const goingCount = sortedRoster.filter((r) => r.status === 'going').length;
 
   const linked = await db
     .select({ id: drinkSessions.id })
@@ -192,7 +207,7 @@ export async function getOccurrenceDetail(
 
   return {
     occurrence: o,
-    roster,
+    roster: sortedRoster,
     goingCount,
     linkedSessionId: linked[0]?.id ?? null,
   };

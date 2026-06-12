@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { initials } from '@/lib/avatars/initials';
-import { formatMoney, formatMoneyCompact, formatRelativeDay, isSameDay } from '@/lib/format';
+import {
+  formatMoney,
+  formatMoneyCompact,
+  formatRelativeDay,
+  formatTimeAgo,
+  isSameDay,
+} from '@/lib/format';
 import { joinSideNames } from '@/lib/format/match-sides';
 
 // Three pure-function modules covered together: the money formatters
@@ -9,6 +15,17 @@ import { joinSideNames } from '@/lib/format/match-sides';
 // MemberAvatar, and the match-side label join used on the match
 // surfaces. All are render-path helpers; if any silently drifts the
 // whole UI gets ugly fast.
+
+describe('formatTimeAgo — compact relative time', () => {
+  const now = new Date('2026-06-12T12:00:00Z');
+  it('picks the coarsest unit and reads as past', () => {
+    expect(formatTimeAgo(new Date('2026-06-12T12:00:00Z'), now, 'en')).toMatch(/now/i);
+    expect(formatTimeAgo(new Date('2026-06-12T11:55:00Z'), now, 'en')).toMatch(/5 min/);
+    expect(formatTimeAgo(new Date('2026-06-12T10:00:00Z'), now, 'en')).toMatch(/2 hr/);
+    expect(formatTimeAgo(new Date('2026-06-11T12:00:00Z'), now, 'en')).toMatch(/yesterday/i);
+    expect(formatTimeAgo(new Date('2026-06-09T12:00:00Z'), now, 'en')).toMatch(/3 days/);
+  });
+});
 
 describe('formatMoney — full Intl.NumberFormat output', () => {
   it('Czech locale renders korunas with two fractional digits + NBSP space', () => {

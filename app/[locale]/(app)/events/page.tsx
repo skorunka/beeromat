@@ -8,6 +8,7 @@ import { MemberAvatar } from '@/components/ui/member-avatar';
 import { RsvpToggle } from '@/components/events/rsvp-toggle';
 import { requireUnlocked } from '@/lib/auth/session';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
+import { formatTimeAgo } from '@/lib/format';
 import { getOccurrenceDetail, listOpenThisWeek } from '@/lib/db/queries/events';
 import { turnoutVibe, type TurnoutVibe } from '@/lib/events/window';
 
@@ -84,10 +85,14 @@ export default async function EventsPage({
 
             // ── Nearest session: expanded inline card ──────────────────
             if (i === 0) {
-              const going =
+              // Going members, latest opt-in first.
+              const going = (
                 firstDetail?.roster.filter((m) => {
                   return m.status === 'going';
-                }) ?? [];
+                }) ?? []
+              ).sort((a, b) => {
+                return (b.rsvpUpdatedAt?.getTime() ?? 0) - (a.rsvpUpdatedAt?.getTime() ?? 0);
+              });
               return (
                 <li key={r.occurrenceId}>
                   <Card className="border-primary/30 flex flex-col gap-3 p-4">
@@ -123,16 +128,27 @@ export default async function EventsPage({
                         >
                           {t('goingCount', { count: r.goingCount })}
                         </span>
-                        <div className="flex -space-x-2">
-                          {going.slice(0, 8).map((m) => (
-                            <MemberAvatar
+                        <div className="flex flex-wrap items-center gap-1">
+                          {going.slice(0, 10).map((m) => (
+                            <span
                               key={m.memberId}
-                              avatarKey={m.avatarKey}
-                              displayName={m.displayName}
-                              uploadUrl={avatarUploadUrl(m.memberId, m.avatarUploadAt)}
-                              className="ring-card h-7 w-7 ring-2"
-                            />
+                              title={
+                                m.rsvpUpdatedAt
+                                  ? `${m.displayName} · ${formatTimeAgo(m.rsvpUpdatedAt, now, ctx.club.defaultLocale)}`
+                                  : m.displayName
+                              }
+                            >
+                              <MemberAvatar
+                                avatarKey={m.avatarKey}
+                                displayName={m.displayName}
+                                uploadUrl={avatarUploadUrl(m.memberId, m.avatarUploadAt)}
+                                className="h-7 w-7"
+                              />
+                            </span>
                           ))}
+                          {going.length > 10 ? (
+                            <span className="text-muted-foreground text-xs">+{going.length - 10}</span>
+                          ) : null}
                         </div>
                       </div>
                     ) : null}

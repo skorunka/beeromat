@@ -2,10 +2,11 @@ import type { Route } from 'next';
 import { Link } from '@/lib/i18n/navigation';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { Beer, Check, X } from 'lucide-react';
+import { Beer, Check, Clock, X } from 'lucide-react';
 
 import { Card } from '@/components/ui/card';
 import { MemberAvatar } from '@/components/ui/member-avatar';
+import { formatTimeAgo } from '@/lib/format';
 import { RsvpToggle } from '@/components/events/rsvp-toggle';
 import { AdminMemberRsvp } from '@/components/events/admin-member-rsvp';
 import { CancelOccurrenceButton } from '@/components/events/cancel-occurrence-button';
@@ -123,6 +124,19 @@ export default async function OccurrenceDetailPage({
               className="h-7 w-7"
             />
             <span className="min-w-0 flex-1 truncate text-sm">{r.displayName}</span>
+            {r.status && r.rsvpUpdatedAt ? (
+              <span
+                className="text-muted-foreground flex shrink-0 items-center gap-1 text-xs"
+                title={new Intl.DateTimeFormat(ctx.club.defaultLocale, {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                  timeZone: 'Europe/Prague',
+                }).format(r.rsvpUpdatedAt)}
+              >
+                <Clock className="h-3 w-3" aria-hidden />
+                {formatTimeAgo(r.rsvpUpdatedAt, now, ctx.club.defaultLocale)}
+              </span>
+            ) : null}
             {r.status === 'going' ? (
               <Check className="text-primary h-4 w-4 shrink-0" aria-label={t('going')} />
             ) : r.status === 'not_going' ? (

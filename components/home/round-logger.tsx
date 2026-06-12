@@ -176,28 +176,17 @@ export function RoundLogger({
         ariaLabel={t('defaultBeerHint')}
       />
 
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-muted-foreground text-xs font-medium">{t('drinkersHint')}</span>
-          {/* One-tap re-pick of the last round's crew (people still here). */}
-          {validLastRound.length > 0 ? (
-            <button
-              type="button"
-              onClick={() => setSelected(new Set(validLastRound))}
-              className="text-primary text-xs font-medium underline-offset-4 hover:underline"
-            >
-              {t('repeatLast', { count: validLastRound.length })}
-            </button>
-          ) : null}
-        </div>
-        <MemberMultiSelect
-          members={members}
-          selected={selected}
-          onToggle={toggle}
-          selfLabel={t('self')}
-          searchPlaceholder={t('searchHint')}
-        />
-      </div>
+      {/* Actions live ABOVE the member grid so the same-crew / override /
+          submit flow never has to scroll past a long roster. */}
+      {validLastRound.length > 0 ? (
+        <button
+          type="button"
+          onClick={() => setSelected(new Set(validLastRound))}
+          className="text-primary self-start text-xs font-medium underline-offset-4 hover:underline"
+        >
+          {t('repeatLast', { count: validLastRound.length })}
+        </button>
+      ) : null}
 
       {/* Per-person override (US2) — opt-in to keep the same-beer round
           clean. Each selected drinker gets a beer picker; choosing the
@@ -255,6 +244,20 @@ export function RoundLogger({
       >
         {t('submitCta', { count })}
       </Button>
+
+      {/* The member grid is the long element — kept last so the actions
+          above stay reachable without scrolling. Search + recent-first
+          ordering keep your crew near the top. */}
+      <div className="flex flex-col gap-1.5">
+        <span className="text-muted-foreground text-xs font-medium">{t('drinkersHint')}</span>
+        <MemberMultiSelect
+          members={members}
+          selected={selected}
+          onToggle={toggle}
+          selfLabel={t('self')}
+          searchPlaceholder={t('searchHint')}
+        />
+      </div>
     </div>
   );
 }

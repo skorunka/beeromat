@@ -219,9 +219,9 @@
     "undoExpired": "Too late to undo that.",
     "alreadySettled": "That bet is already settled.",
     "deliverFailed": "Couldn't do that — please try again.",
-    "writeOff": "Write off",
-    "writeOffConfirm": "Write off this IOU? {name} won't owe you a beer.",
-    "writeOffToast": "Written off — {name} no longer owes you a beer.",
+    "writeOff": "Forgive",
+    "writeOffConfirm": "Forgive this IOU? {name} won't owe you a beer.",
+    "writeOffToast": "Forgiven — {name} no longer owes you a beer.",
     "cancel": "Cancel",
     "beerPlaceholder": "Pick a beer",
     "nothingToSettle": "No bets to settle."

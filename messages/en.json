@@ -224,6 +224,8 @@
     "writeOffToast": "Forgiven — {name} no longer owes you a beer.",
     "cancel": "Cancel",
     "beerPlaceholder": "Pick a beer",
+    "stalePokeOwe": "still owed — hand it over? 🍺",
+    "stalePokeOwed": "still waiting on this one 🍺",
     "nothingToSettle": "No bets to settle."
   },
   "onboarding": {

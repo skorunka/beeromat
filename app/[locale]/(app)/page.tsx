@@ -207,6 +207,7 @@ export default async function AppHomePage({
         beers={inStockCatalog}
         currencyCode={ctx.club.currencyCode}
         locale={ctx.club.defaultLocale}
+        now={now}
       />
 
       <HomeOneTapLog

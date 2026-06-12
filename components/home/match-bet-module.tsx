@@ -13,9 +13,10 @@ interface MatchBetModuleProps {
   beers: BeerPickerOption[];
   currencyCode: string;
   locale: string;
+  now: Date;
 }
 
-export function MatchBetModule({ debts, beers, currencyCode, locale }: MatchBetModuleProps) {
+export function MatchBetModule({ debts, beers, currencyCode, locale, now }: MatchBetModuleProps) {
   if (debts.owedToMe.length === 0 && debts.iOwe.length === 0) return null;
 
   return (
@@ -28,6 +29,7 @@ export function MatchBetModule({ debts, beers, currencyCode, locale }: MatchBetM
           beers={beers}
           currencyCode={currencyCode}
           locale={locale}
+          now={now}
         />
       ))}
       {debts.iOwe.map((d) => (
@@ -38,6 +40,7 @@ export function MatchBetModule({ debts, beers, currencyCode, locale }: MatchBetM
           beers={beers}
           currencyCode={currencyCode}
           locale={locale}
+          now={now}
         />
       ))}
     </div>

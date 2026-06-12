@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
-import { X } from 'lucide-react';
+import { Clock, X } from 'lucide-react';
 
 import {
   deliverBeerDebtAction,
@@ -18,7 +18,12 @@ import { MemberAvatar } from '@/components/ui/member-avatar';
 import { BeerPickerDropdown, type BeerPickerOption } from '@/components/picker/beer-picker-dropdown';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { celebrateBeer } from '@/lib/celebrate';
+import { formatTimeAgo } from '@/lib/format';
 import type { BeerDebtRow } from '@/lib/db/queries/match-bet-debts';
+
+// An IOU older than this nudges with an amber "still open" line so it
+// doesn't quietly sit forever.
+const STALE_MS = 3 * 24 * 60 * 60 * 1000;
 
 // Spec 030 — one beer-IOU row + its deliver ("Předáno") control.
 // Shared by the home module and the /match "Sázky k vyrovnání" list.
@@ -34,10 +39,13 @@ interface BeerIouRowProps {
   beers: BeerPickerOption[];
   currencyCode: string;
   locale: string;
+  /** Server "now" (fixed per render → no hydration drift) for IOU aging. */
+  now: Date;
 }
 
-export function BeerIouRow({ debt, role, beers, currencyCode, locale }: BeerIouRowProps) {
+export function BeerIouRow({ debt, role, beers, currencyCode, locale, now }: BeerIouRowProps) {
   const t = useTranslations('matchBet');
+  const stale = now.getTime() - debt.createdAt.getTime() >= STALE_MS;
   const router = useRouter();
   const confirm = useConfirm();
   const [expanded, setExpanded] = useState(false);
@@ -124,6 +132,15 @@ export function BeerIouRow({ debt, role, beers, currencyCode, locale }: BeerIouR
             <div className="text-muted-foreground truncate text-xs">
               {debt.beerCount > 1 ? `${debt.beerCount}× ` : ''}
               {debt.plannedBeerName}
+            </div>
+          ) : null}
+          {stale ? (
+            <div className="text-primary mt-0.5 flex items-center gap-1 text-xs font-medium">
+              <Clock className="h-3 w-3 shrink-0" aria-hidden />
+              <span className="truncate">
+                {formatTimeAgo(debt.createdAt, now, locale)} ·{' '}
+                {role === 'owe' ? t('stalePokeOwe') : t('stalePokeOwed')}
+              </span>
             </div>
           ) : null}
         </div>

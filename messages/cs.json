@@ -224,6 +224,8 @@
     "writeOffToast": "Odpuštěno — {name} ti pivo nedluží.",
     "cancel": "Zrušit",
     "beerPlaceholder": "Vyber pivo",
+    "stalePokeOwe": "pořád dlužíš — předáš? 🍺",
+    "stalePokeOwed": "pořád čekáš na tohle pivo 🍺",
     "nothingToSettle": "Žádné sázky k vyrovnání."
   },
   "onboarding": {

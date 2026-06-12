@@ -108,6 +108,7 @@ export default async function MatchPage({
             beers={inStockBeers}
             currencyCode={ctx.club.currencyCode}
             locale={ctx.club.defaultLocale}
+            now={new Date()}
           />
         ) : (
           <p className="text-muted-foreground text-sm">{tMatchBet('nothingToSettle')}</p>

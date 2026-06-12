@@ -184,15 +184,16 @@ export async function getOccurrenceDetail(
     .where(and(eq(members.clubId, clubId), eq(members.isActive, true)))
     .orderBy(asc(members.displayName));
 
-  // Present going first (latest opt-in first), then not-going, then no-answer.
-  // displayName asc from the query is the stable tiebreak within a group.
+  // Present going first, then not-going, then no-answer. Within a responded
+  // group, EARLIEST response first — whoever opted in/out first leads.
+  // displayName asc from the query is the stable tiebreak for no-answer.
   const statusRank = { going: 0, not_going: 1 } as const;
   const sortedRoster = roster.slice().sort((a, b) => {
     const ra = a.status ? statusRank[a.status] : 2;
     const rb = b.status ? statusRank[b.status] : 2;
     if (ra !== rb) return ra - rb;
     if (a.status && b.status) {
-      return (b.rsvpUpdatedAt?.getTime() ?? 0) - (a.rsvpUpdatedAt?.getTime() ?? 0);
+      return (a.rsvpUpdatedAt?.getTime() ?? 0) - (b.rsvpUpdatedAt?.getTime() ?? 0);
     }
     return 0;
   });

@@ -68,6 +68,12 @@ describe('MatchBetModule (component layer — spec 030)', () => {
     expect(screen.getAllByRole('button', { name: /delivered/i })).toHaveLength(2);
   });
 
+  it('shows the "Beer IOUs · N" header counting all open IOUs both directions', () => {
+    renderModule({ owedToMe: [debt()], iOwe: [debt({ debtId: 'd-2', counterpartyName: 'X' })] });
+    expect(screen.getByRole('heading', { name: /beer ious/i })).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
+  });
+
   it('a fresh IOU shows no stale nudge; an old one does', () => {
     // createdAt 2026-06-01, default now 2026-06-02 → fresh.
     const { unmount } = renderModule({ owedToMe: [], iOwe: [debt()] });

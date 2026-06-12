@@ -226,6 +226,7 @@
     "beerPlaceholder": "Pick a beer",
     "stalePokeOwe": "still owed — hand it over? 🍺",
     "stalePokeOwed": "still waiting on this one 🍺",
+    "iouHeading": "Beer IOUs",
     "nothingToSettle": "No bets to settle."
   },
   "onboarding": {

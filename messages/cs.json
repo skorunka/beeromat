@@ -226,6 +226,7 @@
     "beerPlaceholder": "Vyber pivo",
     "stalePokeOwe": "pořád dlužíš — předáš? 🍺",
     "stalePokeOwed": "pořád čekáš na tohle pivo 🍺",
+    "iouHeading": "Piva k předání",
     "nothingToSettle": "Žádné sázky k vyrovnání."
   },
   "onboarding": {

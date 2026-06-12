@@ -235,6 +235,8 @@
     "collapse": "Zavřít",
     "defaultBeerHint": "Jaké pivo pro rundu?",
     "drinkersHint": "Kdo pije?",
+    "searchHint": "Najít člena",
+    "repeatLast": "Stejná parta ({count})",
     "self": "ty",
     "count": "{count, plural, one {# pivo} few {# piva} other {# piv}}",
     "submitCta": "Zapsat rundu · {count, plural, one {# pivo} few {# piva} other {# piv}}",

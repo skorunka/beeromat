@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
@@ -51,6 +51,29 @@ export function RoundLogger({
   const [showOverrides, setShowOverrides] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  // "Repeat last round" — remember the last submitted drinker set on this
+  // device (keyed by the member). Lets a regular table re-pick its crew in
+  // one tap. localStorage is client-only; read it after mount.
+  const storageKey = self ? `beeromat:round:${self.id}` : null;
+  const [lastRound, setLastRound] = useState<string[]>([]);
+  useEffect(() => {
+    if (!storageKey) return;
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (raw) {
+        // One-time read of a platform API (localStorage) after mount —
+        // a lazy useState initializer would run during SSR (no window)
+        // and mismatch on hydration, so the effect is the correct place.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setLastRound(JSON.parse(raw) as string[]);
+      }
+    } catch {
+      /* ignore malformed / unavailable storage */
+    }
+  }, [storageKey]);
+  // Only the saved members still in the roster (people may have left).
+  const validLastRound = lastRound.filter((id) => members.some((m) => m.id === id));
+
   const count = selected.size;
   const beerFor = (id: string): string | null => overrides[id] ?? defaultBeerId;
   const allHaveBeer = [...selected].every((id) => Boolean(beerFor(id)));
@@ -83,7 +106,8 @@ export function RoundLogger({
 
   function submit() {
     if (!canLog) return;
-    const items = [...selected].map((id) => ({ memberId: id, beerTypeId: beerFor(id)! }));
+    const memberIds = [...selected];
+    const items = memberIds.map((id) => ({ memberId: id, beerTypeId: beerFor(id)! }));
     const nameOf = (id: string) => members.find((m) => m.id === id)?.displayName ?? '';
     startTransition(async () => {
       const result = await logRoundAction({ items });
@@ -91,6 +115,15 @@ export function RoundLogger({
         toast.error(result.code === 'ALL_SKIPPED' ? t('toastAllSkipped') : t('toastError'));
         if (result.code === 'ALL_SKIPPED') router.refresh();
         return;
+      }
+      // Remember this crew for one-tap "repeat last round".
+      if (storageKey) {
+        try {
+          window.localStorage.setItem(storageKey, JSON.stringify(memberIds));
+        } catch {
+          /* ignore */
+        }
+        setLastRound(memberIds);
       }
       celebrateBeer();
       if (result.skipped.length > 0) {
@@ -144,12 +177,25 @@ export function RoundLogger({
       />
 
       <div className="flex flex-col gap-1.5">
-        <span className="text-muted-foreground text-xs font-medium">{t('drinkersHint')}</span>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-muted-foreground text-xs font-medium">{t('drinkersHint')}</span>
+          {/* One-tap re-pick of the last round's crew (people still here). */}
+          {validLastRound.length > 0 ? (
+            <button
+              type="button"
+              onClick={() => setSelected(new Set(validLastRound))}
+              className="text-primary text-xs font-medium underline-offset-4 hover:underline"
+            >
+              {t('repeatLast', { count: validLastRound.length })}
+            </button>
+          ) : null}
+        </div>
         <MemberMultiSelect
           members={members}
           selected={selected}
           onToggle={toggle}
           selfLabel={t('self')}
+          searchPlaceholder={t('searchHint')}
         />
       </div>
 

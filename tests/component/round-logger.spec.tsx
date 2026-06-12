@@ -30,19 +30,19 @@ const BEER_A = 'beer-a';
 const BEER_B = 'beer-b';
 
 const members: RoundMemberOption[] = [
-  { id: SELF, displayName: 'Franta', avatarKey: null, avatarUploadAt: null, isSelf: true },
-  { id: PEPA, displayName: 'Pepa', avatarKey: null, avatarUploadAt: null, isSelf: false },
+  { id: SELF, displayName: 'Franta', avatarKey: null, avatarUploadAt: null, isSelf: true, recent: false },
+  { id: PEPA, displayName: 'Pepa', avatarKey: null, avatarUploadAt: null, isSelf: false, recent: true },
 ];
 const beers = [
   { id: BEER_A, name: 'Svijany', unitPriceMinor: 40n, currentStock: 10 },
   { id: BEER_B, name: 'Pilsner', unitPriceMinor: 45n, currentStock: 10 },
 ];
 
-function renderLogger() {
+function renderLogger(roster: RoundMemberOption[] = members) {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages}>
       <RoundLogger
-        members={members}
+        members={roster}
         beers={beers}
         defaultBeerTypeId={BEER_A}
         currencyCode="CZK"
@@ -61,6 +61,7 @@ beforeEach(() => {
   mockRefresh.mockReset();
   mockToastSuccess.mockReset();
   mockToastError.mockReset();
+  window.localStorage.clear();
 });
 
 describe('RoundLogger (component — spec 033)', () => {
@@ -130,6 +131,36 @@ describe('RoundLogger (component — spec 033)', () => {
 
     await waitFor(() => expect(mockToastError).toHaveBeenCalled());
     // Selection preserved (still 2) — nothing was logged.
+    expect(screen.getByRole('button', { name: /Log round · 2 beers/i })).toBeInTheDocument();
+  });
+
+  it('filters the grid by search (>= 8 members); selected stay visible', () => {
+    const big: RoundMemberOption[] = [
+      { id: SELF, displayName: 'Franta', avatarKey: null, avatarUploadAt: null, isSelf: true, recent: false },
+      ...['Pepa', 'Zdenek', 'Adam', 'Bohuš', 'Cyril', 'David', 'Emil', 'Filip'].map((n, i) => ({
+        id: `m-${i}`,
+        displayName: n,
+        avatarKey: null,
+        avatarUploadAt: null,
+        isSelf: false,
+        recent: false,
+      })),
+    ];
+    renderLogger(big);
+    expand();
+    const search = screen.getByLabelText('Find a member');
+    fireEvent.change(search, { target: { value: 'pep' } });
+    expect(screen.getByRole('button', { name: 'Pepa' })).not.toHaveClass('hidden');
+    expect(screen.getByRole('button', { name: 'Zdenek' })).toHaveClass('hidden');
+    // The pre-selected self tile stays visible despite not matching.
+    expect(screen.getByRole('button', { name: /Franta \(you\)/i })).not.toHaveClass('hidden');
+  });
+
+  it('repeat-last-round re-selects the saved crew in one tap', () => {
+    window.localStorage.setItem(`beeromat:round:${SELF}`, JSON.stringify([SELF, PEPA]));
+    renderLogger();
+    expand();
+    fireEvent.click(screen.getByRole('button', { name: /same crew \(2\)/i }));
     expect(screen.getByRole('button', { name: /Log round · 2 beers/i })).toBeInTheDocument();
   });
 

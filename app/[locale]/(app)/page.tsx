@@ -58,7 +58,7 @@ export default async function AppHomePage({
     listBeerDebtsForMember({ clubId: ctx.club.id, memberId: ctx.member.id }),
     wonBeerCountForMember({ clubId: ctx.club.id, memberId: ctx.member.id }),
     listOpenAgreementsForMember(ctx.club.id, ctx.member.id),
-    listActiveMembersForRound(ctx.club.id, ctx.member.id),
+    listActiveMembersForRound(ctx.club.id, ctx.member.id, ctx.user.id),
     onBehalfReviewSummaryForMember(ctx.member.id, ctx.club.id),
     listOpenThisWeek(ctx.club.id, ctx.member.id, now),
   ]);

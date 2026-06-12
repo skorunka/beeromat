@@ -235,6 +235,8 @@
     "collapse": "Close",
     "defaultBeerHint": "Which beer for the round?",
     "drinkersHint": "Who's drinking?",
+    "searchHint": "Find a member",
+    "repeatLast": "Same crew ({count})",
     "self": "you",
     "count": "{count, plural, one {# beer} other {# beers}}",
     "submitCta": "Log round · {count, plural, one {# beer} other {# beers}}",

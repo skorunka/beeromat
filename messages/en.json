@@ -392,8 +392,9 @@
     "stockSection": "Stock",
     "beerTypesStock": "Beers & stock",
     "openMatch": {
-      "one": "Match to settle: {sideA} vs {sideB}",
-      "many": "{count} matches waiting for a result",
+      "heading": "Match to record",
+      "forBeer": "for beer",
+      "many": "{count, plural, one {# match waiting for a result} other {# matches waiting for a result}}",
       "recordCta": "Record the result →",
       "goToMatches": "Go to matches →"
     },

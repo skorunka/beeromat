@@ -590,9 +590,17 @@ export interface OpenAgreementSummary {
   pairingKind: PairingKind | null;
   createdAt: Date;
   sides: {
-    A: { memberId: string; displayName: string; seat: Seat }[];
-    B: { memberId: string; displayName: string; seat: Seat }[];
+    A: OpenAgreementSideMember[];
+    B: OpenAgreementSideMember[];
   };
+}
+
+export interface OpenAgreementSideMember {
+  memberId: string;
+  displayName: string;
+  avatarKey: string | null;
+  avatarUploadAt: Date | null;
+  seat: Seat;
 }
 
 /**
@@ -656,6 +664,8 @@ export async function lastAgreementForMember(
       seat: matchAgreementSides.seat,
       memberId: members.id,
       displayName: members.displayName,
+      avatarKey: members.avatarKey,
+      avatarUploadAt: members.avatarUploadAt,
     })
     .from(matchAgreements)
     .innerJoin(matchAgreementSides, eq(matchAgreementSides.agreementId, matchAgreements.id))
@@ -677,6 +687,8 @@ export async function lastAgreementForMember(
     summary.sides[r.side as Side].push({
       memberId: r.memberId,
       displayName: r.displayName,
+      avatarKey: r.avatarKey,
+      avatarUploadAt: r.avatarUploadAt,
       seat: r.seat as Seat,
     });
   }
@@ -695,6 +707,8 @@ export async function listOpenAgreements(clubId: string): Promise<OpenAgreementS
       seat: matchAgreementSides.seat,
       memberId: members.id,
       displayName: members.displayName,
+      avatarKey: members.avatarKey,
+      avatarUploadAt: members.avatarUploadAt,
     })
     .from(matchAgreements)
     .innerJoin(matchAgreementSides, eq(matchAgreementSides.agreementId, matchAgreements.id))
@@ -725,6 +739,8 @@ export async function listOpenAgreements(clubId: string): Promise<OpenAgreementS
     agg.sides[r.side as Side].push({
       memberId: r.memberId,
       displayName: r.displayName,
+      avatarKey: r.avatarKey,
+      avatarUploadAt: r.avatarUploadAt,
       seat: r.seat as Seat,
     });
   }
@@ -776,6 +792,8 @@ export async function listRecentResults(
       seat: matchAgreementSides.seat,
       memberId: members.id,
       displayName: members.displayName,
+      avatarKey: members.avatarKey,
+      avatarUploadAt: members.avatarUploadAt,
     })
     .from(matchAgreements)
     .innerJoin(matchAgreementSides, eq(matchAgreementSides.agreementId, matchAgreements.id))
@@ -802,6 +820,8 @@ export async function listRecentResults(
     agg.sides[r.side as Side].push({
       memberId: r.memberId,
       displayName: r.displayName,
+      avatarKey: r.avatarKey,
+      avatarUploadAt: r.avatarUploadAt,
       seat: r.seat as Seat,
     });
   }
@@ -838,6 +858,8 @@ export async function getAgreement(
       seat: matchAgreementSides.seat,
       memberId: members.id,
       displayName: members.displayName,
+      avatarKey: members.avatarKey,
+      avatarUploadAt: members.avatarUploadAt,
     })
     .from(matchAgreements)
     .innerJoin(matchAgreementSides, eq(matchAgreementSides.agreementId, matchAgreements.id))
@@ -866,6 +888,8 @@ export async function getAgreement(
     detail.sides[r.side as Side].push({
       memberId: r.memberId,
       displayName: r.displayName,
+      avatarKey: r.avatarKey,
+      avatarUploadAt: r.avatarUploadAt,
       seat: r.seat as Seat,
     });
     detail.participantMemberIds.push(r.memberId);

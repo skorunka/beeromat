@@ -392,8 +392,9 @@
     "stockSection": "Sklad",
     "beerTypesStock": "Piva a sklad",
     "openMatch": {
-      "one": "Zápas k vyhodnocení: {sideA} vs {sideB}",
-      "many": "{count} zápasů čeká na výsledek",
+      "heading": "Zápas k vyhodnocení",
+      "forBeer": "o pivo",
+      "many": "{count, plural, few {# zápasy čekají na výsledek} other {# zápasů čeká na výsledek}}",
       "recordCta": "Zapsat výsledek →",
       "goToMatches": "Přejít na zápasy →"
     },

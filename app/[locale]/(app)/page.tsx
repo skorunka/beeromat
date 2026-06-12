@@ -20,7 +20,6 @@ import { getOpenSessionForClub } from '@/lib/db/queries/sessions';
 import { listOpenAgreementsForMember } from '@/lib/db/queries/match-agreements';
 import { listBeerDebtsForMember, wonBeerCountForMember } from '@/lib/db/queries/match-bet-debts';
 import { groupTabEntriesByBeer } from '@/lib/tab/group-beer-breakdown';
-import { joinSideNames } from '@/lib/format/match-sides';
 import { onBehalfReviewSummaryForMember } from '@/lib/db/queries/on-behalf-review';
 import { formatMoney } from '@/lib/format';
 
@@ -75,8 +74,9 @@ export default async function AppHomePage({
   // Project for the OpenMatchPrompt component.
   const myOpenMatches = openAgreements.map((a) => ({
     id: a.id,
-    sideA: joinSideNames(a.sides.A),
-    sideB: joinSideNames(a.sides.B),
+    forBeer: a.forBeer,
+    sideA: a.sides.A,
+    sideB: a.sides.B,
   }));
   // The one-tap-log dropdown only lists in-stock, non-archived beers.
   const inStockCatalog = catalog

@@ -1,6 +1,7 @@
 import type { Route } from 'next';
 import { Link } from '@/lib/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { Receipt } from 'lucide-react';
 
 import { buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -149,26 +150,17 @@ export default async function AppHomePage({
         >
           {t('greeting', { name: ctx.member.displayName })}
         </Link>
-        {/* Only surface the balance when there's actually something to
-            pay — "all settled" needs no announcement on the home page. */}
+        {/* The owed amount itself lives on the Útrata card below (its
+            corner total) — here we keep only the status notes that the
+            card doesn't carry: payment awaiting confirmation, or a
+            partial pending claim. */}
         {awaitingConfirmation ? (
           <p className="text-muted-foreground text-base font-medium">
             {t('balanceAwaiting')}
           </p>
-        ) : owes ? (
-          <>
-            <p className="text-primary text-xl font-bold tabular-nums leading-relaxed">
-              {t('balanceOwed', { amount: balanceFormatted })}
-            </p>
-            {hasPendingClaim ? (
-              <p className="text-muted-foreground text-sm">
-                {t('balancePendingNote', { amount: pendingFormatted })}
-              </p>
-            ) : null}
-          </>
-        ) : hasCredit ? (
-          <p className="text-base font-medium tabular-nums">
-            {t('balanceCredit', { amount: creditFormatted })}
+        ) : owes && hasPendingClaim ? (
+          <p className="text-muted-foreground text-sm">
+            {t('balancePendingNote', { amount: pendingFormatted })}
           </p>
         ) : null}
         {/* Spec 030 follow-up — lifetime won-beer brag. Compact, shown
@@ -191,59 +183,75 @@ export default async function AppHomePage({
         }))}
       />
 
-      {/* Money/consumption cluster — sits right under the balance total
-          in the header so the whole daily loop reads top-to-bottom:
-          what you owe → log a beer → this round's útrata → settle. */}
-      <HomeOneTapLog
-        beer={lastBeer}
-        catalog={inStockCatalog}
-        currencyCode={ctx.club.currencyCode}
-        locale={ctx.club.defaultLocale}
-      />
+      {/* Útrata — the whole money loop in ONE card, mirroring the
+          SRAZ / ZÁPAS card pattern (eyebrow + corner total + content +
+          a single CTA): the total badge, log at the top, this round's
+          breakdown, settle at the bottom. Sits right under the header
+          so the daily loop reads owe → log → tab → settle. */}
+      <Card className="border-primary/30 flex flex-col gap-4 p-4">
+        <div className="flex items-baseline justify-between gap-2">
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold tracking-wide uppercase">
+            <Receipt className="text-primary h-4 w-4" aria-hidden />
+            {t('utrataHeading')}
+          </h2>
+          {owes ? (
+            <span className="text-primary text-2xl font-bold tabular-nums">{balanceFormatted}</span>
+          ) : hasCredit ? (
+            <span className="text-base font-medium tabular-nums">{creditFormatted}</span>
+          ) : null}
+        </div>
 
-      {/* Onboarding nudge for a fresh club with no beers: the one-tap
-          button above renders disabled but gives no clue what to do
-          about it. Stock-managers+ get a direct link to seed the
-          catalog; everyone else gets a "ask your admin" hint. */}
-      {catalog.length === 0 ? (
-        roleSatisfies(ctx.member.role, 'stock_manager') ? (
-          <Card className="border-primary/30 flex flex-col gap-2 p-4 text-sm">
-            <p>{t('emptyCatalogAdmin')}</p>
-            <Link
-              href={'/admin/beer-types' as Route}
-              className="text-primary inline-flex min-h-9 items-center text-sm font-medium underline-offset-4 hover:underline"
-            >
-              {t('emptyCatalogAdminCta')}
-            </Link>
-          </Card>
-        ) : (
-          <p className="text-muted-foreground text-center text-sm">{t('emptyCatalogMember')}</p>
-        )
-      ) : null}
+        <HomeOneTapLog
+          beer={lastBeer}
+          catalog={inStockCatalog}
+          currencyCode={ctx.club.currencyCode}
+          locale={ctx.club.defaultLocale}
+        />
 
-      {/* This round's beer breakdown — "Pilsner ×3 · 120 Kč" — so the
-          member sees what they've had this evening right after logging.
-          Round-scoped (current open session); renders nothing when the
-          round has no countable beers yet. */}
-      <TabBeerBreakdown
-        groups={roundGroups}
-        currencyCode={ctx.club.currencyCode}
-        locale={ctx.club.defaultLocale}
-        now={new Date()}
-      />
+        {/* Onboarding nudge for a fresh club with no beers: the one-tap
+            button above renders disabled but gives no clue what to do
+            about it. Stock-managers+ get a direct link to seed the
+            catalog; everyone else gets a "ask your admin" hint. */}
+        {catalog.length === 0 ? (
+          roleSatisfies(ctx.member.role, 'stock_manager') ? (
+            <div className="flex flex-col gap-2 text-sm">
+              <p>{t('emptyCatalogAdmin')}</p>
+              <Link
+                href={'/admin/beer-types' as Route}
+                className="text-primary inline-flex min-h-9 items-center text-sm font-medium underline-offset-4 hover:underline"
+              >
+                {t('emptyCatalogAdminCta')}
+              </Link>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-center text-sm">{t('emptyCatalogMember')}</p>
+          )
+        ) : null}
 
-      {/* Quick settle — prominent full-width button right under the
-          round breakdown so calling it a day is one tap. Only when
-          the member owes AND hasn't already claimed a covering payment
-          (no point sending them to settle what's awaiting confirmation). */}
-      {owes && !awaitingConfirmation ? (
-        <Link
-          href={'/settle' as Route}
-          className={buttonVariants({ size: 'lg', className: 'h-14 w-full text-base' })}
-        >
-          {t('settleCta')}
-        </Link>
-      ) : null}
+        {/* This round's per-beer breakdown — "Pilsner ×3 · 120 Kč".
+            'bare' so this card owns the eyebrow + total above; renders
+            nothing when the round has no countable beers yet. */}
+        {roundGroups.length > 0 ? (
+          <TabBeerBreakdown
+            variant="bare"
+            groups={roundGroups}
+            currencyCode={ctx.club.currencyCode}
+            locale={ctx.club.defaultLocale}
+            now={new Date()}
+          />
+        ) : null}
+
+        {/* Settle — one tap to call it a day. Only when the member owes
+            AND hasn't already claimed a covering payment. */}
+        {owes && !awaitingConfirmation ? (
+          <Link
+            href={'/settle' as Route}
+            className={buttonVariants({ size: 'lg', className: 'h-14 w-full text-base' })}
+          >
+            {t('settleCta')}
+          </Link>
+        ) : null}
+      </Card>
 
       {/* Below the money cluster: the social surfaces — tonight's
           session, your open match, beer-IOUs. */}

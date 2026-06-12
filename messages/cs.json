@@ -372,6 +372,7 @@
   },
   "home": {
     "greeting": "Ahoj, {name} 👋",
+    "utrataHeading": "Útrata",
     "outstandingBalance": "Dluh",
     "balanceOwed": "Útrata {amount}",
     "balanceSquare": "Vyrovnáno",

@@ -18,6 +18,13 @@ interface TabBeerBreakdownProps {
   locale: string;
   /** Reference "now" for the today/yesterday labels + today highlight. */
   now?: Date;
+  /**
+   * 'card' (default) — self-contained Card with its own eyebrow + grand
+   * total, used on /tab + /history.
+   * 'bare' — just the day sections, no Card and no heading, so a parent
+   * (the home Útrata card) can own the chrome and total.
+   */
+  variant?: 'card' | 'bare';
 }
 
 export function TabBeerBreakdown({
@@ -25,6 +32,7 @@ export function TabBeerBreakdown({
   currencyCode,
   locale,
   now = new Date(),
+  variant = 'card',
 }: TabBeerBreakdownProps) {
   const t = useTranslations('tab.breakdown');
   const tc = useTranslations('common');
@@ -44,15 +52,7 @@ export function TabBeerBreakdown({
     else days.push({ dayKey: g.dayKey, date: g.representativeDate, groups: [g] });
   }
 
-  return (
-    <Card className="flex flex-col gap-4 p-4">
-      <div className="flex items-baseline justify-between gap-2">
-        <h2 className="text-sm font-semibold tracking-wide uppercase">{t('heading')}</h2>
-        <span className="text-2xl font-bold tabular-nums">
-          {formatMoney(totalMinor, currencyCode, locale)}
-        </span>
-      </div>
-      {days.map((day) => {
+  const body = days.map((day) => {
         // Today's section gets a primary accent (left bar + tint + 🍺)
         // so "what I've had today" is the first thing the eye lands on
         // — the date alone doesn't tell you whether it's today.
@@ -100,7 +100,22 @@ export function TabBeerBreakdown({
           ))}
         </div>
         );
-      })}
+  });
+
+  // 'bare' — host card (home Útrata) owns the eyebrow + total.
+  if (variant === 'bare') {
+    return <div className="flex flex-col gap-4">{body}</div>;
+  }
+
+  return (
+    <Card className="flex flex-col gap-4 p-4">
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 className="text-sm font-semibold tracking-wide uppercase">{t('heading')}</h2>
+        <span className="text-2xl font-bold tabular-nums">
+          {formatMoney(totalMinor, currencyCode, locale)}
+        </span>
+      </div>
+      {body}
     </Card>
   );
 }

@@ -91,6 +91,18 @@ export default async function MatchPage({
         <p className="text-muted-foreground mt-1 text-sm">{t('hubSubtitle')}</p>
       </header>
 
+      {/* Spec 034 — competition lives here, so the leaderboards entry sits at
+          the top of the match hub. */}
+      <Link
+        href={'/leaderboards' as Route}
+        className="border-border bg-card hover:bg-accent mb-6 flex items-center justify-between gap-2 rounded-xl border px-4 py-3 text-sm font-medium"
+      >
+        <span>🏆 {t('leaderboardsLink')}</span>
+        <span aria-hidden className="text-muted-foreground">
+          →
+        </span>
+      </Link>
+
       {/* ── Matches: recreate · scheduled · recently played · new ── */}
 
       {lastMatch && !lastIsActive ? (

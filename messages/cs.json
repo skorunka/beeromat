@@ -99,6 +99,7 @@
     "subtitle": "Kdo prohrál, kupuje pivo.",
     "hubTitle": "Zápasy",
     "hubSubtitle": "Naplánuj zápas, zapiš výsledek, vyrovnejte pivo.",
+    "leaderboardsLink": "Žebříčky a statistiky",
     "upcomingHeading": "Naplánované",
     "upcomingEmpty": "Žádný zápas — naplánuj nový níže.",
     "recentHeading": "Nedávné výsledky",
@@ -255,6 +256,25 @@
     "errors": {
       "empty": "Vyber aspoň jednoho, kdo pije.",
       "duplicateMember": "Každý může mít v rundě jen jedno pivo."
+    }
+  },
+  "stats": {
+    "title": "Žebříčky",
+    "subtitle": "Kdo válí a kdo platí 🍺🏆",
+    "scopeAllTime": "Za celou dobu",
+    "scopeSeason": "Sezóna",
+    "seasonNote": "Posledních {days} dní.",
+    "you": "ty",
+    "emptyBoard": "Zatím nic — běžte hrát a pít! 🍺",
+    "winRateNote": "min. {count} zápasů",
+    "board": {
+      "beers": "Nejvíc piv",
+      "tab": "Největší dluh",
+      "wins": "Nejvíc výher",
+      "played": "Nejvíc zápasů",
+      "winRate": "Úspěšnost",
+      "streak": "Série výher",
+      "boughtForOthers": "Nejštědřejší"
     }
   },
   "onboarding": {

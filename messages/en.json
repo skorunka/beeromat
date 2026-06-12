@@ -99,6 +99,7 @@
     "subtitle": "Whoever lost, buys the beer.",
     "hubTitle": "Matches",
     "hubSubtitle": "Plan a match, record the result, settle the beer.",
+    "leaderboardsLink": "Leaderboards & stats",
     "upcomingHeading": "Upcoming",
     "upcomingEmpty": "No matches scheduled — start one below.",
     "recentHeading": "Recent results",
@@ -255,6 +256,25 @@
     "errors": {
       "empty": "Pick at least one drinker.",
       "duplicateMember": "Each person can have only one beer per round."
+    }
+  },
+  "stats": {
+    "title": "Leaderboards",
+    "subtitle": "Who's winning and who's buying 🍺🏆",
+    "scopeAllTime": "All-time",
+    "scopeSeason": "This season",
+    "seasonNote": "The last {days} days.",
+    "you": "you",
+    "emptyBoard": "Nothing yet — go play and drink! 🍺",
+    "winRateNote": "min {count} matches",
+    "board": {
+      "beers": "Most beers",
+      "tab": "Biggest tab",
+      "wins": "Most wins",
+      "played": "Most matches",
+      "winRate": "Win rate",
+      "streak": "Win streak",
+      "boughtForOthers": "Most generous"
     }
   },
   "onboarding": {

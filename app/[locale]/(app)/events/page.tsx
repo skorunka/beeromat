@@ -85,13 +85,13 @@ export default async function EventsPage({
 
             // ── Nearest session: expanded inline card ──────────────────
             if (i === 0) {
-              // Going members, latest opt-in first.
+              // Going members, earliest opt-in first (matches the detail roster).
               const going = (
                 firstDetail?.roster.filter((m) => {
                   return m.status === 'going';
                 }) ?? []
               ).sort((a, b) => {
-                return (b.rsvpUpdatedAt?.getTime() ?? 0) - (a.rsvpUpdatedAt?.getTime() ?? 0);
+                return (a.rsvpUpdatedAt?.getTime() ?? 0) - (b.rsvpUpdatedAt?.getTime() ?? 0);
               });
               return (
                 <li key={r.occurrenceId}>

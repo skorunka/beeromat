@@ -675,6 +675,10 @@ export async function getMemberChargesForAdmin(
         isNull(consumptionVoids.consumptionId),
       ),
     )
-    .orderBy(desc(consumptions.createdAt));
+    .orderBy(desc(consumptions.createdAt))
+    // Admin correction tool — bound the list (mistakes are corrected
+    // recent-first). A member with years of history would otherwise load
+    // hundreds of rows into this page.
+    .limit(50);
   return rows;
 }

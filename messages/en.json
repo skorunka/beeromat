@@ -773,6 +773,7 @@
     "kindConsumptionVoid": "Drink scrapped",
     "stockReasonInitial": "Initial stock",
     "correctChargesHeading": "Correct charges",
+    "listCap": "Showing the latest {count}.",
     "voidCharge": "Delete",
     "voidChargeConfirm": "Delete “{what}” from this member's tab?",
     "voidChargeToast": "Deleted. Balance updated.",

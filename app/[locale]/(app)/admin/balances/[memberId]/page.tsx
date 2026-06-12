@@ -137,6 +137,9 @@ export default async function MemberBalanceDetailPage({
               </li>
             ))}
           </ul>
+          {charges.length >= 50 ? (
+            <p className="text-muted-foreground mt-2 text-xs">{tAdmin('listCap', { count: 50 })}</p>
+          ) : null}
         </section>
       ) : null}
 
@@ -163,6 +166,9 @@ export default async function MemberBalanceDetailPage({
               </li>
             ))}
           </ul>
+          {confirmedPayments.length >= 50 ? (
+            <p className="text-muted-foreground mt-2 text-xs">{tAdmin('listCap', { count: 50 })}</p>
+          ) : null}
         </section>
       ) : null}
 

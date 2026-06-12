@@ -773,6 +773,7 @@
     "kindConsumptionVoid": "Zrušené pití",
     "stockReasonInitial": "Počáteční zásoba",
     "correctChargesHeading": "Opravit útratu",
+    "listCap": "Zobrazujeme posledních {count}.",
     "voidCharge": "Smazat",
     "voidChargeConfirm": "Smazat „{what}“ z útraty tohohle člena?",
     "voidChargeToast": "Smazáno. Zůstatek upraven.",

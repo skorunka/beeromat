@@ -105,7 +105,10 @@ export async function getPendingClaimsForTreasurer(
           : undefined,
       ),
     )
-    .orderBy(desc(payments.createdAt));
+    .orderBy(desc(payments.createdAt))
+    // Bound the per-member payment list (recent-first); a long-lived
+    // member could otherwise accumulate hundreds of payments.
+    .limit(50);
   return rows;
 }
 
@@ -433,6 +436,9 @@ export async function getMemberConfirmedPayments(
         eq(payments.status, 'confirmed'),
       ),
     )
-    .orderBy(desc(payments.createdAt));
+    .orderBy(desc(payments.createdAt))
+    // Bound the per-member payment list (recent-first); a long-lived
+    // member could otherwise accumulate hundreds of payments.
+    .limit(50);
   return rows;
 }

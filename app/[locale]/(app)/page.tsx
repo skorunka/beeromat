@@ -144,12 +144,25 @@ export default async function AppHomePage({
   return (
     <main className="mx-auto flex max-w-md flex-col gap-6 p-5">
       <header className="flex flex-col gap-1">
-        <Link
-          href="/account"
-          className="text-foreground hover:text-primary inline-flex min-h-11 items-center text-base font-medium transition-colors"
-        >
-          {t('greeting', { name: ctx.member.displayName })}
-        </Link>
+        <div className="flex items-center justify-between gap-2">
+          <Link
+            href="/account"
+            className="text-foreground hover:text-primary inline-flex min-h-11 items-center text-base font-medium transition-colors"
+          >
+            {t('greeting', { name: ctx.member.displayName })}
+          </Link>
+          {/* Lifetime won-beer brag — a compact 🏆 badge tucked beside the
+              greeting (spec 030 follow-up) instead of eating its own row.
+              Full "{count} vyhraná piva" copy on hover. */}
+          {wonBeers > 0 ? (
+            <span
+              className="bg-primary/15 text-primary inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-sm font-semibold tabular-nums"
+              title={t('wonBeersTotal', { count: wonBeers })}
+            >
+              🏆 {wonBeers}
+            </span>
+          ) : null}
+        </div>
         {/* The owed amount itself lives on the Útrata card below (its
             corner total) — here we keep only the status notes that the
             card doesn't carry: payment awaiting confirmation, or a
@@ -161,13 +174,6 @@ export default async function AppHomePage({
         ) : owes && hasPendingClaim ? (
           <p className="text-muted-foreground text-sm">
             {t('balancePendingNote', { amount: pendingFormatted })}
-          </p>
-        ) : null}
-        {/* Spec 030 follow-up — lifetime won-beer brag. Compact, shown
-            only once you've actually won one. */}
-        {wonBeers > 0 ? (
-          <p className="text-muted-foreground text-sm font-medium">
-            {t('wonBeersTotal', { count: wonBeers })}
           </p>
         ) : null}
       </header>

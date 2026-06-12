@@ -259,6 +259,18 @@ export default async function AppHomePage({
         ) : null}
       </Card>
 
+      {/* Log for someone else — a logging action, so it sits with the
+          consumption flow right under the Útrata card (log for yourself
+          → log for a teammate), not stranded below the match/event. */}
+      {otherMembers.length > 0 ? (
+        <HomeLogForOther
+          members={otherMembers}
+          beers={inStockCatalog}
+          currencyCode={ctx.club.currencyCode}
+          locale={ctx.club.defaultLocale}
+        />
+      ) : null}
+
       {/* The beer-bet match and the "Piva k předání" IOUs it produces are
           one connected story — keep them together, right under the money
           card: record a match → it mints the beer-IOUs just below it. */}
@@ -278,15 +290,6 @@ export default async function AppHomePage({
           session={nextEvent}
           going={nextEventGoing}
           now={now}
-          locale={ctx.club.defaultLocale}
-        />
-      ) : null}
-
-      {otherMembers.length > 0 ? (
-        <HomeLogForOther
-          members={otherMembers}
-          beers={inStockCatalog}
-          currencyCode={ctx.club.currencyCode}
           locale={ctx.club.defaultLocale}
         />
       ) : null}

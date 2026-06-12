@@ -34,9 +34,17 @@ export function TabEntryRow({ entry, currencyCode, locale }: TabEntryRowProps) {
   // - Transfer-in rows render a different layout entirely (see below).
   let subtitle: React.ReactNode = null;
   if (entry.kind === 'consumption') {
-    if (entry.loggerDisplayName) {
+    if (entry.loggerDisplayName || entry.fromRound) {
       subtitle = (
         <span className="text-muted-foreground inline-flex items-center gap-1.5 text-xs">
+          {/* Spec 033 — a beer poured as part of a round wears a small
+              "Runda" badge, so a member can see at a glance why this beer
+              is on their tab (paired with the "od X" line below it). */}
+          {entry.fromRound ? (
+            <span className="bg-primary/15 text-primary inline-flex shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold">
+              🍺 {t('roundBadge')}
+            </span>
+          ) : null}
           {entry.loggerMemberId ? (
             // Spec 023 — logger's face leads the "od X" attribution
             // when we have the avatar fields. Falls through to text-only
@@ -44,11 +52,11 @@ export function TabEntryRow({ entry, currencyCode, locale }: TabEntryRowProps) {
             <MemberAvatar
               size="inline"
               avatarKey={entry.loggerAvatarKey}
-              displayName={entry.loggerDisplayName}
+              displayName={entry.loggerDisplayName ?? ''}
               uploadUrl={avatarUploadUrl(entry.loggerMemberId, entry.loggerAvatarUploadAt)}
             />
           ) : null}
-          {t('byOther', { logger: entry.loggerDisplayName })}
+          {entry.loggerDisplayName ? t('byOther', { logger: entry.loggerDisplayName }) : null}
         </span>
       );
     } else if (entry.sourceMatchId) {

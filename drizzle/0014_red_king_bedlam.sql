@@ -1,0 +1,1 @@
+ALTER TABLE "consumptions" ADD COLUMN "round_id" uuid;

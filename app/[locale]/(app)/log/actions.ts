@@ -1,5 +1,6 @@
 'use server';
 
+import { randomUUID } from 'node:crypto';
 import { and, eq, isNull, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -282,6 +283,10 @@ export async function logRoundAction(input: {
   if (!parsed.success) return { ok: false, code: 'EMPTY' } as const;
   const items = parsed.data.items;
 
+  // One id shared by every beer in this round — lets /tab + /history
+  // show the "Runda" badge and group a night's round together.
+  const roundId = randomUUID();
+
   const txResult = await db.transaction(async (tx) => {
     // Lazy session: opened on the first item that actually logs, so an
     // all-skipped round leaves no empty session behind. Race-safe via
@@ -368,6 +373,7 @@ export async function logRoundAction(input: {
           beerTypeId: beer.id,
           unitPriceMinorSnapshot: beer.unitPriceMinor,
           createdByUserId: ctx.user.id,
+          roundId,
         })
         .returning();
       if (!consumption) throw new Error('Failed to insert consumption');

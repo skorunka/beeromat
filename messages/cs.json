@@ -551,6 +551,7 @@
     "empty": "Zatím nic — zapiš si první pivo.",
     "fromMatch": "ze zápasu →",
     "byOther": "od {logger}",
+    "roundBadge": "Runda",
     "fromBet": "z prohrané sázky: {logger} · {beer}",
     "wonBet": "z vyhrané sázky: platí {logger} · {beer}",
     "breakdown": {

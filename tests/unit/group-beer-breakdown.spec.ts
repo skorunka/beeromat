@@ -21,6 +21,7 @@ function entry(over: Partial<MemberTabEntry> = {}): MemberTabEntry {
     loggerMemberId: null,
     loggerAvatarKey: null,
     loggerAvatarUploadAt: null,
+    fromRound: false,
     ...over,
   };
 }

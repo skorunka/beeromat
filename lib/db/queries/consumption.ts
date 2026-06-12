@@ -98,6 +98,10 @@ export interface MemberTabEntry {
   loggerMemberId: string | null;
   loggerAvatarKey: string | null;
   loggerAvatarUploadAt: Date | null;
+  // Spec 033 follow-up — true when this consumption was logged as part
+  // of a "round" (shares a round_id). Drives the "Runda" badge on /tab
+  // + /history. Only meaningful for kind='consumption'.
+  fromRound: boolean;
 }
 
 export interface MemberTab {
@@ -140,6 +144,7 @@ export async function getMyTabForSession(args: {
         loggerMemberId: loggerMembers.id,
         loggerAvatarKey: loggerMembers.avatarKey,
         loggerAvatarUploadAt: loggerMembers.avatarUploadAt,
+        roundId: consumptions.roundId,
         consumerMemberUserId: members.userId,
         voidId: consumptionVoids.id,
         // The "view the match" link targets /match/[agreementId], so
@@ -247,6 +252,7 @@ export async function getMyTabForSession(args: {
         loggerMemberId: null,
         loggerAvatarKey: null,
         loggerAvatarUploadAt: null,
+        fromRound: false,
       };
     }
     return {
@@ -262,6 +268,7 @@ export async function getMyTabForSession(args: {
       loggerMemberId: isOnBehalf ? r.loggerMemberId : null,
       loggerAvatarKey: isOnBehalf ? r.loggerAvatarKey : null,
       loggerAvatarUploadAt: isOnBehalf ? r.loggerAvatarUploadAt : null,
+      fromRound: r.roundId !== null,
     };
   });
 
@@ -280,6 +287,7 @@ export async function getMyTabForSession(args: {
       loggerMemberId: null,
       loggerAvatarKey: null,
       loggerAvatarUploadAt: null,
+      fromRound: false,
     }));
 
   // Merge + sort by createdAt DESC (Constitution V — single
@@ -328,6 +336,7 @@ export async function getMemberTabForAdmin(args: {
         loggerMemberId: loggerMembers.id,
         loggerAvatarKey: loggerMembers.avatarKey,
         loggerAvatarUploadAt: loggerMembers.avatarUploadAt,
+        roundId: consumptions.roundId,
         consumerMemberUserId: members.userId,
         createdByUserId: consumptions.createdByUserId,
         voidId: consumptionVoids.id,
@@ -421,6 +430,7 @@ export async function getMemberTabForAdmin(args: {
         loggerMemberId: null,
         loggerAvatarKey: null,
         loggerAvatarUploadAt: null,
+        fromRound: false,
       };
     }
     return {
@@ -436,6 +446,7 @@ export async function getMemberTabForAdmin(args: {
       loggerMemberId: isOnBehalf ? r.loggerMemberId : null,
       loggerAvatarKey: isOnBehalf ? r.loggerAvatarKey : null,
       loggerAvatarUploadAt: isOnBehalf ? r.loggerAvatarUploadAt : null,
+      fromRound: r.roundId !== null,
     };
   });
 
@@ -454,6 +465,7 @@ export async function getMemberTabForAdmin(args: {
       loggerMemberId: null,
       loggerAvatarKey: null,
       loggerAvatarUploadAt: null,
+      fromRound: false,
     }));
 
   const entries = [...consumptionEntries, ...transferEntries].sort(

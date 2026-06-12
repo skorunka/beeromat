@@ -39,6 +39,7 @@ const baseEntry: MemberTabEntry = {
   loggerMemberId: null,
   loggerAvatarKey: null,
   loggerAvatarUploadAt: null,
+  fromRound: false,
 };
 
 function renderRow(entry: MemberTabEntry, locale: 'cs' | 'en' = 'en') {
@@ -69,6 +70,17 @@ describe('TabEntryRow (component layer — spec 019)', () => {
   it('on-behalf consumption (cs): shows "od {logger}"', () => {
     renderRow({ ...baseEntry, loggerDisplayName: 'Pavel' }, 'cs');
     expect(screen.getByText(/od pavel/i)).toBeInTheDocument();
+  });
+
+  it('round consumption: shows the "Round" badge alongside the logger', () => {
+    renderRow({ ...baseEntry, fromRound: true, loggerDisplayName: 'Franta' });
+    expect(screen.getByText(/Round/)).toBeInTheDocument();
+    expect(screen.getByText(/by franta/i)).toBeInTheDocument();
+  });
+
+  it('round consumption (cs): shows "Runda"', () => {
+    renderRow({ ...baseEntry, fromRound: true, loggerDisplayName: 'Franta' }, 'cs');
+    expect(screen.getByText(/Runda/)).toBeInTheDocument();
   });
 
   it('won-bet consumption: shows "from the match →" subtitle linking to /match/{id}', () => {

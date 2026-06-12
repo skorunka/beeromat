@@ -33,6 +33,12 @@ export const consumptions = pgTable(
     // Null for self-logged rows and for unreviewed on-behalf
     // rows. The home banner query filters by this column.
     onBehalfReviewedAt: timestamp({ withTimezone: true }),
+    // Spec 033 follow-up — the N beers logged by one "round"
+    // (logRoundAction) share a round_id. Null for single self /
+    // on-behalf logs. Surfaced as the "Runda" badge on /tab +
+    // /history so a member can see a beer came from a round (and,
+    // via the existing "od {logger}" line, who poured it).
+    roundId: uuid('round_id'),
   },
   (t) => [
     index('idx_consumptions_session_member').on(t.drinkSessionId, t.memberId),

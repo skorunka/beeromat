@@ -132,6 +132,11 @@ describe('logRoundAction (spec 033)', () => {
     expect(byMember.get(s.honza.memberId)!.createdByUserId).not.toBe(s.honza.userId);
 
     expect((await stockRow(s.lager)).currentStock).toBe(7);
+
+    // All beers in the round share ONE round_id (drives the "Runda" badge).
+    const roundIds = new Set(rows.map((r) => r.roundId));
+    expect(roundIds.size).toBe(1);
+    expect([...roundIds][0]).toBeTruthy();
   });
 
   it('partial success: one beer out of stock → rest logged, skipped reported', async () => {

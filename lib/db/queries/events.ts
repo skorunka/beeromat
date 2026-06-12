@@ -1,5 +1,5 @@
 import 'server-only';
-import { and, asc, count, eq, gt, inArray, lte } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, inArray, isNull, lte, or } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { members } from '@/lib/db/schema/members';
@@ -212,6 +212,45 @@ export async function getOccurrenceDetail(
     goingCount,
     linkedSessionId: linked[0]?.id ?? null,
   };
+}
+
+// ── Admin: candidate drink sessions to link to an occurrence ─────────
+// Recent club sessions that are either unlinked or already linked to THIS
+// occurrence (so the current link shows as selected). Newest first.
+export interface LinkableSession {
+  id: string;
+  title: string | null;
+  startedAt: Date;
+  linked: boolean;
+}
+
+export async function listLinkableSessionsForClub(
+  clubId: string,
+  occurrenceId: string,
+  limit = 15,
+): Promise<LinkableSession[]> {
+  const rows = await db
+    .select({
+      id: drinkSessions.id,
+      title: drinkSessions.title,
+      startedAt: drinkSessions.startedAt,
+      occurrenceId: drinkSessions.occurrenceId,
+    })
+    .from(drinkSessions)
+    .where(
+      and(
+        eq(drinkSessions.clubId, clubId),
+        or(isNull(drinkSessions.occurrenceId), eq(drinkSessions.occurrenceId, occurrenceId)),
+      ),
+    )
+    .orderBy(desc(drinkSessions.startedAt))
+    .limit(limit);
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    startedAt: r.startedAt,
+    linked: r.occurrenceId === occurrenceId,
+  }));
 }
 
 export async function listSeries(clubId: string) {

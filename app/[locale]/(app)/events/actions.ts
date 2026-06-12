@@ -7,6 +7,7 @@ import { requireMember, requireRole } from '@/lib/auth/session';
 import { db } from '@/lib/db/client';
 import { members } from '@/lib/db/schema/members';
 import { eventOccurrences, eventRsvps, eventSeries } from '@/lib/db/schema/events';
+import { drinkSessions } from '@/lib/db/schema/sessions';
 import { ensureOccurrences } from '@/lib/db/queries/events';
 import { isOccurrenceOpen } from '@/lib/events/window';
 import {
@@ -15,6 +16,7 @@ import {
   clearRsvpSchema,
   createSeriesSchema,
   setMemberRsvpSchema,
+  setOccurrenceSessionSchema,
   setRsvpSchema,
   updateSeriesSchema,
 } from '@/lib/validation/events';
@@ -220,6 +222,51 @@ export async function updateSeriesAction(input: unknown): Promise<MutateResult> 
     .returning({ id: eventSeries.id });
   if (res.length === 0) return { ok: false, code: 'NOT_FOUND' };
   revalidatePath('/admin/events');
+  return { ok: true };
+}
+
+// US5 — admin associates (or clears) the drink session for an occurrence:
+// "the beers from this night". Enforces 1:1 — linking a session first clears
+// any session currently pointing at this occurrence. sessionId null = unlink.
+export async function setOccurrenceSessionAction(input: {
+  occurrenceId: string;
+  sessionId: string | null;
+}): Promise<MutateResult> {
+  const ctx = await requireRole('club_admin');
+  const parsed = setOccurrenceSessionSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, code: 'INVALID_INPUT' };
+
+  const occ = await db.query.eventOccurrences.findFirst({
+    where: and(
+      eq(eventOccurrences.id, parsed.data.occurrenceId),
+      eq(eventOccurrences.clubId, ctx.club.id),
+    ),
+  });
+  if (!occ) return { ok: false, code: 'NOT_FOUND' };
+
+  // Clear the existing link (1:1), then point the chosen session here.
+  await db
+    .update(drinkSessions)
+    .set({ occurrenceId: null })
+    .where(
+      and(
+        eq(drinkSessions.occurrenceId, parsed.data.occurrenceId),
+        eq(drinkSessions.clubId, ctx.club.id),
+      ),
+    );
+
+  if (parsed.data.sessionId) {
+    const res = await db
+      .update(drinkSessions)
+      .set({ occurrenceId: parsed.data.occurrenceId })
+      .where(
+        and(eq(drinkSessions.id, parsed.data.sessionId), eq(drinkSessions.clubId, ctx.club.id)),
+      )
+      .returning({ id: drinkSessions.id });
+    if (res.length === 0) return { ok: false, code: 'NOT_FOUND' };
+  }
+
+  revalidatePath(`/events/${parsed.data.occurrenceId}`);
   return { ok: true };
 }
 

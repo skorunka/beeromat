@@ -356,6 +356,11 @@
       "cancelOccurrence": "Cancel this date",
       "deactivate": "Deactivate",
       "setForMember": "Set for member",
+      "linkBeerNight": "Beers from this night",
+      "linkPlaceholder": "Pick a session…",
+      "linkSave": "Link",
+      "unlink": "Unlink the session",
+      "noSessions": "No drink sessions to link yet.",
       "manageHint": "Recurring sessions are generated automatically every night."
     },
     "errors": {

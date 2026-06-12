@@ -356,6 +356,11 @@
       "cancelOccurrence": "Zrušit tenhle termín",
       "deactivate": "Deaktivovat",
       "setForMember": "Nastavit za člena",
+      "linkBeerNight": "Piva z tohohle večera",
+      "linkPlaceholder": "Vyber večer…",
+      "linkSave": "Propojit",
+      "unlink": "Zrušit propojení",
+      "noSessions": "Zatím žádný večer k propojení.",
       "manageHint": "Pravidelné srazy se generují automaticky každou noc."
     },
     "errors": {

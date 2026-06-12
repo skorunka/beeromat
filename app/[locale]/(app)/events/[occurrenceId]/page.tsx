@@ -10,10 +10,11 @@ import { formatTimeAgo } from '@/lib/format';
 import { RsvpToggle } from '@/components/events/rsvp-toggle';
 import { AdminMemberRsvp } from '@/components/events/admin-member-rsvp';
 import { CancelOccurrenceButton } from '@/components/events/cancel-occurrence-button';
+import { LinkBeerNightControl } from '@/components/events/link-beer-night-control';
 import { requireUnlocked } from '@/lib/auth/session';
 import { roleSatisfies } from '@/lib/permissions';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
-import { getOccurrenceDetail } from '@/lib/db/queries/events';
+import { getOccurrenceDetail, listLinkableSessionsForClub } from '@/lib/db/queries/events';
 import { isOccurrenceOpen, turnoutVibe } from '@/lib/events/window';
 
 export default async function OccurrenceDetailPage({
@@ -40,6 +41,20 @@ export default async function OccurrenceDetailPage({
     now,
   );
   const myStatus = detail.roster.find((r) => r.memberId === ctx.member.id)?.status ?? null;
+
+  // US5 — admin can link the drink session ("beers from this night").
+  const sessionFmt = new Intl.DateTimeFormat(ctx.club.defaultLocale, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'numeric',
+    timeZone: 'Europe/Prague',
+  });
+  const linkableSessions = isAdmin
+    ? (await listLinkableSessionsForClub(ctx.club.id, occurrenceId)).map((s) => ({
+        id: s.id,
+        label: s.title ?? sessionFmt.format(s.startedAt),
+      }))
+    : [];
 
   const [y, m, d] = detail.occurrence.occurrenceDate.split('-').map(Number) as [number, number, number];
   const dateLabel = new Intl.DateTimeFormat(ctx.club.defaultLocale, {
@@ -156,9 +171,20 @@ export default async function OccurrenceDetailPage({
         ))}
       </ul>
 
+      {/* US5 — admin links the beers from this night */}
+      {isAdmin && detail.occurrence.status === 'scheduled' ? (
+        <div className="border-border mt-6 border-t pt-4">
+          <LinkBeerNightControl
+            occurrenceId={detail.occurrence.id}
+            linkedSessionId={detail.linkedSessionId}
+            sessions={linkableSessions}
+          />
+        </div>
+      ) : null}
+
       {/* US3 — admin cancel this occurrence */}
       {isAdmin && detail.occurrence.status === 'scheduled' ? (
-        <div className="mt-6 border-t border-border pt-4">
+        <div className="border-border mt-6 border-t pt-4">
           <CancelOccurrenceButton occurrenceId={detail.occurrence.id} />
         </div>
       ) : null}

@@ -48,6 +48,13 @@ export type SetMemberRsvpInput = z.infer<typeof setMemberRsvpSchema>;
 
 export const cancelOccurrenceSchema = z.object({ occurrenceId: z.string().uuid() });
 
+// Admin: associate (or clear, when sessionId is null) a drink session with an
+// occurrence — "the beers from this night".
+export const setOccurrenceSessionSchema = z.object({
+  occurrenceId: z.string().uuid(),
+  sessionId: z.string().uuid().nullable(),
+});
+
 // Reset (delete) a member's RSVP back to "no answer". Admin-only variant adds
 // the target member.
 export const clearRsvpSchema = z.object({ occurrenceId: z.string().uuid() });

@@ -24,6 +24,46 @@ const BOARD: Record<BoardKey, { key: string; emoji: string }> = {
 
 const MEDAL = ['🥇', '🥈', '🥉'];
 
+function BoardRowItem({
+  row,
+  isViewer,
+  valueLabel,
+  youLabel,
+  dim,
+}: {
+  row: BoardRow;
+  isViewer: boolean;
+  valueLabel: string;
+  youLabel: string;
+  dim?: boolean;
+}) {
+  const medal = row.rank <= 3 ? MEDAL[row.rank - 1] : null;
+  return (
+    <li
+      className={cn(
+        'flex items-center gap-2.5 rounded-lg px-2 py-1.5',
+        isViewer && 'bg-primary/10 ring-primary/40 ring-1',
+        dim && 'opacity-80',
+      )}
+    >
+      <span className="w-6 shrink-0 text-center text-sm font-bold tabular-nums" aria-label={`#${row.rank}`}>
+        {medal ?? row.rank}
+      </span>
+      <MemberAvatar
+        size="row"
+        avatarKey={row.avatarKey}
+        displayName={row.displayName}
+        uploadUrl={avatarUploadUrl(row.memberId, row.avatarUploadAt)}
+      />
+      <span className="min-w-0 flex-1 truncate text-sm font-medium">
+        {row.displayName}
+        {isViewer ? ` · ${youLabel}` : ''}
+      </span>
+      <span className="text-primary shrink-0 text-sm font-bold tabular-nums">{valueLabel}</span>
+    </li>
+  );
+}
+
 interface LeaderboardBoardProps {
   board: Leaderboard;
   viewerMemberId: string;
@@ -48,40 +88,7 @@ export function LeaderboardBoard({
 
   const shownIds = new Set(board.rows.map((r) => r.memberId));
   const appendViewer = board.viewerRow && !shownIds.has(board.viewerRow.memberId);
-
-  const Row = ({ row, dim }: { row: BoardRow; dim?: boolean }) => {
-    const isViewer = row.memberId === viewerMemberId;
-    const medal = row.rank <= 3 ? MEDAL[row.rank - 1] : null;
-    return (
-      <li
-        className={cn(
-          'flex items-center gap-2.5 rounded-lg px-2 py-1.5',
-          isViewer && 'bg-primary/10 ring-primary/40 ring-1',
-          dim && 'opacity-80',
-        )}
-      >
-        <span
-          className="w-6 shrink-0 text-center text-sm font-bold tabular-nums"
-          aria-label={`#${row.rank}`}
-        >
-          {medal ?? row.rank}
-        </span>
-        <MemberAvatar
-          size="row"
-          avatarKey={row.avatarKey}
-          displayName={row.displayName}
-          uploadUrl={avatarUploadUrl(row.memberId, row.avatarUploadAt)}
-        />
-        <span className="min-w-0 flex-1 truncate text-sm font-medium">
-          {row.displayName}
-          {isViewer ? ` · ${t('you')}` : ''}
-        </span>
-        <span className="text-primary shrink-0 text-sm font-bold tabular-nums">
-          {formatValue(row.value)}
-        </span>
-      </li>
-    );
-  };
+  const youLabel = t('you');
 
   return (
     <Card className="flex flex-col gap-2 p-3">
@@ -101,14 +108,26 @@ export function LeaderboardBoard({
       ) : (
         <ul className="flex flex-col gap-0.5">
           {board.rows.map((row) => (
-            <Row key={row.memberId} row={row} />
+            <BoardRowItem
+              key={row.memberId}
+              row={row}
+              isViewer={row.memberId === viewerMemberId}
+              valueLabel={formatValue(row.value)}
+              youLabel={youLabel}
+            />
           ))}
           {appendViewer && board.viewerRow ? (
             <>
               <li aria-hidden className="text-muted-foreground py-0.5 text-center text-xs">
                 ⋯
               </li>
-              <Row row={board.viewerRow} dim />
+              <BoardRowItem
+                row={board.viewerRow}
+                isViewer
+                valueLabel={formatValue(board.viewerRow.value)}
+                youLabel={youLabel}
+                dim
+              />
             </>
           ) : null}
         </ul>

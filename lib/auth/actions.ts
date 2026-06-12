@@ -140,6 +140,57 @@ export async function acceptInvitationAction(input: {
 }
 
 /**
+ * Re-issue a fresh token + 14-day expiry on a pending invitation row and
+ * email the invitation link to the originally-invited address.
+ *
+ * Shared by the explicit "resend" flow (resendInvitationLinkAction) and
+ * the sign-in fallback (requestMagicLinkAction): an invited-but-not-yet-
+ * accepted email that lands on the sign-in form has NO user row, and
+ * Better Auth's disableSignUp blocks creation at verify time — so a
+ * plain magic link silently bounces them back to /sign-in. Routing them
+ * through invitation acceptance (which creates user + member) is the
+ * only path that can actually sign them in.
+ *
+ * Throws on email dispatch failure so callers can map it to their own
+ * result code.
+ */
+async function reissueAndSendInvitation(
+  inv: { id: string; email: string; clubId: string; createdByUserId: string },
+  locale: Locale | undefined,
+): Promise<void> {
+  const argon2 = await import('argon2');
+  // Inviter name + club name for the email body. Both have graceful
+  // fallbacks so a missing inviter member (e.g. since deactivated)
+  // never blocks the send.
+  const [club, inviter] = await Promise.all([
+    db.query.clubs.findFirst({ where: eq(clubs.id, inv.clubId) }),
+    db.query.members.findFirst({
+      where: and(eq(members.clubId, inv.clubId), eq(members.userId, inv.createdByUserId)),
+    }),
+  ]);
+  const clubName = club?.name ?? 'beeromat';
+
+  const rawToken = randomBytes(32).toString('base64url');
+  const tokenHash = await argon2.hash(rawToken, {
+    type: argon2.argon2id,
+    memoryCost: 65_536,
+    timeCost: 3,
+    parallelism: 4,
+  });
+  const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  await db.update(invitations).set({ tokenHash, expiresAt }).where(eq(invitations.id, inv.id));
+
+  const url = `${env.BETTER_AUTH_URL}/invitation/${rawToken}`;
+  await sendInvitation({
+    to: inv.email,
+    inviterName: inviter?.displayName ?? clubName,
+    clubName,
+    url,
+    locale,
+  });
+}
+
+/**
  * Self-service resend for an expired (but still pending) invitation.
  * The invitee lands on /invitation/[token] with a dead link and taps
  * "send me a new one" — this re-matches that raw token, re-issues a
@@ -191,44 +242,9 @@ export async function resendInvitationLinkAction(input: {
   const { allowed } = await checkMagicLinkLimits(inv.email, remoteIp);
   if (!allowed) return { ok: false, code: 'RATE_LIMITED' };
 
-  // Inviter name + club name for the email body. Both have graceful
-  // fallbacks so a missing inviter member (e.g. since deactivated)
-  // never blocks the resend.
-  const [club, inviter] = await Promise.all([
-    db.query.clubs.findFirst({ where: eq(clubs.id, inv.clubId) }),
-    db.query.members.findFirst({
-      where: and(
-        eq(members.clubId, inv.clubId),
-        eq(members.userId, inv.createdByUserId),
-      ),
-    }),
-  ]);
-  const clubName = club?.name ?? 'beeromat';
-
-  // Re-issue: fresh token + expiry on the same row.
-  const rawToken = randomBytes(32).toString('base64url');
-  const tokenHash = await argon2.hash(rawToken, {
-    type: argon2.argon2id,
-    memoryCost: 65_536,
-    timeCost: 3,
-    parallelism: 4,
-  });
-  const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
-  await db
-    .update(invitations)
-    .set({ tokenHash, expiresAt })
-    .where(eq(invitations.id, inv.id));
-
   const locale = (await getLocale().catch(() => undefined)) as Locale | undefined;
   try {
-    const url = `${env.BETTER_AUTH_URL}/invitation/${rawToken}`;
-    await sendInvitation({
-      to: inv.email,
-      inviterName: inviter?.displayName ?? clubName,
-      clubName,
-      url,
-      locale,
-    });
+    await reissueAndSendInvitation(inv, locale);
   } catch (err) {
     console.error('[resend-invitation] email dispatch failed', err);
     return { ok: false, code: 'EMAIL_SEND_FAILED' };
@@ -319,24 +335,43 @@ export async function requestMagicLinkAction(input: {
   const knownUser = member
     ? await db.query.users.findFirst({ where: eq(users.id, member.userId) })
     : null;
-  const openInvitation = await db.query.invitations.findFirst({
-    where: eq(invitations.email, email),
+
+  // An accepted member (or the bootstrap candidate) has a real user row,
+  // so a normal magic link can mint a session at verify time.
+  if (bootstrapped || knownUser) {
+    try {
+      await auth.api.signInMagicLink({
+        body: { email, errorCallbackURL: await magicLinkErrorCallbackURL() },
+        headers: reqHeaders,
+      });
+    } catch (err) {
+      console.error('[magic-link] dispatch failed', err);
+    }
+    return { ok: true, data: { status: 'sent' } };
+  }
+
+  // Invited but NOT yet accepted: no user row exists, and Better Auth's
+  // disableSignUp blocks creation at verify time — so a plain magic link
+  // would silently bounce them back to /sign-in (the trap a real user
+  // hit 2026-06-12). Re-send the INVITATION link instead, which runs
+  // them through acceptance (creates user + member) and then signs in.
+  // Same generic "link sent" screen → no enumeration signal. Only a
+  // *pending* invitation qualifies (revoked/accepted never re-arm here).
+  const pendingInvitation = await db.query.invitations.findFirst({
+    where: and(eq(invitations.email, email), eq(invitations.status, 'pending')),
   });
-
-  if (!bootstrapped && !knownUser && !openInvitation) {
-    console.info('[magic-link] no matching member/invitation', { email });
-    return { ok: true, data: { status: 'not-on-allowlist' } };
+  if (pendingInvitation) {
+    const locale = (await getLocale().catch(() => undefined)) as Locale | undefined;
+    try {
+      await reissueAndSendInvitation(pendingInvitation, locale);
+    } catch (err) {
+      console.error('[magic-link] invitation re-send failed', err);
+    }
+    return { ok: true, data: { status: 'sent' } };
   }
 
-  try {
-    await auth.api.signInMagicLink({
-      body: { email, errorCallbackURL: await magicLinkErrorCallbackURL() },
-      headers: reqHeaders,
-    });
-  } catch (err) {
-    console.error('[magic-link] dispatch failed', err);
-  }
-  return { ok: true, data: { status: 'sent' } };
+  console.info('[magic-link] no matching member/invitation', { email });
+  return { ok: true, data: { status: 'not-on-allowlist' } };
 }
 
 /**

@@ -298,6 +298,14 @@
       "favouriteBeer": "Go-to: {beer} ×{count} 🍺"
     }
   },
+  "funline": {
+    "subscription": "{wins}–{losses} vs {name}. It's not a rivalry, it's a subscription. 😅",
+    "undefeated": "Undefeated in {count}! Someone stop them. 🔥",
+    "payUp": "Owes {name} {count, plural, one {# beer} other {# beers}} — pay up. 🍺",
+    "sugarDaddy": "Poured {count, plural, one {# round} other {# rounds}} — the club's sugar daddy. 💸",
+    "professional": "Averages {avg} beers a night — a true pro. 🍺",
+    "favouriteBeer": "{beer} ×{count} — loyalty pays. 🍺"
+  },
   "onboarding": {
     "title": "Welcome",
     "subtitle": "A few details and we're on to the first beer.",

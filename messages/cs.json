@@ -298,6 +298,14 @@
       "favouriteBeer": "Nejčastěji: {beer} ×{count} 🍺"
     }
   },
+  "funline": {
+    "subscription": "{wins}–{losses} s {name}. To není rivalita, to je předplatné. 😅",
+    "undefeated": "Neporažen už {count}×! Někdo ho zastavte. 🔥",
+    "payUp": "Dluží {name} {count, plural, one {# pivo} few {# piva} other {# piv}} — zaplať! 🍺",
+    "sugarDaddy": "Naservíroval {count, plural, one {# rundu} few {# rundy} other {# rund}} — klubový sponzor. 💸",
+    "professional": "Průměr {avg} piv na večer — profík. 🍺",
+    "favouriteBeer": "{beer} ×{count} — věrnost se cení. 🍺"
+  },
   "onboarding": {
     "title": "Vítej",
     "subtitle": "Pár věcí a jdeme na první pivo.",

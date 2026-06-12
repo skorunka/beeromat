@@ -7,6 +7,8 @@ import { MemberAvatar } from '@/components/ui/member-avatar';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { StatTile } from '@/components/stats/stat-tile';
 import { StatPersonCard } from '@/components/stats/head-to-head-card';
+import { FunLines } from '@/components/stats/fun-line';
+import { selectFunLines } from '@/lib/stats/fun-lines';
 import { formatMoney } from '@/lib/format';
 
 // Spec 034 — a player's profile: match record, streaks, rivals, partners,
@@ -39,6 +41,8 @@ export default async function ProfilePage({
         />
         <h1 className="text-2xl font-bold">{stats.displayName}</h1>
       </header>
+
+      <FunLines lines={selectFunLines(stats)} />
 
       <section className="flex flex-col gap-2">
         <h2 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">

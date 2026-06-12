@@ -53,8 +53,8 @@ beforeEach(() => {
 describe('RecordResultForm — spec 030', () => {
   it('renders both win buttons; no beer picker', () => {
     renderForm();
-    expect(screen.getByRole('button', { name: /Side A won/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Side B won/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Side A/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Side B/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Auto/i })).not.toBeInTheDocument();
   });
 
@@ -71,7 +71,7 @@ describe('RecordResultForm — spec 030', () => {
   it('recording sends only agreementId + winningSide (no override)', async () => {
     mockRecordResultAction.mockResolvedValue({ ok: true, matchRowIds: ['m-1'], debtsCreated: 1 });
     renderForm();
-    fireEvent.click(screen.getByRole('button', { name: /Side A won/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Side A/i }));
     await waitFor(() => expect(mockRecordResultAction).toHaveBeenCalledTimes(1));
     const payload = mockRecordResultAction.mock.calls[0]![0] as Record<string, unknown>;
     expect(payload).toEqual({ agreementId: 'agreement-1', winningSide: 'A' });

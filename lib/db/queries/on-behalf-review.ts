@@ -1,5 +1,5 @@
 import 'server-only';
-import { and, desc, eq, isNull, ne } from 'drizzle-orm';
+import { and, desc, eq, gte, isNull, ne } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
 import { db } from '@/lib/db/client';
@@ -40,6 +40,14 @@ export interface OnBehalfReviewSummary {
   rows: OnBehalfReviewRow[];
 }
 
+// The home banner only nudges about RECENT on-behalf logs — a beer
+// wrongly logged for you is caught within days. Older unreviewed rows
+// are treated as implicitly accepted (and stay rejectable from /tab),
+// so a club with years of history doesn't bury the home page under a
+// wall of ancient review items. Hard-capped on top of the window.
+const REVIEW_WINDOW_DAYS = 14;
+const REVIEW_BANNER_CAP = 6;
+
 export async function onBehalfReviewSummaryForMember(
   memberId: string,
   clubId: string,
@@ -56,6 +64,7 @@ export async function onBehalfReviewSummaryForMember(
     return { count: 0, rows: [] };
   }
 
+  const cutoff = new Date(Date.now() - REVIEW_WINDOW_DAYS * 24 * 60 * 60 * 1000);
   const rows = await db
     .select({
       consumptionId: consumptions.id,
@@ -84,9 +93,11 @@ export async function onBehalfReviewSummaryForMember(
         ne(consumptions.createdByUserId, consumerUserId),
         isNull(consumptions.onBehalfReviewedAt),
         isNull(consumptionVoids.consumptionId),
+        gte(consumptions.createdAt, cutoff),
       ),
     )
-    .orderBy(desc(consumptions.createdAt));
+    .orderBy(desc(consumptions.createdAt))
+    .limit(REVIEW_BANNER_CAP);
 
   return {
     count: rows.length,

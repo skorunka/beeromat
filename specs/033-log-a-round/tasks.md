@@ -192,7 +192,7 @@ logged, "couldn't record the round".
 - [X] T022 Run the full gate suite — `pnpm typecheck`, `pnpm lint`,
   `pnpm test` (unit+integration+component+i18n:check+forms:check), `pnpm build` —
   and fix any failure. (E2E not run — declared N/A in plan.md.)
-- [ ] T023 Execute `specs/033-log-a-round/quickstart.md` manual walkthrough on the
+- [X] T023 Execute `specs/033-log-a-round/quickstart.md` manual walkthrough on the
   dev server (same-beer round, override, out-of-stock) to confirm the in-place
   refresh + reset behaviour.
 - [X] T024 Remove the dead `home-log-for-other.tsx` (renamed) and any orphan

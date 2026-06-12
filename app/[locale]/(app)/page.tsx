@@ -191,25 +191,9 @@ export default async function AppHomePage({
         }))}
       />
 
-      {nextEvent ? (
-        <NextSessionCard
-          session={nextEvent}
-          going={nextEventGoing}
-          now={now}
-          locale={ctx.club.defaultLocale}
-        />
-      ) : null}
-
-      <OpenMatchPrompt matches={myOpenMatches} />
-
-      <MatchBetModule
-        debts={beerDebts}
-        beers={inStockCatalog}
-        currencyCode={ctx.club.currencyCode}
-        locale={ctx.club.defaultLocale}
-        now={now}
-      />
-
+      {/* Money/consumption cluster — sits right under the balance total
+          in the header so the whole daily loop reads top-to-bottom:
+          what you owe → log a beer → this round's útrata → settle. */}
       <HomeOneTapLog
         beer={lastBeer}
         catalog={inStockCatalog}
@@ -260,6 +244,27 @@ export default async function AppHomePage({
           {t('settleCta')}
         </Link>
       ) : null}
+
+      {/* Below the money cluster: the social surfaces — tonight's
+          session, your open match, beer-IOUs. */}
+      {nextEvent ? (
+        <NextSessionCard
+          session={nextEvent}
+          going={nextEventGoing}
+          now={now}
+          locale={ctx.club.defaultLocale}
+        />
+      ) : null}
+
+      <OpenMatchPrompt matches={myOpenMatches} />
+
+      <MatchBetModule
+        debts={beerDebts}
+        beers={inStockCatalog}
+        currencyCode={ctx.club.currencyCode}
+        locale={ctx.club.defaultLocale}
+        now={now}
+      />
 
       {otherMembers.length > 0 ? (
         <HomeLogForOther

@@ -58,6 +58,12 @@ const EXCLUDED = new Set([
   // pickers). File audited: the only user-facing strings come from
   // useTranslations('common') (search placeholder, no-match text).
   'components/picker/member-picker-grid.tsx',
+  // round-logger.tsx — the `() => new Set(self ? [self.id] : [])` and
+  // `members.find((mm) => mm.id === id)` arrows trip the JSX_TEXT regex
+  // (same =>/ternary root cause as the pickers). File audited: every
+  // user-facing string comes via useTranslations('round'); member names
+  // are data. (spec 033)
+  'components/home/round-logger.tsx',
   // filter-list.tsx — the `items.filter((i) => …)` arrow trips the
   // JSX_TEXT regex. File audited: placeholder/emptyText come from
   // props (callers pass translated strings).

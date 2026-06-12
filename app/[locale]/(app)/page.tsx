@@ -12,12 +12,12 @@ import { OpenMatchPrompt } from '@/components/home/open-match-prompt';
 import { NextSessionCard } from '@/components/events/next-session-card';
 import { OnBehalfReviewBanner } from '@/components/home/on-behalf-review-banner';
 import { TabBeerBreakdown } from '@/components/tab/tab-beer-breakdown';
-import { HomeLogForOther } from '@/components/home/home-log-for-other';
+import { RoundLogger } from '@/components/home/round-logger';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getMyBalance } from '@/lib/db/queries/payments';
 import { getBeerTypeCatalog } from '@/lib/db/queries/catalog';
 import { getMyTabForSession, lastBeerForMember } from '@/lib/db/queries/consumption';
-import { listOtherActiveMembers } from '@/lib/db/queries/members';
+import { listActiveMembersForRound } from '@/lib/db/queries/members';
 import { getOpenSessionForClub } from '@/lib/db/queries/sessions';
 import { listOpenAgreementsForMember } from '@/lib/db/queries/match-agreements';
 import { getOccurrenceDetail, listOpenThisWeek } from '@/lib/db/queries/events';
@@ -48,7 +48,7 @@ export default async function AppHomePage({
     beerDebts,
     wonBeers,
     openAgreements,
-    otherMembers,
+    roundMembers,
     onBehalfSummary,
     openEvents,
   ] = await Promise.all([
@@ -58,7 +58,7 @@ export default async function AppHomePage({
     listBeerDebtsForMember({ clubId: ctx.club.id, memberId: ctx.member.id }),
     wonBeerCountForMember({ clubId: ctx.club.id, memberId: ctx.member.id }),
     listOpenAgreementsForMember(ctx.club.id, ctx.member.id),
-    listOtherActiveMembers(ctx.club.id, ctx.member.id),
+    listActiveMembersForRound(ctx.club.id, ctx.member.id),
     onBehalfReviewSummaryForMember(ctx.member.id, ctx.club.id),
     listOpenThisWeek(ctx.club.id, ctx.member.id, now),
   ]);
@@ -214,12 +214,14 @@ export default async function AppHomePage({
           locale={ctx.club.defaultLocale}
         />
 
-        {/* Log for someone else — directly under the one-tap log, the
-            two logging actions paired inside the Útrata card. */}
-        {otherMembers.length > 0 ? (
-          <HomeLogForOther
-            members={otherMembers}
+        {/* Log a round — directly under the one-tap log, the two logging
+            actions paired inside the Útrata card. Shown only when there
+            are other members to fetch for. */}
+        {roundMembers.some((m) => !m.isSelf) ? (
+          <RoundLogger
+            members={roundMembers}
             beers={inStockCatalog}
+            defaultBeerTypeId={lastBeer?.id ?? null}
             currencyCode={ctx.club.currencyCode}
             locale={ctx.club.defaultLocale}
           />

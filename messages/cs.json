@@ -243,6 +243,7 @@
     "toastAllSkipped": "Rundu se nepovedlo zapsat — pivo došlo.",
     "toastError": "Nepovedlo se to — zkus to prosím znovu.",
     "overrideHint": "Jiné pivo pro {name}",
+    "overrideToggle": "Někdo chce jiné pivo?",
     "clearOverride": "Zpět na výchozí pivo",
     "errors": {
       "empty": "Vyber aspoň jednoho, kdo pije.",

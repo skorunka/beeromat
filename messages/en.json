@@ -243,6 +243,7 @@
     "toastAllSkipped": "Couldn't log the round — out of beer.",
     "toastError": "Couldn't do that — please try again.",
     "overrideHint": "Different beer for {name}",
+    "overrideToggle": "Someone wants a different beer?",
     "clearOverride": "Back to the default beer",
     "errors": {
       "empty": "Pick at least one drinker.",

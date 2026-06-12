@@ -102,6 +102,11 @@
     "upcomingHeading": "Upcoming",
     "upcomingEmpty": "No matches scheduled — start one below.",
     "recentHeading": "Recent results",
+    "allMatchesCta": "All matches →",
+    "historyTitle": "Match history",
+    "historySubtitle": "Every match played, newest first.",
+    "historyEmpty": "No matches played yet.",
+    "historyCap": "Showing the latest {count} matches.",
     "newMatchHeading": "New match",
     "newMatchCta": "+ New match",
     "recreate": {

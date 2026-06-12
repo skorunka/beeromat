@@ -102,6 +102,11 @@
     "upcomingHeading": "Naplánované",
     "upcomingEmpty": "Žádný zápas — naplánuj nový níže.",
     "recentHeading": "Nedávné výsledky",
+    "allMatchesCta": "Všechny zápasy →",
+    "historyTitle": "Historie zápasů",
+    "historySubtitle": "Všechny odehrané zápasy, od nejnovějších.",
+    "historyEmpty": "Zatím žádné odehrané zápasy.",
+    "historyCap": "Zobrazujeme posledních {count} zápasů.",
     "newMatchHeading": "Nový zápas",
     "newMatchCta": "+ Nový zápas",
     "recreate": {

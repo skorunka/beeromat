@@ -154,59 +154,103 @@ async function main(): Promise<void> {
     if (attendees.length >= 2 && chance(SESSION_HAS_MATCHES_CHANCE)) {
       const count = rint(1, MATCHES_PER_SESSION_MAX);
       for (let i = 0; i < count; i++) {
-        const [w, l] = sample(attendees, 2);
-        if (!w || !l) continue;
         const forBeer = chance(FOR_BEER_CHANCE);
         const betBeer = forBeer ? pick(beerList) : null;
         const agreementId = randomUUID();
         const playedAt = new Date(sessionStart.getTime() + rint(0, 2) * 3600_000);
-        agreementRows.push({
-          id: agreementId,
-          clubId: club.id,
-          format: 'singles',
-          forBeer,
-          pairingKind: null,
-          betBeerTypeId: betBeer?.id ?? null,
-          winningSide: 'A',
-          resultRecordedAt: playedAt,
-          resultRecordedByUserId: userOf.get(w.id)!,
-          createdAt: new Date(playedAt.getTime() - 1800_000),
-          createdByUserId: userOf.get(w.id)!,
-        });
-        sideRows.push(
-          { agreementId, side: 'A', seat: 1, memberId: w.id },
-          { agreementId, side: 'B', seat: 1, memberId: l.id },
-        );
-        const matchId = randomUUID();
-        matchRows.push({
-          id: matchId,
-          clubId: club.id,
-          winnerMemberId: w.id,
-          loserMemberId: l.id,
-          agreementId,
-          playedAt,
-          createdByUserId: userOf.get(w.id)!,
-        });
-        if (forBeer && betBeer) {
-          // Older debts settled; the most recent ~2 weeks left pending so
-          // the "Piva k předání" lists have live data.
-          const isRecent = now - playedAt.getTime() < 14 * DAY;
-          const settled = !isRecent || chance(0.5);
-          debtRows.push({
+        const doubles = attendees.length >= 4 && chance(0.4);
+        // Side A always wins (deterministic for the seed); the recorder is
+        // A's first seat. Each winner↔loser pair becomes one matches row +
+        // (if for beer) one debt — exactly the record-result model.
+        const pairs: { win: (typeof roster)[number]; lose: (typeof roster)[number] }[] = [];
+        let recorderUserId: string;
+
+        if (doubles) {
+          const [a1, a2, b1, b2] = sample(attendees, 4);
+          if (!a1 || !a2 || !b1 || !b2) continue;
+          const pairingKind = chance(0.5) ? 'straight' : 'crossed';
+          recorderUserId = userOf.get(a1.id)!;
+          agreementRows.push({
+            id: agreementId,
             clubId: club.id,
-            matchId,
-            agreementId,
-            fromMemberId: l.id,
-            toMemberId: w.id,
-            plannedBeerTypeId: betBeer.id,
-            beerCount: 1,
-            status: settled ? 'settled' : 'pending',
-            createdAt: playedAt,
-            createdByUserId: userOf.get(w.id)!,
-            settledAt: settled ? new Date(playedAt.getTime() + rint(1, 20) * DAY) : null,
-            settledByUserId: settled ? userOf.get(l.id)! : null,
-            settledBeerTypeId: settled ? betBeer.id : null,
+            format: 'doubles',
+            forBeer,
+            pairingKind,
+            betBeerTypeId: betBeer?.id ?? null,
+            winningSide: 'A',
+            resultRecordedAt: playedAt,
+            resultRecordedByUserId: recorderUserId,
+            createdAt: new Date(playedAt.getTime() - 1800_000),
+            createdByUserId: recorderUserId,
           });
+          sideRows.push(
+            { agreementId, side: 'A', seat: 1, memberId: a1.id },
+            { agreementId, side: 'A', seat: 2, memberId: a2.id },
+            { agreementId, side: 'B', seat: 1, memberId: b1.id },
+            { agreementId, side: 'B', seat: 2, memberId: b2.id },
+          );
+          // straight → A1↔B1, A2↔B2; crossed → A1↔B2, A2↔B1 (winners on A).
+          if (pairingKind === 'straight') {
+            pairs.push({ win: a1, lose: b1 }, { win: a2, lose: b2 });
+          } else {
+            pairs.push({ win: a1, lose: b2 }, { win: a2, lose: b1 });
+          }
+        } else {
+          const [w, l] = sample(attendees, 2);
+          if (!w || !l) continue;
+          recorderUserId = userOf.get(w.id)!;
+          agreementRows.push({
+            id: agreementId,
+            clubId: club.id,
+            format: 'singles',
+            forBeer,
+            pairingKind: null,
+            betBeerTypeId: betBeer?.id ?? null,
+            winningSide: 'A',
+            resultRecordedAt: playedAt,
+            resultRecordedByUserId: recorderUserId,
+            createdAt: new Date(playedAt.getTime() - 1800_000),
+            createdByUserId: recorderUserId,
+          });
+          sideRows.push(
+            { agreementId, side: 'A', seat: 1, memberId: w.id },
+            { agreementId, side: 'B', seat: 1, memberId: l.id },
+          );
+          pairs.push({ win: w, lose: l });
+        }
+
+        for (const { win, lose } of pairs) {
+          const matchId = randomUUID();
+          matchRows.push({
+            id: matchId,
+            clubId: club.id,
+            winnerMemberId: win.id,
+            loserMemberId: lose.id,
+            agreementId,
+            playedAt,
+            createdByUserId: recorderUserId,
+          });
+          if (forBeer && betBeer) {
+            // Older debts settled; the most recent ~2 weeks left pending so
+            // the "Piva k předání" lists have live data.
+            const isRecent = now - playedAt.getTime() < 14 * DAY;
+            const settled = !isRecent || chance(0.5);
+            debtRows.push({
+              clubId: club.id,
+              matchId,
+              agreementId,
+              fromMemberId: lose.id,
+              toMemberId: win.id,
+              plannedBeerTypeId: betBeer.id,
+              beerCount: 1,
+              status: settled ? 'settled' : 'pending',
+              createdAt: playedAt,
+              createdByUserId: recorderUserId,
+              settledAt: settled ? new Date(playedAt.getTime() + rint(1, 20) * DAY) : null,
+              settledByUserId: settled ? userOf.get(lose.id)! : null,
+              settledBeerTypeId: settled ? betBeer.id : null,
+            });
+          }
         }
       }
     }

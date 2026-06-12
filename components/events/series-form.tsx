@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLocale, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
+import { ChevronDown } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -95,17 +96,23 @@ export function SeriesForm({
             <FormItem>
               <FormLabel>{t('weekday')}</FormLabel>
               <FormControl>
-                <select
-                  className="border-input bg-background h-11 w-full rounded-md border px-3 text-sm"
-                  value={field.value}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                >
-                  {days.map((d) => (
-                    <option key={d.value} value={d.value}>
-                      {d.label}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    className="border-input bg-background h-11 w-full appearance-none rounded-md border px-3 pr-9 text-sm"
+                    value={field.value}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  >
+                    {days.map((d) => (
+                      <option key={d.value} value={d.value}>
+                        {d.label}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 opacity-60"
+                    aria-hidden
+                  />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

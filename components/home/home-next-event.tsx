@@ -92,25 +92,20 @@ export function HomeNextEvent({
       <RsvpToggle occurrenceId={event.occurrenceId} status={event.myStatus} />
 
       {going.length > 0 ? (
-        <div className="flex items-center gap-2">
-          <span className="text-primary text-sm font-bold tabular-nums">
-            {t('goingCount', { count: event.goingCount })}
-          </span>
-          <div className="flex flex-wrap items-center gap-1">
-            {going.slice(0, 10).map((m) => (
-              <span key={m.memberId} title={m.displayName}>
-                <MemberAvatar
-                  size="row"
-                  avatarKey={m.avatarKey}
-                  displayName={m.displayName}
-                  uploadUrl={avatarUploadUrl(m.memberId, m.avatarUploadAt)}
-                />
-              </span>
-            ))}
-            {going.length > 10 ? (
-              <span className="text-muted-foreground text-xs">+{going.length - 10}</span>
-            ) : null}
-          </div>
+        <div className="flex flex-wrap items-center gap-1">
+          {going.slice(0, 10).map((m) => (
+            <span key={m.memberId} title={m.displayName}>
+              <MemberAvatar
+                size="row"
+                avatarKey={m.avatarKey}
+                displayName={m.displayName}
+                uploadUrl={avatarUploadUrl(m.memberId, m.avatarUploadAt)}
+              />
+            </span>
+          ))}
+          {going.length > 10 ? (
+            <span className="text-muted-foreground text-xs">+{going.length - 10}</span>
+          ) : null}
         </div>
       ) : null}
     </Card>

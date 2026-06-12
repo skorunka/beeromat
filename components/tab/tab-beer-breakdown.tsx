@@ -62,7 +62,11 @@ export function TabBeerBreakdown({
           key={day.dayKey}
           className={cn(
             'flex flex-col gap-1.5',
-            today && 'border-primary bg-primary/5 -mx-2 rounded-lg border-l-2 px-2 py-1.5',
+            // Today's section: a clean, evenly-rounded amber tint (no
+            // asymmetric left bar) — the 🍺 + amber "Dnes" label below
+            // already carry the "today" signal. -mx-2 bleeds the tint
+            // symmetrically so both corners sit the same.
+            today && 'bg-primary/10 -mx-2 rounded-lg px-2 py-2',
           )}
         >
           <div

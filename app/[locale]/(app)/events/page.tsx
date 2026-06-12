@@ -4,25 +4,11 @@ import type { Route } from 'next';
 import { CalendarDays, Check, MapPin, X } from 'lucide-react';
 
 import { Card } from '@/components/ui/card';
-import { MemberAvatar } from '@/components/ui/member-avatar';
-import { RsvpToggle } from '@/components/events/rsvp-toggle';
+import { NextSessionCard } from '@/components/events/next-session-card';
 import { requireUnlocked } from '@/lib/auth/session';
-import { avatarUploadUrl } from '@/lib/avatars/upload-url';
-import { formatTimeAgo } from '@/lib/format';
 import { getOccurrenceDetail, listOpenThisWeek } from '@/lib/db/queries/events';
 import { turnoutVibe, type TurnoutVibe } from '@/lib/events/window';
 
-// Playful tennis-math copy keyed by going-count. Typed maps so TS enforces
-// every vibe has copy and the i18n checker never sees a template key.
-const VIBE_KEY: Record<TurnoutVibe, string> = {
-  none: 'vibe.none',
-  solo: 'vibe.solo',
-  single: 'vibe.single',
-  threesome: 'vibe.threesome',
-  doubles: 'vibe.doubles',
-  fiver: 'vibe.fiver',
-  crowd: 'vibe.crowd',
-};
 // Short format chip for the collapsed rows ('none' shows nothing — the
 // headcount already says "nobody yet").
 const FORMAT_KEY: Record<TurnoutVibe, string | null> = {
@@ -83,76 +69,21 @@ export default async function EventsPage({
           {rows.map((r, i) => {
             const vibe = turnoutVibe(r.goingCount);
 
-            // ── Nearest session: expanded inline card ──────────────────
+            // ── Nearest session: the shared featured card (same as home) ──
             if (i === 0) {
               // Going members, earliest opt-in first (matches the detail roster).
-              const going = (
+              const going =
                 firstDetail?.roster.filter((m) => {
                   return m.status === 'going';
-                }) ?? []
-              ).sort((a, b) => {
-                return (a.rsvpUpdatedAt?.getTime() ?? 0) - (b.rsvpUpdatedAt?.getTime() ?? 0);
-              });
+                }) ?? [];
               return (
                 <li key={r.occurrenceId}>
-                  <Card className="border-primary/30 flex flex-col gap-3 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="text-lg font-semibold">
-                          {fmtDate(r.occurrenceDate)} · {timeFmt.format(r.startsAt)}
-                        </div>
-                        <div className="text-muted-foreground flex items-center gap-1 text-xs">
-                          <MapPin className="h-3.5 w-3.5" aria-hidden />
-                          {r.title ?? r.placeLabel}
-                        </div>
-                      </div>
-                      <Link
-                        href={`/events/${r.occurrenceId}` as Route}
-                        className="text-primary shrink-0 text-xs underline"
-                      >
-                        {t('detail')} →
-                      </Link>
-                    </div>
-
-                    <p className="text-sm font-medium">
-                      {t(VIBE_KEY[vibe], { count: r.goingCount })}
-                    </p>
-
-                    <RsvpToggle occurrenceId={r.occurrenceId} status={r.myStatus} />
-
-                    {going.length > 0 ? (
-                      <div className="flex items-center gap-2">
-                        <span
-                          key={r.goingCount}
-                          className="animate-count-pop text-primary text-sm font-bold tabular-nums"
-                        >
-                          {t('goingCount', { count: r.goingCount })}
-                        </span>
-                        <div className="flex flex-wrap items-center gap-1">
-                          {going.slice(0, 10).map((m) => (
-                            <span
-                              key={m.memberId}
-                              title={
-                                m.rsvpUpdatedAt
-                                  ? `${m.displayName} · ${formatTimeAgo(m.rsvpUpdatedAt, now, ctx.club.defaultLocale)}`
-                                  : m.displayName
-                              }
-                            >
-                              <MemberAvatar
-                                avatarKey={m.avatarKey}
-                                displayName={m.displayName}
-                                uploadUrl={avatarUploadUrl(m.memberId, m.avatarUploadAt)}
-                                className="h-7 w-7"
-                              />
-                            </span>
-                          ))}
-                          {going.length > 10 ? (
-                            <span className="text-muted-foreground text-xs">+{going.length - 10}</span>
-                          ) : null}
-                        </div>
-                      </div>
-                    ) : null}
-                  </Card>
+                  <NextSessionCard
+                    session={r}
+                    going={going}
+                    now={now}
+                    locale={ctx.club.defaultLocale}
+                  />
                 </li>
               );
             }

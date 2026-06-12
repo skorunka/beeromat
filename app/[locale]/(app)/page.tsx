@@ -8,7 +8,7 @@ import { roleSatisfies } from '@/lib/permissions';
 import { HomeOneTapLog } from '@/components/home/home-one-tap-log';
 import { MatchBetModule } from '@/components/home/match-bet-module';
 import { OpenMatchPrompt } from '@/components/home/open-match-prompt';
-import { HomeNextEvent } from '@/components/home/home-next-event';
+import { NextSessionCard } from '@/components/events/next-session-card';
 import { OnBehalfReviewBanner } from '@/components/home/on-behalf-review-banner';
 import { TabBeerBreakdown } from '@/components/tab/tab-beer-breakdown';
 import { HomeLogForOther } from '@/components/home/home-log-for-other';
@@ -78,6 +78,7 @@ export default async function AppHomePage({
         displayName: r.displayName,
         avatarKey: r.avatarKey,
         avatarUploadAt: r.avatarUploadAt,
+        rsvpUpdatedAt: r.rsvpUpdatedAt,
       })) ?? [];
 
   // Spec 028 — this round's beer breakdown, shown on home so the
@@ -190,11 +191,14 @@ export default async function AppHomePage({
         }))}
       />
 
-      <HomeNextEvent
-        event={nextEvent}
-        going={nextEventGoing}
-        locale={ctx.club.defaultLocale}
-      />
+      {nextEvent ? (
+        <NextSessionCard
+          session={nextEvent}
+          going={nextEventGoing}
+          now={now}
+          locale={ctx.club.defaultLocale}
+        />
+      ) : null}
 
       <OpenMatchPrompt matches={myOpenMatches} />
 

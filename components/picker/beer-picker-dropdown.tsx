@@ -35,6 +35,8 @@ interface BeerPickerDropdownProps {
   placeholder: string;
   ariaLabel: string;
   className?: string;
+  /** Lock the picker (e.g. while a submit is in flight). */
+  disabled?: boolean;
 }
 
 const CLEAR_VALUE = '';
@@ -48,16 +50,18 @@ export function BeerPickerDropdown({
   placeholder,
   ariaLabel,
   className,
+  disabled = false,
 }: BeerPickerDropdownProps) {
   const picked = value ? beers.find((b) => b.id === value) ?? null : null;
   const [open, setOpen] = useState(false);
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu open={open && !disabled} onOpenChange={(next) => !disabled && setOpen(next)}>
       <DropdownMenuTrigger
         aria-label={ariaLabel}
+        disabled={disabled}
         className={cn(
-          'border-input bg-background hover:bg-accent flex h-12 w-full items-center justify-between gap-2 rounded-md border px-3 text-left text-base',
+          'border-input bg-background hover:bg-accent flex h-12 w-full items-center justify-between gap-2 rounded-md border px-3 text-left text-base disabled:cursor-not-allowed disabled:opacity-60',
           className,
         )}
       >

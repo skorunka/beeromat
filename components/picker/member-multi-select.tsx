@@ -29,6 +29,8 @@ interface MemberMultiSelectProps {
   selfLabel: string;
   /** Placeholder for the search box (shown at >= 8 members). */
   searchPlaceholder: string;
+  /** Lock all toggles + search (e.g. while a submit is in flight). */
+  disabled?: boolean;
 }
 
 const SEARCH_THRESHOLD = 8;
@@ -39,6 +41,7 @@ export function MemberMultiSelect({
   onToggle,
   selfLabel,
   searchPlaceholder,
+  disabled = false,
 }: MemberMultiSelectProps) {
   const [query, setQuery] = useState('');
   const showSearch = members.length >= SEARCH_THRESHOLD;
@@ -57,9 +60,10 @@ export function MemberMultiSelect({
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            disabled={disabled}
             placeholder={searchPlaceholder}
             aria-label={searchPlaceholder}
-            className="w-full bg-transparent text-sm outline-none"
+            className="w-full bg-transparent text-sm outline-none disabled:opacity-60"
           />
         </div>
       ) : null}
@@ -73,10 +77,11 @@ export function MemberMultiSelect({
               key={m.id}
               type="button"
               onClick={() => onToggle(m.id)}
+              disabled={disabled}
               aria-pressed={isSelected}
               aria-label={m.isSelf ? `${m.displayName} (${selfLabel})` : m.displayName}
               className={cn(
-                'relative flex w-full flex-col items-center gap-1 rounded-lg p-1.5 transition',
+                'relative flex w-full flex-col items-center gap-1 rounded-lg p-1.5 transition disabled:cursor-not-allowed',
                 isSelected
                   ? 'bg-primary/10 ring-primary ring-2'
                   : 'opacity-55 hover:opacity-90',

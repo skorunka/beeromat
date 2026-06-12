@@ -167,8 +167,9 @@ export function BeerIouRow({ debt, role, beers, currencyCode, locale, now }: Bee
           <button
             type="button"
             onClick={() => setExpanded(false)}
+            disabled={isPending}
             aria-label={t('cancel')}
-            className="text-muted-foreground hover:text-foreground inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md"
+            className="text-muted-foreground hover:text-foreground inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md disabled:opacity-50"
           >
             <X className="size-[1.1rem]" strokeWidth={2.5} aria-hidden />
           </button>
@@ -185,6 +186,7 @@ export function BeerIouRow({ debt, role, beers, currencyCode, locale, now }: Bee
             locale={locale}
             placeholder={t('beerPlaceholder')}
             ariaLabel={t('beerPlaceholder')}
+            disabled={isPending}
           />
           <Button
             type="button"

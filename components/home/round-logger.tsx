@@ -159,8 +159,9 @@ export function RoundLogger({
         <button
           type="button"
           onClick={() => setExpanded(false)}
+          disabled={isPending}
           aria-label={t('collapse')}
-          className="text-muted-foreground hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-md"
+          className="text-muted-foreground hover:text-foreground inline-flex h-8 w-8 items-center justify-center rounded-md disabled:opacity-50"
         >
           <X className="h-[1.1rem] w-[1.1rem]" strokeWidth={2.5} aria-hidden />
         </button>
@@ -174,6 +175,7 @@ export function RoundLogger({
         locale={locale}
         placeholder={t('defaultBeerHint')}
         ariaLabel={t('defaultBeerHint')}
+        disabled={isPending}
       />
 
       {/* Actions live ABOVE the member grid so the same-crew / override /
@@ -182,7 +184,8 @@ export function RoundLogger({
         <button
           type="button"
           onClick={() => setSelected(new Set(validLastRound))}
-          className="text-primary self-start text-xs font-medium underline-offset-4 hover:underline"
+          disabled={isPending}
+          className="text-primary self-start text-xs font-medium underline-offset-4 hover:underline disabled:opacity-50"
         >
           {t('repeatLast', { count: validLastRound.length })}
         </button>
@@ -217,6 +220,7 @@ export function RoundLogger({
                       locale={locale}
                       placeholder={t('defaultBeerHint')}
                       ariaLabel={t('overrideHint', { name: m.displayName })}
+                      disabled={isPending}
                     />
                   </div>
                 </div>
@@ -227,7 +231,8 @@ export function RoundLogger({
           <button
             type="button"
             onClick={() => setShowOverrides(true)}
-            className="text-muted-foreground self-start text-xs underline underline-offset-4"
+            disabled={isPending}
+            className="text-muted-foreground self-start text-xs underline underline-offset-4 disabled:opacity-50"
           >
             {t('overrideToggle')}
           </button>
@@ -256,6 +261,7 @@ export function RoundLogger({
           onToggle={toggle}
           selfLabel={t('self')}
           searchPlaceholder={t('searchHint')}
+          disabled={isPending}
         />
       </div>
     </div>

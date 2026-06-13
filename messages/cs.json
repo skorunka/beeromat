@@ -307,6 +307,63 @@
     "professional": "Průměr {avg} piv na večer — profík. 🍺",
     "favouriteBeer": "{beer} ×{count} — věrnost se cení. 🍺"
   },
+  "achievement": {
+    "sectionTitle": "Odznaky",
+    "earnedCount": "{earned} z {total}",
+    "empty": "Zatím žádný odznak — je tu celá stěna k odemčení. 🏅",
+    "earnedOn": "Získáno {date}",
+    "progress": "{current} / {target}",
+    "rarity": "{holders} z {total} členů",
+    "rarityNone": "Zatím nikdo — buď první! ✨",
+    "unlocked": "Odznak odemčen: {badge}",
+    "badge": {
+      "centuryClub": {
+        "name": "Stovkař",
+        "desc": "Sto piv za sebou. Skutečný štamgast. 💯",
+        "condition": "Naloguj 100 piv"
+      },
+      "winner": {
+        "name": "Vítěz",
+        "desc": "25 výher na kontě. 🏆",
+        "condition": "Vyhraj 25 zápasů"
+      },
+      "sharpshooter": {
+        "name": "Ostrostřelec",
+        "desc": "Vyhrává 6 z 10 — vybírá si bitvy. 📈",
+        "condition": "Vyhraj 60 % z 10+ zápasů"
+      },
+      "onFire": {
+        "name": "V ráži",
+        "desc": "Pět výher v řadě — někdo ho zastavte. 🔥",
+        "condition": "Vyhraj 5 zápasů v řadě"
+      },
+      "hatTrick": {
+        "name": "Hattrick",
+        "desc": "Tři výhry za sebou. 🎩",
+        "condition": "Vyhraj 3 zápasy v řadě"
+      },
+      "roundKing": {
+        "name": "Král rund",
+        "desc": "Nalil 10 rund partě. Legenda. 🤝",
+        "condition": "Nalej 10 rund ostatním"
+      },
+      "regular": {
+        "name": "Štamgast",
+        "desc": "25 zápasů. Vždy do toho jde. 🎾",
+        "condition": "Odehraj 25 zápasů"
+      },
+      "connoisseur": {
+        "name": "Znalec",
+        "desc": "Ochutnal pět různých piv. Vytříbený jazyk. 🍺",
+        "condition": "Vyzkoušej 5 různých piv"
+      },
+      "nightOwl": {
+        "name": "Noční sova",
+        "desc": "Přišel na 25 večerů. Klubovna se po tobě stýská. 🦉",
+        "condition": "Zúčastni se 25 srazů"
+      }
+    }
+  },
   "onboarding": {
     "title": "Vítej",
     "subtitle": "Pár věcí a jdeme na první pivo.",

@@ -22,6 +22,8 @@ const base: MemberStats = {
   beersPerNight: null,
   favouriteBeer: null,
   roundsPoured: 0,
+  distinctBeerTypes: 0,
+  sessionsAttended: 0,
   tabMinor: 0n,
   lastWinAt: null,
   owesMostTo: null,

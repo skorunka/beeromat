@@ -307,6 +307,63 @@
     "professional": "Averages {avg} beers a night — a true pro. 🍺",
     "favouriteBeer": "{beer} ×{count} — loyalty pays. 🍺"
   },
+  "achievement": {
+    "sectionTitle": "Achievements",
+    "earnedCount": "{earned} of {total}",
+    "empty": "No badges yet — there's a whole wall to unlock. 🏅",
+    "earnedOn": "Earned {date}",
+    "progress": "{current} / {target}",
+    "rarity": "{holders} of {total} members",
+    "rarityNone": "Nobody yet — be the first! ✨",
+    "unlocked": "Achievement unlocked: {badge}",
+    "badge": {
+      "centuryClub": {
+        "name": "Century Club",
+        "desc": "100 beers deep. A true regular. 💯",
+        "condition": "Log 100 beers"
+      },
+      "winner": {
+        "name": "Winner",
+        "desc": "25 wins on the board. 🏆",
+        "condition": "Win 25 matches"
+      },
+      "sharpshooter": {
+        "name": "Sharpshooter",
+        "desc": "Wins 6 in 10 — picks the right battles. 📈",
+        "condition": "Win 60% over 10+ matches"
+      },
+      "onFire": {
+        "name": "On Fire",
+        "desc": "Five in a row — someone stop them. 🔥",
+        "condition": "Win 5 matches in a row"
+      },
+      "hatTrick": {
+        "name": "Hat-trick",
+        "desc": "Strung three wins together. 🎩",
+        "condition": "Win 3 matches in a row"
+      },
+      "roundKing": {
+        "name": "Round King",
+        "desc": "Poured 10 rounds for the crew. Legend. 🤝",
+        "condition": "Pour 10 rounds for others"
+      },
+      "regular": {
+        "name": "Regular",
+        "desc": "25 matches in. Always up for one. 🎾",
+        "condition": "Play 25 matches"
+      },
+      "connoisseur": {
+        "name": "Connoisseur",
+        "desc": "Sampled five different beers. Refined palate. 🍺",
+        "condition": "Try 5 different beers"
+      },
+      "nightOwl": {
+        "name": "Night Owl",
+        "desc": "Showed up 25 nights. The clubhouse misses you. 🦉",
+        "condition": "Attend 25 sessions"
+      }
+    }
+  },
   "onboarding": {
     "title": "Welcome",
     "subtitle": "A few details and we're on to the first beer.",

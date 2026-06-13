@@ -78,6 +78,11 @@ export interface MemberStats extends MemberFace {
   beersPerNight: number | null;
   favouriteBeer: FavouriteBeer | null;
   roundsPoured: number;
+  // Spec 035 — extra aggregates so every badge predicate is derivable from
+  // MemberStats. distinctBeerTypes: distinct non-voided beerTypeIds logged;
+  // sessionsAttended: distinct drink sessions the member drank in.
+  distinctBeerTypes: number;
+  sessionsAttended: number;
   tabMinor: bigint;
   lastWinAt: Date | null;
   owesMostTo: OwedTo | null;

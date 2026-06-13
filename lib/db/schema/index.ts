@@ -14,3 +14,4 @@ export * from './bets';
 export * from './matches';
 export * from './match-bet-debts';
 export * from './events';
+export * from './achievements';

@@ -44,8 +44,18 @@ export async function getPlayerStats(args: {
   const pSide = alias(matchAgreementSides, 'partner_side');
   const mine = alias(matchAgreementSides, 'my_side');
 
-  const [faceRows, matchRows, partnerRows, totalRow, sessionRow, favRow, roundsRow, owesRow, tabMinor] =
-    await Promise.all([
+  const [
+    faceRows,
+    matchRows,
+    partnerRows,
+    totalRow,
+    sessionRow,
+    beerTypeRow,
+    favRow,
+    roundsRow,
+    owesRow,
+    tabMinor,
+  ] = await Promise.all([
       db
         .select({
           memberId: members.id,
@@ -116,6 +126,18 @@ export async function getPlayerStats(args: {
       // distinct sessions the member drank in
       db
         .select({ n: countDistinct(consumptions.drinkSessionId) })
+        .from(consumptions)
+        .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
+        .where(
+          and(
+            eq(consumptions.memberId, args.memberId),
+            eq(consumptions.clubId, args.clubId),
+            isNull(consumptionVoids.consumptionId),
+          ),
+        ),
+      // distinct beer types the member logged (non-voided) — spec 035 Connoisseur
+      db
+        .select({ n: countDistinct(consumptions.beerTypeId) })
         .from(consumptions)
         .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
         .where(
@@ -258,6 +280,8 @@ export async function getPlayerStats(args: {
       ? { beerTypeId: favRow[0].beerTypeId, name: favRow[0].name, count: favRow[0].c }
       : null,
     roundsPoured: roundsRow[0]?.n ?? 0,
+    distinctBeerTypes: beerTypeRow[0]?.n ?? 0,
+    sessionsAttended: distinctSessions,
     tabMinor,
     lastWinAt,
     owesMostTo: owes ? { memberId: owes.toMemberId, ...withFace(owes.toMemberId), beerCount: owes.beers } : null,

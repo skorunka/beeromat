@@ -23,7 +23,7 @@ description: "Task list for spec 035 — achievements / badges (+ game-style gal
 
 No new tooling/deps. The project, lint, test configs, and i18n gates already exist.
 
-- [ ] T001 Confirm working tree clean on `main` and dev DB up (`docker compose up -d`, Postgres `:15432`); load the heavy seed (`pnpm db:seed:heavy`) for realistic gallery data.
+- [X] T001 Confirm working tree clean on `main` and dev DB up (`docker compose up -d`, Postgres `:15432`); load the heavy seed (`pnpm db:seed:heavy`) for realistic gallery data.
 
 ---
 
@@ -33,30 +33,30 @@ No new tooling/deps. The project, lint, test configs, and i18n gates already exi
 
 ### Schema + migration
 
-- [ ] T002 Create `lib/db/schema/achievements.ts` — `memberAchievements` pgTable (`id`, `clubId`→clubs restrict, `memberId`→members cascade, `badgeKey` text, `earnedAt` timestamptz default now) + `uniqueIndex uniq_member_achievements_member_badge (memberId, badgeKey)` + `index idx_member_achievements_member (memberId)`; export inferred types. Per data-model.md.
-- [ ] T003 Add `export * from './achievements';` to `lib/db/schema/index.ts`.
-- [ ] T004 Generate migration: `pnpm drizzle-kit generate` → produces `drizzle/0015_*.sql` (CREATE TABLE + indexes, additive). Apply locally (`pnpm drizzle-kit migrate`) and confirm it applies cleanly.
+- [X] T002 Create `lib/db/schema/achievements.ts` — `memberAchievements` pgTable (`id`, `clubId`→clubs restrict, `memberId`→members cascade, `badgeKey` text, `earnedAt` timestamptz default now) + `uniqueIndex uniq_member_achievements_member_badge (memberId, badgeKey)` + `index idx_member_achievements_member (memberId)`; export inferred types. Per data-model.md.
+- [X] T003 Add `export * from './achievements';` to `lib/db/schema/index.ts`.
+- [X] T004 Generate migration: `pnpm drizzle-kit generate` → produces `drizzle/0015_*.sql` (CREATE TABLE + indexes, additive). Apply locally (`pnpm drizzle-kit migrate`) and confirm it applies cleanly.
 
 ### Stats inputs (extend spec 034)
 
-- [ ] T005 Add `distinctBeerTypes: number` and `sessionsAttended: number` to `MemberStats` in `lib/stats/types.ts`.
-- [ ] T006 In `lib/db/queries/player-stats.ts`: add one `countDistinct(consumptions.beerTypeId)` query (same non-voided join as the beer total) to the `Promise.all` → `distinctBeerTypes`; expose the already-computed `distinctSessions` as `sessionsAttended` on the returned object.
+- [X] T005 Add `distinctBeerTypes: number` and `sessionsAttended: number` to `MemberStats` in `lib/stats/types.ts`.
+- [X] T006 In `lib/db/queries/player-stats.ts`: add one `countDistinct(consumptions.beerTypeId)` query (same non-voided join as the beer total) to the `Promise.all` → `distinctBeerTypes`; expose the already-computed `distinctSessions` as `sessionsAttended` on the returned object.
 
 ### Pure catalog core (`lib/achievements/`) + unit tests
 
-- [ ] T007 [P] Create `lib/achievements/types.ts` — `BadgeKey` union (9 keys), `BadgeProgress {current,target}`, `Badge {key,emoji,nameKey,descriptionKey,conditionKey,earned,progress}`, `BadgeView`. Per data-model.md.
-- [ ] T008 [P] Create `lib/achievements/predicates.ts` — the 9 pure earn predicates AND 9 pure progress fns (with `clamp`), reusing `WINRATE_MIN_MATCHES` from `lib/stats/constants`. Per contracts/achievements.md §1.
-- [ ] T009 Create `lib/achievements/catalog.ts` — `BADGES` array (key/emoji/name+desc+condition i18n keys/earn/progress, display order per badge-catalog.md), `BADGE_BY_KEY`, `qualifyingBadgeKeys(stats)`. (Depends on T007, T008.)
-- [ ] T010 [P] Unit test `tests/unit/achievement-predicates.spec.ts` — earn at/below threshold (100/99, 25/24, streaks 3 & 5, distinct 5, sessions 25); sharpshooter false below guard & at `winRatio===null`; progress never exceeds target; sharpshooter two-leg progress; every `BadgeKey` appears once in `BADGES` with earn+progress. (Gate: `pnpm test:unit`.)
+- [X] T007 [P] Create `lib/achievements/types.ts` — `BadgeKey` union (9 keys), `BadgeProgress {current,target}`, `Badge {key,emoji,nameKey,descriptionKey,conditionKey,earned,progress}`, `BadgeView`. Per data-model.md.
+- [X] T008 [P] Create `lib/achievements/predicates.ts` — the 9 pure earn predicates AND 9 pure progress fns (with `clamp`), reusing `WINRATE_MIN_MATCHES` from `lib/stats/constants`. Per contracts/achievements.md §1.
+- [X] T009 Create `lib/achievements/catalog.ts` — `BADGES` array (key/emoji/name+desc+condition i18n keys/earn/progress, display order per badge-catalog.md), `BADGE_BY_KEY`, `qualifyingBadgeKeys(stats)`. (Depends on T007, T008.)
+- [X] T010 [P] Unit test `tests/unit/achievement-predicates.spec.ts` — earn at/below threshold (100/99, 25/24, streaks 3 & 5, distinct 5, sessions 25); sharpshooter false below guard & at `winRatio===null`; progress never exceeds target; sharpshooter two-leg progress; every `BadgeKey` appears once in `BADGES` with earn+progress. (Gate: `pnpm test:unit`.)
 
 ### Persistence layer (`lib/db/queries/achievements.ts`) + integration test
 
-- [ ] T011 Create `lib/db/queries/achievements.ts` with `reconcileAchievements({clubId,memberId})` (calls `getPlayerStats` → `qualifyingBadgeKeys` → `insert(...).onConflictDoNothing({target:[memberId,badgeKey]}).returning({badgeKey})` → newly-earned keys), `getEarnedBadges({clubId,memberId})` (claimed keys + `earnedAt`, newest first), and `reconcileAllClubMembers({clubId,stampAt})` (same insert-if-absent per member, `earnedAt: stampAt`, returns count). Per contracts/achievements.md §3. (Depends on T002, T009.)
-- [ ] T012 Integration test `tests/integration/reconcile-achievements.spec.ts` (PGlite) — insert-if-absent awards qualifying badges; **idempotent** (second call → `[]`, no duplicate); **sticky** (void a beer below threshold → row persists, not revoked); multi-earn in one call; `reconcileAllClubMembers` stamps `earnedAt` with the passed date and is re-run-safe. (Gate: `pnpm test:integration`.)
+- [X] T011 Create `lib/db/queries/achievements.ts` with `reconcileAchievements({clubId,memberId})` (calls `getPlayerStats` → `qualifyingBadgeKeys` → `insert(...).onConflictDoNothing({target:[memberId,badgeKey]}).returning({badgeKey})` → newly-earned keys), `getEarnedBadges({clubId,memberId})` (claimed keys + `earnedAt`, newest first), and `reconcileAllClubMembers({clubId,stampAt})` (same insert-if-absent per member, `earnedAt: stampAt`, returns count). Per contracts/achievements.md §3. (Depends on T002, T009.)
+- [X] T012 Integration test `tests/integration/reconcile-achievements.spec.ts` (PGlite) — insert-if-absent awards qualifying badges; **idempotent** (second call → `[]`, no duplicate); **sticky** (void a beer below threshold → row persists, not revoked); multi-earn in one call; `reconcileAllClubMembers` stamps `earnedAt` with the passed date and is re-run-safe. (Gate: `pnpm test:integration`.)
 
 ### Shared i18n (badge copy + section + toast)
 
-- [ ] T013 [P] Add the `achievement.*` namespace to `messages/cs.json` and `messages/en.json` — `sectionTitle`, `earnedCount` (ICU "{earned} of {total}"), `empty`, `earnedOn`, `progress` (ICU "{current} / {target}"), `unlocked` (toast), and per-badge `badge.<key>.{name,desc,condition}` for all 9, both locales, parity-clean. Per contracts/badge-catalog.md. (Gate: `pnpm i18n:check`.)
+- [X] T013 [P] Add the `achievement.*` namespace to `messages/cs.json` and `messages/en.json` — `sectionTitle`, `earnedCount` (ICU "{earned} of {total}"), `empty`, `earnedOn`, `progress` (ICU "{current} / {target}"), `unlocked` (toast), and per-badge `badge.<key>.{name,desc,condition}` for all 9, both locales, parity-clean. Per contracts/badge-catalog.md. (Gate: `pnpm i18n:check`.)
 
 **Checkpoint**: schema migrated, stats extended, pure catalog unit-green, reconcile integration-green, copy in place. User stories can begin.
 

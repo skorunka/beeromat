@@ -30,8 +30,8 @@ const SORT_LABEL: Record<GallerySort, string> = {
   rarest: 'sortRarest',
 };
 
-const CHIP_GROUP = 'bg-card border-border flex gap-1 rounded-lg border p-1';
-const CHIP = 'rounded-md px-2.5 py-1 text-xs font-medium transition-colors';
+const CHIP_GROUP = 'bg-card border-border flex shrink-0 gap-1 rounded-lg border p-1';
+const CHIP = 'rounded-md px-2 py-1 text-xs font-medium whitespace-nowrap transition-colors';
 const CHIP_ON = 'bg-primary text-primary-foreground';
 const CHIP_OFF = 'text-muted-foreground hover:text-foreground';
 
@@ -47,7 +47,9 @@ export function AchievementsGallery({ views }: { views: BadgeView[] }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-2">
+      {/* One line: filter group + sort group. Scrolls horizontally only if a
+          narrow screen can't fit both (desktop fits; mobile swipes). */}
+      <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <div className={CHIP_GROUP}>
           {FILTERS.map((f) => (
             <button

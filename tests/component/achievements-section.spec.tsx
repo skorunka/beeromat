@@ -71,9 +71,9 @@ describe('AchievementsSection (component — spec 035)', () => {
     // disambiguates from the spec-037 "Earned" filter button).
     expect(screen.getByText(/Earned \w/)).toBeInTheDocument();
     // a SINGLE badge shows its condition (Sharpshooter, locked); a tiered family
-    // (Regular) shows a progress bar toward its bronze tier (12 / 25).
+    // (Regular) shows a progress bar toward its bronze tier (12 / 15 after tuning).
     expect(screen.getByText('Win 60% over 10+ matches')).toBeInTheDocument();
-    expect(screen.getByText('12 / 25')).toBeInTheDocument();
+    expect(screen.getByText('12 / 15')).toBeInTheDocument();
 
     // Earned (Century Club) sorts ahead of every locked badge.
     const names = screen

@@ -34,10 +34,11 @@ export const BADGE_FAMILIES: readonly BadgeFamily[] = [
     emoji: '🏆',
     ...ik('winner'),
     stat: (s) => s.won,
+    // Tuned to real data (max ~14 wins over 2 yrs): bronze reachable, gold a chase.
     tiers: [
-      { tier: 'bronze', key: 'winner', threshold: 25 },
-      { tier: 'silver', key: 'winnerSilver', threshold: 50 },
-      { tier: 'gold', key: 'winnerGold', threshold: 100 },
+      { tier: 'bronze', key: 'winner', threshold: 5 },
+      { tier: 'silver', key: 'winnerSilver', threshold: 10 },
+      { tier: 'gold', key: 'winnerGold', threshold: 20 },
     ],
   },
   {
@@ -45,10 +46,11 @@ export const BADGE_FAMILIES: readonly BadgeFamily[] = [
     emoji: '🎾',
     ...ik('regular'),
     stat: (s) => s.matchesPlayed,
+    // Tuned to real data (max ~28 matches): bronze ~half, gold a long chase.
     tiers: [
-      { tier: 'bronze', key: 'regular', threshold: 25 },
-      { tier: 'silver', key: 'regularSilver', threshold: 50 },
-      { tier: 'gold', key: 'regularGold', threshold: 100 },
+      { tier: 'bronze', key: 'regular', threshold: 15 },
+      { tier: 'silver', key: 'regularSilver', threshold: 25 },
+      { tier: 'gold', key: 'regularGold', threshold: 40 },
     ],
   },
   {
@@ -56,10 +58,11 @@ export const BADGE_FAMILIES: readonly BadgeFamily[] = [
     emoji: '🤝',
     ...ik('roundKing'),
     stat: (s) => s.roundsPoured,
+    // Tuned to real data (max ~13 rounds): bronze common, gold a chase.
     tiers: [
-      { tier: 'bronze', key: 'roundKing', threshold: 10 },
-      { tier: 'silver', key: 'roundKingSilver', threshold: 25 },
-      { tier: 'gold', key: 'roundKingGold', threshold: 50 },
+      { tier: 'bronze', key: 'roundKing', threshold: 5 },
+      { tier: 'silver', key: 'roundKingSilver', threshold: 10 },
+      { tier: 'gold', key: 'roundKingGold', threshold: 20 },
     ],
   },
   {
@@ -67,10 +70,11 @@ export const BADGE_FAMILIES: readonly BadgeFamily[] = [
     emoji: '🦉',
     ...ik('nightOwl'),
     stat: (s) => s.sessionsAttended,
+    // Tuned so bronze/silver aren't universal (members reach 60-80 over 2 yrs).
     tiers: [
       { tier: 'bronze', key: 'nightOwl', threshold: 25 },
-      { tier: 'silver', key: 'nightOwlSilver', threshold: 50 },
-      { tier: 'gold', key: 'nightOwlGold', threshold: 100 },
+      { tier: 'silver', key: 'nightOwlSilver', threshold: 75 },
+      { tier: 'gold', key: 'nightOwlGold', threshold: 150 },
     ],
   },
   {
@@ -78,10 +82,12 @@ export const BADGE_FAMILIES: readonly BadgeFamily[] = [
     emoji: '🍺',
     ...ik('connoisseur'),
     stat: (s) => s.distinctBeerTypes,
+    // Capped by how many beer types a club offers (~10 here) — gold 20 was
+    // impossible. Tuned to a realistic small catalog (gold = a broad sampler).
     tiers: [
-      { tier: 'bronze', key: 'connoisseur', threshold: 5 },
-      { tier: 'silver', key: 'connoisseurSilver', threshold: 10 },
-      { tier: 'gold', key: 'connoisseurGold', threshold: 20 },
+      { tier: 'bronze', key: 'connoisseur', threshold: 3 },
+      { tier: 'silver', key: 'connoisseurSilver', threshold: 5 },
+      { tier: 'gold', key: 'connoisseurGold', threshold: 8 },
     ],
   },
 ];

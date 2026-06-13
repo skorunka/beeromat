@@ -2,13 +2,18 @@ import { useTranslations } from 'next-intl';
 
 import type { MemberStats } from '@/lib/stats/types';
 import type { BadgeKey, BadgeView } from '@/lib/achievements/types';
-import { BADGES, BADGE_BY_KEY } from '@/lib/achievements/catalog';
-import { BadgeChip } from './badge-chip';
+import { BADGES } from '@/lib/achievements/catalog';
+import { AchievementsGallery } from './achievements-gallery';
 
 // Spec 035 — the game-style badge gallery. Shows the WHOLE catalog (FR-001):
 // earned badges (vivid + date) sorted ahead of locked ones (dimmed + progress
 // bar). Progress is computed in-render from `stats` (a pure fn — no I/O, no
 // write); claimed state + dates come from the persisted `earned` rows.
+//
+// Spec 037 — this server component still assembles the BadgeView[] (+ rarity) in
+// the default order; the interactive filter/sort + grid live in the client
+// <AchievementsGallery>, so the data stays server-built and only the controls
+// are client.
 export function AchievementsSection({
   stats,
   earned,
@@ -38,7 +43,8 @@ export function AchievementsSection({
     return view;
   });
 
-  // Earned first (newest first), then locked in catalog order.
+  // Default order: earned first (newest first), then locked in catalog order.
+  // This is the gallery's "default" view; the client controls reshuffle from here.
   const sorted = [...views].sort((a, b) => {
     if (a.earned !== b.earned) return a.earned ? -1 : 1;
     if (a.earned && b.earned) return b.earnedAt!.getTime() - a.earnedAt!.getTime();
@@ -58,21 +64,7 @@ export function AchievementsSection({
         </span>
       </div>
       {earnedCount === 0 ? <p className="text-muted-foreground text-sm">{t('empty')}</p> : null}
-      <div className="grid grid-cols-2 gap-2">
-        {sorted.map((v) => (
-          <BadgeChip
-            key={v.key}
-            emoji={v.emoji}
-            nameKey={BADGE_BY_KEY[v.key].nameKey}
-            conditionKey={BADGE_BY_KEY[v.key].conditionKey}
-            earned={v.earned}
-            earnedAt={v.earnedAt}
-            progress={v.progress}
-            holders={v.holders}
-            clubMembers={v.clubMembers}
-          />
-        ))}
-      </div>
+      <AchievementsGallery views={sorted} />
     </section>
   );
 }

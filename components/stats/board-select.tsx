@@ -25,6 +25,7 @@ const BOARDS: { key: BoardKey; emoji: string }[] = [
   { key: 'winRate', emoji: '📈' },
   { key: 'streak', emoji: '🔥' },
   { key: 'boughtForOthers', emoji: '🤝' },
+  { key: 'badges', emoji: '🏅' },
 ];
 
 export function BoardSelect({ current, scope }: { current: BoardKey; scope: Scope }) {

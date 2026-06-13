@@ -6,6 +6,7 @@ import { db } from '@/lib/db/client';
 import { members } from '@/lib/db/schema/members';
 import { consumptions, consumptionVoids } from '@/lib/db/schema/consumption';
 import { matches, matchAgreements } from '@/lib/db/schema/matches';
+import { memberAchievements } from '@/lib/db/schema/achievements';
 import { getAllMemberBalances } from './payments';
 import { currentWinStreak } from '@/lib/stats/streak';
 import { SEASON_DAYS, WINRATE_MIN_MATCHES } from '@/lib/stats/constants';
@@ -76,7 +77,7 @@ export async function getLeaderboards(args: {
   const seasonM = args.scope === 'season' ? gte(matches.playedAt, cutoff) : undefined;
   const buyer = alias(members, 'buyer');
 
-  const [activeMembers, beerRows, boughtRows, matchList, balances] = await Promise.all([
+  const [activeMembers, beerRows, boughtRows, matchList, balances, badgeRows] = await Promise.all([
     db
       .select({
         memberId: members.id,
@@ -131,6 +132,14 @@ export async function getLeaderboards(args: {
       )
       .orderBy(asc(matches.playedAt)),
     getAllMemberBalances(args.clubId),
+    // Spec 037 — held-badge count per member. ALL-TIME (no season filter):
+    // badges are sticky + backfill-stamped, so a rolling-window count would
+    // mislead. The board renders the same under either scope.
+    db
+      .select({ memberId: memberAchievements.memberId, value: count() })
+      .from(memberAchievements)
+      .where(eq(memberAchievements.clubId, args.clubId))
+      .groupBy(memberAchievements.memberId),
   ]);
 
   const faces = new Map<string, Face>(activeMembers.map((m) => [m.memberId, m]));
@@ -169,6 +178,7 @@ export async function getLeaderboards(args: {
 
   const beersValues = new Map(beerRows.map((r) => [r.memberId, r.value]));
   const boughtValues = new Map(boughtRows.map((r) => [r.memberId, r.value]));
+  const badgesValues = new Map(badgeRows.map((r) => [r.memberId, r.value]));
   const tabValues = new Map(
     balances
       .filter((b) => b.isActive && b.balanceMinor > 0n)
@@ -185,5 +195,6 @@ export async function getLeaderboards(args: {
     rankBoard('winRate', args.scope, winRateValues, faces, args.viewerMemberId, topN),
     rankBoard('streak', args.scope, streakValues, faces, args.viewerMemberId, topN),
     rankBoard('boughtForOthers', args.scope, boughtValues, faces, args.viewerMemberId, topN),
+    rankBoard('badges', args.scope, badgesValues, faces, args.viewerMemberId, topN),
   ];
 }

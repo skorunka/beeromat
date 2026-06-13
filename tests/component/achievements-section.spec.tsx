@@ -67,8 +67,9 @@ describe('AchievementsSection (component — spec 035)', () => {
     });
 
     expect(screen.getByText('1 of 9')).toBeInTheDocument();
-    // earned badge shows an "Earned …" date caption
-    expect(screen.getByText(/Earned/)).toBeInTheDocument();
+    // earned badge shows an "Earned {date}" caption (the trailing space/date
+    // disambiguates from the spec-037 "Earned" filter button).
+    expect(screen.getByText(/Earned \w/)).toBeInTheDocument();
     // a locked badge shows its condition + a progress reading (Regular: 12 / 25)
     expect(screen.getByText('Play 25 matches')).toBeInTheDocument();
     expect(screen.getByText('12 / 25')).toBeInTheDocument();

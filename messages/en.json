@@ -277,7 +277,8 @@
       "played": "Most matches",
       "winRate": "Win rate",
       "streak": "Win streak",
-      "boughtForOthers": "Most generous"
+      "boughtForOthers": "Most generous",
+      "badges": "Most badges"
     },
     "profile": {
       "back": "Leaderboards",
@@ -319,6 +320,13 @@
     "rarity": "{holders} of {total} members",
     "rarityNone": "Nobody yet — be the first! ✨",
     "unlocked": "Achievement unlocked: {badge}",
+    "filterAll": "All",
+    "filterEarned": "Earned",
+    "filterLocked": "Locked",
+    "sortDefault": "Default",
+    "sortClosest": "Closest",
+    "sortRarest": "Rarest",
+    "filterEmpty": "Nothing here — try another filter. 🍺",
     "badge": {
       "centuryClub": {
         "name": "Century Club",

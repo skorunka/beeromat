@@ -16,7 +16,7 @@ description: "Task list for spec 037 — badge leaderboard + gallery sort/filter
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirm clean tree on `main`; dev DB has badges (035 backfill on the heavy seed) so both surfaces have data.
+- [X] T001 Confirm clean tree on `main`; dev DB has badges (035 backfill on the heavy seed) so both surfaces have data.
 
 ---
 
@@ -32,13 +32,13 @@ description: "Task list for spec 037 — badge leaderboard + gallery sort/filter
 
 **Independent Test**: On a seeded club, the badges board ranks members by badge count; identical under all-time/season; viewer row surfaced.
 
-- [ ] T002 [US1] Add `'badges'` to the `BoardKey` union in `lib/stats/types.ts`.
-- [ ] T003 [US1] In `lib/db/queries/leaderboards.ts`: import `memberAchievements`; add a `COUNT(*) GROUP BY member_id` query (club-scoped, NO season filter) to the `Promise.all`; build `badgesValues` Map; append `rankBoard('badges', args.scope, badgesValues, faces, args.viewerMemberId, topN)` to the returned array. Per contracts/badge-board.md.
-- [ ] T004 [P] [US1] In `components/stats/leaderboard-board.tsx`, add `badges: { key: 'board.badges', emoji: '🏅' }` to the `BOARD` map (formatValue falls through to `String(value)` — no change needed).
-- [ ] T005 [P] [US1] In `components/stats/board-select.tsx`, append `{ key: 'badges', emoji: '🏅' }` to `BOARDS`.
-- [ ] T006 [P] [US1] Add `stats.board.badges` to `messages/{cs,en}.json` ("Nejvíc odznaků" / "Most badges").
-- [ ] T007 [US1] Integration test `tests/integration/leaderboards-badges.spec.ts` (PGlite, reuse the leaderboards harness): seed members with differing `member_achievements` counts → badges board ranks by count desc, dense rank, club-scoped, viewer row; same result under scope 'allTime' and 'season'; zero-badge member omitted. (Gate: `pnpm test:integration`.)
-- [ ] T008 [P] [US1] Extend `tests/component/board-select.spec.tsx`: the 🏅 badges chip renders and links to `?board=badges` (scope preserved). (Gate: `pnpm test:component`.)
+- [X] T002 [US1] Add `'badges'` to the `BoardKey` union in `lib/stats/types.ts`.
+- [X] T003 [US1] In `lib/db/queries/leaderboards.ts`: import `memberAchievements`; add a `COUNT(*) GROUP BY member_id` query (club-scoped, NO season filter) to the `Promise.all`; build `badgesValues` Map; append `rankBoard('badges', args.scope, badgesValues, faces, args.viewerMemberId, topN)` to the returned array. Per contracts/badge-board.md.
+- [X] T004 [P] [US1] In `components/stats/leaderboard-board.tsx`, add `badges: { key: 'board.badges', emoji: '🏅' }` to the `BOARD` map (formatValue falls through to `String(value)` — no change needed).
+- [X] T005 [P] [US1] In `components/stats/board-select.tsx`, append `{ key: 'badges', emoji: '🏅' }` to `BOARDS`.
+- [X] T006 [P] [US1] Add `stats.board.badges` to `messages/{cs,en}.json` ("Nejvíc odznaků" / "Most badges").
+- [X] T007 [US1] Integration test `tests/integration/leaderboards-badges.spec.ts` (PGlite, reuse the leaderboards harness): seed members with differing `member_achievements` counts → badges board ranks by count desc, dense rank, club-scoped, viewer row; same result under scope 'allTime' and 'season'; zero-badge member omitted. (Gate: `pnpm test:integration`.)
+- [X] T008 [P] [US1] Extend `tests/component/board-select.spec.tsx`: the 🏅 badges chip renders and links to `?board=badges` (scope preserved). (Gate: `pnpm test:component`.)
 
 **Checkpoint**: /leaderboards has a working Most-badges board.
 
@@ -50,12 +50,12 @@ description: "Task list for spec 037 — badge leaderboard + gallery sort/filter
 
 **Independent Test**: On a profile, filter Earned/Locked/All re-renders the set; "Closest" orders locked by progress; default matches today.
 
-- [ ] T009 [P] [US2] Create `lib/achievements/gallery-view.ts` — `GalleryFilter`/`GallerySort`/`GalleryViewState` types + pure `applyGalleryView(views, view)` (default+all = identity; earned/locked filter; closest = locked by progress ratio desc then earned; rarest = holders asc, hidden-capable) + `canSortByRarity(views)`. Per contracts/gallery-view.md.
-- [ ] T010 [P] [US2] Unit test `tests/unit/achievement-gallery-view.spec.ts` — default+all returns input order; earned/locked filters; closest orders locked by progress; rarest by holders asc; pure (no input mutation); canSortByRarity true only with holders. (Gate: `pnpm test:unit`.)
-- [ ] T011 [US2] Create `components/achievements/achievements-gallery.tsx` (`'use client'`) — `useState` filter+sort, segmented filter chips (All/Earned/Locked) + a sort control (Default/Closest/Rarest, Rarest hidden when `!canSortByRarity`), renders `applyGalleryView(views, …)` as the `BadgeChip` grid + `achievement.filterEmpty` empty note. Reuse the scope-toggle/board-chip styling. Strings via `useTranslations('achievement')`. (Depends on T009.)
-- [ ] T012 [US2] Edit `components/achievements/achievements-section.tsx` — keep it a server component building `BadgeView[]` (+ rarity) + the header/count; replace the inline `BadgeChip` grid with `<AchievementsGallery views={sortedViews} />`. (Depends on T011.)
-- [ ] T013 [P] [US2] Add `achievement.filterAll/filterEarned/filterLocked`, `achievement.sortDefault/sortClosest/sortRarest`, `achievement.filterEmpty` to `messages/{cs,en}.json`. Add `achievements-gallery.tsx` to the i18n-check EXCLUDED set if the arrow regex false-positives.
-- [ ] T014 [US2] Component test `tests/component/achievements-gallery.spec.tsx` — All/Earned/Locked filters the rendered chips; Closest reorders locked by progress; default shows everything in input order; empty filter shows the note. (Gate: `pnpm test:component`.)
+- [X] T009 [P] [US2] Create `lib/achievements/gallery-view.ts` — `GalleryFilter`/`GallerySort`/`GalleryViewState` types + pure `applyGalleryView(views, view)` (default+all = identity; earned/locked filter; closest = locked by progress ratio desc then earned; rarest = holders asc, hidden-capable) + `canSortByRarity(views)`. Per contracts/gallery-view.md.
+- [X] T010 [P] [US2] Unit test `tests/unit/achievement-gallery-view.spec.ts` — default+all returns input order; earned/locked filters; closest orders locked by progress; rarest by holders asc; pure (no input mutation); canSortByRarity true only with holders. (Gate: `pnpm test:unit`.)
+- [X] T011 [US2] Create `components/achievements/achievements-gallery.tsx` (`'use client'`) — `useState` filter+sort, segmented filter chips (All/Earned/Locked) + a sort control (Default/Closest/Rarest, Rarest hidden when `!canSortByRarity`), renders `applyGalleryView(views, …)` as the `BadgeChip` grid + `achievement.filterEmpty` empty note. Reuse the scope-toggle/board-chip styling. Strings via `useTranslations('achievement')`. (Depends on T009.)
+- [X] T012 [US2] Edit `components/achievements/achievements-section.tsx` — keep it a server component building `BadgeView[]` (+ rarity) + the header/count; replace the inline `BadgeChip` grid with `<AchievementsGallery views={sortedViews} />`. (Depends on T011.)
+- [X] T013 [P] [US2] Add `achievement.filterAll/filterEarned/filterLocked`, `achievement.sortDefault/sortClosest/sortRarest`, `achievement.filterEmpty` to `messages/{cs,en}.json`. Add `achievements-gallery.tsx` to the i18n-check EXCLUDED set if the arrow regex false-positives.
+- [X] T014 [US2] Component test `tests/component/achievements-gallery.spec.tsx` — All/Earned/Locked filters the rendered chips; Closest reorders locked by progress; default shows everything in input order; empty filter shows the note. (Gate: `pnpm test:component`.)
 
 **Checkpoint**: profile gallery has working filter + sort; default view unchanged.
 
@@ -63,7 +63,7 @@ description: "Task list for spec 037 — badge leaderboard + gallery sort/filter
 
 ## Phase 5: Polish & Cross-Cutting
 
-- [ ] T015 Run gates: `pnpm typecheck && pnpm lint && pnpm test:unit && pnpm test:integration && pnpm test:component && pnpm i18n:check && pnpm forms:check && pnpm build`.
+- [X] T015 Run gates: `pnpm typecheck && pnpm lint && pnpm test:unit && pnpm test:integration && pnpm test:component && pnpm i18n:check && pnpm forms:check && pnpm build`.
 - [ ] T016 Live-walk quickstart.md via the Docker MCP browser — badges board ranks + all-time under both scopes; gallery filter/sort; default unchanged.
 - [ ] T017 [P] Update `BACKLOG.md` (mark this item shipped) + flip `CLAUDE.md` SPECKIT marker 037 ACTIVE → shipped once validated.
 

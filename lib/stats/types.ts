@@ -8,7 +8,9 @@ export type BoardKey =
   | 'played'
   | 'winRate'
   | 'streak'
-  | 'boughtForOthers';
+  | 'boughtForOthers'
+  // Spec 037 — count of held achievements (all-time; ignores season scope).
+  | 'badges';
 
 export type Scope = 'allTime' | 'season';
 

@@ -72,6 +72,10 @@ const EXCLUDED = new Set([
   // user-facing string comes via useTranslations('achievement'); badge names +
   // counts are data/catalog keys. (spec 035)
   'components/achievements/achievements-section.tsx',
+  // achievements-gallery.tsx — the FILTER/SORT label maps + `.map((f) => …)`
+  // arrows trip the JSX_TEXT regex (same =>/ternary root cause). Audited: all
+  // user-facing strings via useTranslations('achievement'). (spec 037)
+  'components/achievements/achievements-gallery.tsx',
   // round-logger.tsx — the `() => new Set(self ? [self.id] : [])` and
   // `members.find((mm) => mm.id === id)` arrows trip the JSX_TEXT regex
   // (same =>/ternary root cause as the pickers). File audited: every

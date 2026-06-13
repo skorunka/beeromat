@@ -16,6 +16,7 @@ const BOARD_KEYS: BoardKey[] = [
   'winRate',
   'streak',
   'boughtForOthers',
+  'badges',
 ];
 
 // Spec 034 (+ follow-up) — the club leaderboards. ONE board shown at a time,

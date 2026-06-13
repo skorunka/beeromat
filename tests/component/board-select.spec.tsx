@@ -25,11 +25,14 @@ function renderStrip(current: Parameters<typeof BoardSelect>[0]['current'], scop
 }
 
 describe('BoardSelect (component — spec 034 follow-up)', () => {
-  it('renders one chip per board (all 7 visible)', () => {
+  it('renders one chip per board (all 8 visible)', () => {
     renderStrip('beers');
-    expect(screen.getAllByRole('link')).toHaveLength(7);
+    expect(screen.getAllByRole('link')).toHaveLength(8);
     expect(screen.getByRole('link', { name: /Most beers/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Most generous/i })).toBeInTheDocument();
+    // Spec 037 — the new 🏅 badges chip links to ?board=badges.
+    const badges = screen.getByRole('link', { name: /Most badges/i });
+    expect(badges).toHaveAttribute('href', expect.stringContaining('board=badges'));
   });
 
   it('marks the current board active and links each chip to its ?board=', () => {

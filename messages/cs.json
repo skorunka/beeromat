@@ -277,7 +277,8 @@
       "played": "Nejvíc zápasů",
       "winRate": "Úspěšnost",
       "streak": "Série výher",
-      "boughtForOthers": "Nejštědřejší"
+      "boughtForOthers": "Nejštědřejší",
+      "badges": "Nejvíc odznaků"
     },
     "profile": {
       "back": "Žebříčky",
@@ -319,6 +320,13 @@
     "rarity": "{holders} z {total} členů",
     "rarityNone": "Zatím nikdo — buď první! ✨",
     "unlocked": "Odznak odemčen: {badge}",
+    "filterAll": "Vše",
+    "filterEarned": "Získané",
+    "filterLocked": "Zamčené",
+    "sortDefault": "Výchozí",
+    "sortClosest": "Nejblíž",
+    "sortRarest": "Nejvzácnější",
+    "filterEmpty": "Nic tu není — zkus jiný filtr. 🍺",
     "badge": {
       "centuryClub": {
         "name": "Stovkař",

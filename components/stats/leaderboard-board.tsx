@@ -22,6 +22,7 @@ const BOARD: Record<BoardKey, { key: string; emoji: string }> = {
   winRate: { key: 'board.winRate', emoji: '📈' },
   streak: { key: 'board.streak', emoji: '🔥' },
   boughtForOthers: { key: 'board.boughtForOthers', emoji: '🤝' },
+  badges: { key: 'board.badges', emoji: '🏅' },
 };
 
 const MEDAL = ['🥇', '🥈', '🥉'];

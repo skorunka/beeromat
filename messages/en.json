@@ -267,6 +267,9 @@
     "you": "you",
     "emptyBoard": "Nothing yet — go play and drink! 🍺",
     "winRateNote": "min {count} matches",
+    "boardSwitcher": "Choose a leaderboard",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right",
     "board": {
       "beers": "Most beers",
       "tab": "Biggest tab",

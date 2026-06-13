@@ -267,6 +267,9 @@
     "you": "ty",
     "emptyBoard": "Zatím nic — běžte hrát a pít! 🍺",
     "winRateNote": "min. {count} zápasů",
+    "boardSwitcher": "Vyber žebříček",
+    "scrollLeft": "Posunout doleva",
+    "scrollRight": "Posunout doprava",
     "board": {
       "beers": "Nejvíc piv",
       "tab": "Největší dluh",

@@ -7,6 +7,9 @@ import enMessages from '@/messages/en.json';
 import csMessages from '@/messages/cs.json';
 
 // Spec 019 T020 — component test for the home review banner.
+// Spec 019 refine (2026-06-13) — copy made unmistakable ("a beer on your tab,
+// was it yours?") + a logger→🍺 direction cue. NOTE matchers: "Mine 🍻" and
+// "Not mine" both contain "mine" → anchor the keep matcher with /^mine/i.
 
 const mockVoid = vi.fn();
 const mockDismiss = vi.fn();
@@ -22,9 +25,6 @@ vi.mock('next/navigation', () => ({
 
 type BannerRow = Parameters<typeof OnBehalfReviewBanner>[0]['rows'][number];
 
-// Test helper — accept minimal-shape inputs (existing spec 019
-// tests) and fill in the spec 026 logger-avatar fields as null
-// by default so old tests pass without churn.
 function row(
   partial: Partial<BannerRow> & Pick<BannerRow, 'consumptionId' | 'loggerDisplayName' | 'beerName'>,
 ): BannerRow {
@@ -57,23 +57,18 @@ describe('OnBehalfReviewBanner (component layer — spec 019)', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('V2 — single row renders logger + beer + two buttons', () => {
-    renderBanner([
-      row({ consumptionId: 'c-1', loggerDisplayName: 'Pavel', beerName: 'Kozel' }),
-    ]);
-    expect(screen.getByText(/pavel logged for you: kozel/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /reverse/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /keep/i })).toBeInTheDocument();
+  it('V2 — single row renders the "on your tab" line + two buttons', () => {
+    renderBanner([row({ consumptionId: 'c-1', loggerDisplayName: 'Pavel', beerName: 'Kozel' })]);
+    expect(screen.getByText(/pavel put kozel on your tab\. was it yours\?/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /not mine/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^mine/i })).toBeInTheDocument();
   });
 
-  it('V2 — Czech variant: "Pavel ti zapsal/a: Kozel"', () => {
-    renderBanner(
-      [row({ consumptionId: 'c-1', loggerDisplayName: 'Pavel', beerName: 'Kozel' })],
-      'cs',
-    );
-    expect(screen.getByText(/pavel ti zapsal\/a: kozel/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /vrátit/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /nechat/i })).toBeInTheDocument();
+  it('V2 — Czech variant: "Pavel ti hodil/a na účet Kozel"', () => {
+    renderBanner([row({ consumptionId: 'c-1', loggerDisplayName: 'Pavel', beerName: 'Kozel' })], 'cs');
+    expect(screen.getByText(/pavel ti hodil\/a na účet kozel\. bylo tvoje\?/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /nebylo moje/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^moje/i })).toBeInTheDocument();
   });
 
   it('V3 — multi-row shows each consumption with its own buttons', () => {
@@ -81,18 +76,16 @@ describe('OnBehalfReviewBanner (component layer — spec 019)', () => {
       row({ consumptionId: 'c-1', loggerDisplayName: 'Pavel', beerName: 'Kozel' }),
       row({ consumptionId: 'c-2', loggerDisplayName: 'Tereza', beerName: 'Pilsner' }),
     ]);
-    expect(screen.getByText(/pavel logged for you: kozel/i)).toBeInTheDocument();
-    expect(screen.getByText(/tereza logged for you: pilsner/i)).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: /reverse/i })).toHaveLength(2);
+    expect(screen.getByText(/pavel put kozel on your tab/i)).toBeInTheDocument();
+    expect(screen.getByText(/tereza put pilsner on your tab/i)).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /not mine/i })).toHaveLength(2);
   });
 
-  it('tapping Reverse calls voidConsumptionAction then dismissOnBehalfReviewAction', async () => {
+  it('tapping "Not mine" calls voidConsumptionAction then dismissOnBehalfReviewAction', async () => {
     mockVoid.mockResolvedValueOnce({ ok: true });
     mockDismiss.mockResolvedValueOnce({ ok: true });
-    renderBanner([
-      row({ consumptionId: 'c-1', loggerDisplayName: 'Pavel', beerName: 'Kozel' }),
-    ]);
-    fireEvent.click(screen.getByRole('button', { name: /reverse/i }));
+    renderBanner([row({ consumptionId: 'c-1', loggerDisplayName: 'Pavel', beerName: 'Kozel' })]);
+    fireEvent.click(screen.getByRole('button', { name: /not mine/i }));
     await waitFor(() => {
       expect(mockVoid).toHaveBeenCalledWith({ consumptionId: 'c-1' });
       expect(mockDismiss).toHaveBeenCalledWith({ consumptionId: 'c-1' });
@@ -100,12 +93,10 @@ describe('OnBehalfReviewBanner (component layer — spec 019)', () => {
     });
   });
 
-  it('tapping Keep calls dismissOnBehalfReviewAction only (not void)', async () => {
+  it('tapping "Mine" calls dismissOnBehalfReviewAction only (not void)', async () => {
     mockDismiss.mockResolvedValueOnce({ ok: true });
-    renderBanner([
-      row({ consumptionId: 'c-1', loggerDisplayName: 'Pavel', beerName: 'Kozel' }),
-    ]);
-    fireEvent.click(screen.getByRole('button', { name: /keep/i }));
+    renderBanner([row({ consumptionId: 'c-1', loggerDisplayName: 'Pavel', beerName: 'Kozel' })]);
+    fireEvent.click(screen.getByRole('button', { name: /^mine/i }));
     await waitFor(() => {
       expect(mockDismiss).toHaveBeenCalledWith({ consumptionId: 'c-1' });
     });
@@ -114,16 +105,15 @@ describe('OnBehalfReviewBanner (component layer — spec 019)', () => {
 
   it('does not dismiss when the void fails (so the banner stays for retry)', async () => {
     mockVoid.mockResolvedValueOnce({ ok: false, code: 'FORBIDDEN' });
-    renderBanner([
-      row({ consumptionId: 'c-1', loggerDisplayName: 'Pavel', beerName: 'Kozel' }),
-    ]);
-    fireEvent.click(screen.getByRole('button', { name: /reverse/i }));
+    renderBanner([row({ consumptionId: 'c-1', loggerDisplayName: 'Pavel', beerName: 'Kozel' })]);
+    fireEvent.click(screen.getByRole('button', { name: /not mine/i }));
     await waitFor(() => expect(mockVoid).toHaveBeenCalledOnce());
     expect(mockDismiss).not.toHaveBeenCalled();
   });
 
-  // Spec 026 — logger avatar renders inline before the message.
-  describe('logger avatar (spec 026)', () => {
+  // Spec 026 — logger avatar renders inline before the message; spec 019 refine
+  // adds a → arrow after it (logger → 🍺 direction).
+  describe('logger avatar + direction (spec 026 / refine)', () => {
     it('renders the logger avatar when loggerMemberId + avatar fields are set', () => {
       const { container } = renderBanner([
         row({
@@ -135,10 +125,8 @@ describe('OnBehalfReviewBanner (component layer — spec 019)', () => {
           loggerAvatarUploadAt: null,
         }),
       ]);
-      // MemberAvatar's wrapper has the bg-primary/15 chip class.
       expect(container.querySelector('span.bg-primary\\/15')).toBeInTheDocument();
-      // Existing message text still renders.
-      expect(screen.getByText(/pavel logged for you: kozel/i)).toBeInTheDocument();
+      expect(screen.getByText(/pavel put kozel on your tab/i)).toBeInTheDocument();
     });
 
     it('skips the avatar entirely when loggerMemberId is null (defensive)', () => {
@@ -146,7 +134,7 @@ describe('OnBehalfReviewBanner (component layer — spec 019)', () => {
         row({ consumptionId: 'c-1', loggerDisplayName: 'Pavel', beerName: 'Kozel' }),
       ]);
       expect(container.querySelector('span.bg-primary\\/15')).not.toBeInTheDocument();
-      // The existing Beer icon still renders.
+      // The Beer icon still renders.
       expect(container.querySelector('svg')).toBeInTheDocument();
     });
   });

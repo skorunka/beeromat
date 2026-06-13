@@ -4,7 +4,7 @@ import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
-import { Beer } from 'lucide-react';
+import { ArrowRight, Beer } from 'lucide-react';
 
 import {
   dismissOnBehalfReviewAction,
@@ -83,16 +83,22 @@ export function OnBehalfReviewBanner({ rows }: { rows: OnBehalfReviewBannerRow[]
       <ul className="flex flex-col gap-3">
         {rows.map((row) => (
           <li key={row.consumptionId} className="flex flex-col gap-2">
+            {/* Spec 019 refine — show the DIRECTION the beer travelled: from the
+                logger → onto YOUR tab (logger avatar → 🍺). Makes it clear this
+                is a charge that landed on your account, not a gift or a request. */}
             <p className="inline-flex flex-wrap items-center gap-1.5 text-sm leading-snug">
-              <Beer className="inline-block h-4 w-4 shrink-0" aria-hidden />
               {row.loggerMemberId ? (
-                <MemberAvatar
-                  size="inline"
-                  avatarKey={row.loggerAvatarKey}
-                  displayName={row.loggerDisplayName}
-                  uploadUrl={avatarUploadUrl(row.loggerMemberId, row.loggerAvatarUploadAt)}
-                />
+                <>
+                  <MemberAvatar
+                    size="inline"
+                    avatarKey={row.loggerAvatarKey}
+                    displayName={row.loggerDisplayName}
+                    uploadUrl={avatarUploadUrl(row.loggerMemberId, row.loggerAvatarUploadAt)}
+                  />
+                  <ArrowRight className="text-muted-foreground inline-block h-3.5 w-3.5 shrink-0" aria-hidden />
+                </>
               ) : null}
+              <Beer className="text-primary inline-block h-4 w-4 shrink-0" aria-hidden />
               <span>
                 {t('one', { logger: row.loggerDisplayName, beer: row.beerName })}
               </span>

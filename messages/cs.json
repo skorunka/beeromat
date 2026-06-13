@@ -556,12 +556,12 @@
       "viewMany": "Zobrazit zápasy"
     },
     "onBehalfReview": {
-      "heading": "Zápisy pro tebe",
-      "one": "{logger} ti zapsal/a: {beer}",
-      "reject": "Vrátit",
-      "keep": "Nechat",
-      "toastRejected": "Vráceno.",
-      "toastKept": "Necháno.",
+      "heading": "Pivo na tvůj účet 🍺",
+      "one": "{logger} ti hodil/a na účet {beer}. Bylo tvoje?",
+      "reject": "Nebylo moje",
+      "keep": "Moje 🍻",
+      "toastRejected": "Vráceno — z účtu dole.",
+      "toastKept": "Moje! Zapsáno. 🍻",
       "toastError": "Nepovedlo se to. Zkus to znovu."
     }
   },

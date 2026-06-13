@@ -556,12 +556,12 @@
       "viewMany": "View matches"
     },
     "onBehalfReview": {
-      "heading": "Logged for you",
-      "one": "{logger} logged for you: {beer}",
-      "reject": "Reverse",
-      "keep": "Keep",
-      "toastRejected": "Reversed.",
-      "toastKept": "Kept.",
+      "heading": "A beer on your tab 🍺",
+      "one": "{logger} put {beer} on your tab. Was it yours?",
+      "reject": "Not mine",
+      "keep": "Mine 🍻",
+      "toastRejected": "Reversed — off your tab.",
+      "toastKept": "Mine! Logged. 🍻",
       "toastError": "Couldn't do that. Try again."
     }
   },

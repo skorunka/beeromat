@@ -64,8 +64,8 @@ description: "Task list for spec 037 — badge leaderboard + gallery sort/filter
 ## Phase 5: Polish & Cross-Cutting
 
 - [X] T015 Run gates: `pnpm typecheck && pnpm lint && pnpm test:unit && pnpm test:integration && pnpm test:component && pnpm i18n:check && pnpm forms:check && pnpm build`.
-- [ ] T016 Live-walk quickstart.md via the Docker MCP browser — badges board ranks + all-time under both scopes; gallery filter/sort; default unchanged.
-- [ ] T017 [P] Update `BACKLOG.md` (mark this item shipped) + flip `CLAUDE.md` SPECKIT marker 037 ACTIVE → shipped once validated.
+- [X] T016 Live-walk quickstart.md via the Docker MCP browser — badges board ranks + all-time under both scopes; gallery filter/sort; default unchanged.
+- [X] T017 [P] Update `BACKLOG.md` (mark this item shipped) + flip `CLAUDE.md` SPECKIT marker 037 ACTIVE → shipped once validated.
 
 ---
 

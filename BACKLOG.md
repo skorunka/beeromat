@@ -24,9 +24,12 @@ game-style gallery. Recorded as the v1 scope shipped.
 - **Secret / spoiler-hidden achievements.** v1 intentionally shows every
   condition (the whole point of the gallery). A future "??? — keep playing"
   hidden tier could be added with a `secret` flag on the catalog entry.
-- **Gallery sort/filter controls + a badge-count leaderboard.** v1 sorts
-  earned-first then catalog order with no controls; an 8th leaderboard board
-  ("most badges") and rarity/earned-date sort toggles are natural follow-ups.
+- ~~**Gallery sort/filter controls + a badge-count leaderboard.**~~ **— Shipped
+  2026-06-13 as spec 037** (`specs/037-badge-board-gallery-controls/`): the 8th
+  "Most badges" 🏅 board (all-time count over member_achievements) + the profile
+  gallery's All/Earned/Locked filter and Default/Closest/Rarest sort (pure
+  `lib/achievements/gallery-view.ts` in a client `AchievementsGallery`).
+  (earned-date sort toggle wasn't added — Default already sorts earned newest-first.)
 - **Lean reconcile stats fetch.** `reconcileAchievements` reuses
   `getPlayerStats` (~10 queries) per affected member. At clubhouse scale this
   is negligible (verified), but if a huge round ever makes the fan-out bite, a

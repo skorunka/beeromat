@@ -1,14 +1,20 @@
 <!-- SPECKIT START -->
-ACTIVE PLAN: spec 037 (badge-board-gallery-controls) — see
-specs/037-badge-board-gallery-controls/plan.md. Two achievements follow-ups, NO
-schema change: (1) a "Most badges" 🏅 leaderboard board — one COUNT GROUP BY over
-member_achievements added to getLeaderboards (all-time; ignores ?scope), +'badges'
-on BoardKey + leaderboard-board BOARD map + board-select chip; (2) gallery
-sort/filter — pure applyGalleryView in lib/achievements/gallery-view.ts (filter
-All/Earned/Locked, sort Default/Closest/Rarest; default+all = identity) consumed
-by a new client AchievementsGallery split off the server AchievementsSection.
-Tests: unit (gallery-view) + integration (badges board) + component (gallery +
-🏅 chip). Not yet shipped.
+Most recently shipped: spec 037 (badge-board-gallery-controls — two achievements
+follow-ups, NO schema change. (1) "Most badges" 🏅 leaderboard board: one COUNT
+GROUP BY over member_achievements in getLeaderboards (ALL-TIME — no season filter;
+the board renders the same under ?scope=season since badges are sticky/backfill-
+stamped), +'badges' on BoardKey + leaderboard-board BOARD map + board-select chip
++ the page's BOARD_KEYS validation array (the latter was the live-caught miss).
+stats.board.badges i18n. (2) Gallery filter/sort: pure applyGalleryView +
+canSortByRarity in lib/achievements/gallery-view.ts (filter All/Earned/Locked;
+sort Default/Closest[locked by progress ratio]/Rarest[holders asc, hidden w/o
+rarity]; default+all = identity → default view byte-identical) consumed by a new
+client components/achievements/achievements-gallery.tsx split off the server
+AchievementsSection (which still assembles BadgeView[]). achievement.filter*/sort*
+i18n; achievements-gallery in the i18n-check EXCLUDED set. Tests: unit
+(achievement-gallery-view) + integration (leaderboards-badges) + component
+(achievements-gallery + board-select 8-chip + section). Full SDD in
+specs/037-badge-board-gallery-controls/.
 
 Most recently shipped: spec 036 (member-profile-links — small presentational
 follow-up to 034+030. Member names now tap-through to /members/[id] on the

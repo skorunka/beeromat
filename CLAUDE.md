@@ -1,4 +1,15 @@
 <!-- SPECKIT START -->
+ACTIVE PLAN: spec 037 (badge-board-gallery-controls) — see
+specs/037-badge-board-gallery-controls/plan.md. Two achievements follow-ups, NO
+schema change: (1) a "Most badges" 🏅 leaderboard board — one COUNT GROUP BY over
+member_achievements added to getLeaderboards (all-time; ignores ?scope), +'badges'
+on BoardKey + leaderboard-board BOARD map + board-select chip; (2) gallery
+sort/filter — pure applyGalleryView in lib/achievements/gallery-view.ts (filter
+All/Earned/Locked, sort Default/Closest/Rarest; default+all = identity) consumed
+by a new client AchievementsGallery split off the server AchievementsSection.
+Tests: unit (gallery-view) + integration (badges board) + component (gallery +
+🏅 chip). Not yet shipped.
+
 Most recently shipped: spec 036 (member-profile-links — small presentational
 follow-up to 034+030. Member names now tap-through to /members/[id] on the
 beer-IOU rows (BeerIouRow: counterparty avatar+name wrapped in a Link to

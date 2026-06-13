@@ -37,7 +37,15 @@ game-style gallery. Recorded as the v1 scope shipped.
   `getBadgeStats` fetching only the ~7 aggregates the predicates read is a
   clean drop-in. Not built — noted so the option isn't rediscovered.
 
-- **Badge-threshold tuning.** On a realistic dataset the v1 thresholds bunch up:
+- ~~**Badge-threshold tuning.**~~ **— Done 2026-06-13.** Tuned tier thresholds
+  against the heavy-seed distribution (via `scripts/analyze-badge-stats.ts`):
+  wins → 5/10/20, matches → 15/25/40, rounds → 5/10/20, sessions → 25/75/150,
+  types → 3/5/8 (club had only 10 types, so gold 20 was impossible); beers +
+  singles kept. Previously-unreachable Winner/Regular/Round King + Connoisseur
+  gold now achievable. Also added a bottom-nav Žebříčky entry so members can
+  reach the boards/profiles/badges. Original note kept below for context:
+
+- **(orig) Badge-threshold tuning.** On a realistic dataset the v1 thresholds bunch up:
   some badges become universal (everyone hits them) and some unreachable (nobody
   does), leaving only a few in the satisfying "fun middle". Thresholds live in
   code (`lib/achievements/predicates.ts`), so a tuning pass — informed by the

@@ -74,8 +74,8 @@ E2E: N/A for this feature (see plan.md Test layer declaration).
 
 ## Deploy note
 
-After merge to `main`, Vercel runs `drizzle-kit migrate` (0015 applies, additive).
-**Run the backfill once against prod** (`pnpm db:backfill:achievements` with
-`DATABASE_URL` pointed at prod) so existing members get their historical badges with
-the release stamp. The app works without it (badges would just accrue going forward),
-but FR-009 wants veterans to see their badges on day one.
+After merge to `main`, `vercel-build` runs `drizzle-kit migrate && pnpm
+db:backfill:achievements && next build` — 0015 applies (additive) and the backfill
+populates every existing member's historical badges automatically (single release
+stamp, FR-009/FR-013). The backfill is insert-if-absent / idempotent, so it's safe
+to re-run on every deploy — no manual prod step.

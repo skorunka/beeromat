@@ -25,8 +25,9 @@ Progress is a pure in-render fn over the stats the profile already loads (NO
 write-on-read, NO new per-badge query). achievement.* i18n (cs/en, name+desc+
 condition per badge). achievements-section in the i18n-check EXCLUDED set (arrow
 false-positive). Backfill: pnpm db:backfill:achievements (scripts/, single
-release earned_at stamp). DEPLOY NOTE: after migrate, run the backfill once
-against prod so veterans see historical badges. Tests: unit 10 (predicates/
+release earned_at stamp) — folded into vercel-build (migrate && backfill &&
+build), idempotent/insert-if-absent so it's safe on every deploy and veterans
+see historical badges with zero manual steps. Tests: unit 10 (predicates/
 progress/catalog) + integration (reconcile-achievements 4 sticky/idempotent/
 backfill, award-on-action 3) + component (achievements-section 6). No E2E
 (display + write-side-effect, not a journey). Full SDD in

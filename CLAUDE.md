@@ -1,4 +1,13 @@
 <!-- SPECKIT START -->
+ACTIVE PLAN: spec 035 (achievements-badges) — see
+specs/035-achievements-badges/plan.md. Persistent, sticky, earned-at-write badge
+layer on spec 034's stats; one new table member_achievements (catalog in code,
+lib/achievements/), reconcileAchievements() in the existing log/match actions,
+backfill at release, 🍻 celebration on unlock. Profile gains a game-style
+Achievements GALLERY: shows ALL badges with their unlock condition, claimed
+(vivid + earned date) vs locked (dimmed + progress bar "64/100"), earned-first,
+"N of M" count; optional rarity (US3). Not yet shipped.
+
 Most recently shipped: spec 034 (leaderboards-profiles — read-only stats
 layer, NO schema change. Two surfaces: /leaderboards (7 aggregate
 boards — beers/tab/wins/played/winRate/streak/boughtForOthers, all-time

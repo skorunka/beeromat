@@ -31,11 +31,18 @@
 
 ## Notes
 
-- Two design choices the user left to the spec are resolved as assumptions
-  rather than [NEEDS CLARIFICATION] markers (both have a clear defensible
-  default): (1) backfill `earned_at` uses a single release-time stamp with the
-  "freshly unlocked" UI suppressed; (2) locked-badge preview (US3) is optional
-  for v1 and defers cleanly to backlog. Neither blocks planning.
+- **Updated 2026-06-13** after user follow-up ("we should have the list of all
+  badges so the user can see what he can achieve and by what condition, also which
+  they have already claimed and when — get inspired by games"). The former optional
+  locked-preview (US3) was **promoted to the headline (US1): a full game-style
+  badge gallery** — all badges shown, condition for each, claimed-with-date vs
+  locked-with-progress-bar, earned-first, "N of M" count. Web-searched Steam/Xbox
+  achievement-UI patterns informed it (full set shown, locked dimmed but legible,
+  progress bars, earned dates, rarity, unlocked-sorted-to-top). Rarity became the
+  new optional US3. Spec/plan/data-model/contracts updated to match.
+- Backfill `earned_at` uses a single release-time stamp with the "freshly unlocked"
+  pulse suppressed — resolved as an assumption (clear defensible default), not a
+  clarification marker. Does not block planning.
 - The spec deliberately keeps the *behavioural* architecture decisions (sticky
   insert-only, recognise-at-write-not-read, all-badges-live-derivable) as
   requirements/assumptions because they are observable guarantees, not just

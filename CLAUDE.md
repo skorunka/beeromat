@@ -1,4 +1,12 @@
 <!-- SPECKIT START -->
+ACTIVE PLAN: spec 036 (member-profile-links) — see
+specs/036-member-profile-links/plan.md. Small presentational follow-up to 034+030:
+make member names tappable to /members/[id] on the beer-IOU rows
+(BeerIouRow, counterpartyMemberId) + the /tab on-behalf "od {logger}" line
+(TabEntryRow, loggerMemberId). NO query/schema change (ids already on the
+shapes). No nested anchors; match-hub result rows + won/lost-bet mid-sentence
+names deferred. Component tests only. Not yet shipped.
+
 Most recently shipped: spec 035 (achievements-badges — persistent, sticky,
 earned-at-write badge layer on spec 034's stats, PLUS a game-style badge
 GALLERY on the profile. ONE new table member_achievements (club_id, member_id,

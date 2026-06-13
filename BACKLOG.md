@@ -6,6 +6,37 @@ When one matures, run `/speckit-specify` and the item moves into
 
 ---
 
+## Stats / leaderboards (spec 034 follow-ups)
+
+Deferred from spec 034 (leaderboards-profiles) — the read-only stats
+layer shipped 2026-06-11. Recorded here when the user chose to build
+**achievements/badges** next and backlog the rest.
+
+- **Match-lineup → profile links everywhere.** Spec 034's drill-in
+  (`components/match/match-players.tsx`) currently lives only on the
+  match *detail* page header. Extend tappable player→`/members/[id]`
+  links to the other surfaces that render member names as plain text:
+  the home match-bet card, /tab "od X" attribution rows, and the
+  beer-IOU rows. `RecentResultsList` is the awkward one — it renders a
+  joined-name *string* inside a row that's itself a link to the match,
+  so a per-name link needs the row restructured (don't nest anchors).
+
+- **Season archives.** Spec 034's "season" is a live rolling-90-day
+  window (`?scope`), never persisted. Follow-up: snapshot a finished
+  season's final boards so past champions stay visible after the
+  window rolls past them. Needs persistence (a `season_snapshots`
+  table or similar) + an admin "close the season" action — a real
+  schema change, speckit-worthy.
+
+- **Per-stat config / custom boards.** v1's 7 boards are a fixed set.
+  Follow-up: let a club enable/disable boards or define a custom one.
+  Deferred as out-of-scope in spec 034.
+
+- **Polish pass on the stats surfaces.** Live-data review of
+  /leaderboards + /members/[id] on the heavy seed once they've had
+  real use — tighten spacing, empty-states, any fun-line that reads
+  oddly at the extremes.
+
 ## UX
 
 - ~~**Dedupe beer dropdowns onto the shared BeerPickerDropdown.**~~

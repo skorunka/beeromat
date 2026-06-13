@@ -37,6 +37,15 @@ game-style gallery. Recorded as the v1 scope shipped.
   `getBadgeStats` fetching only the ~7 aggregates the predicates read is a
   clean drop-in. Not built — noted so the option isn't rediscovered.
 
+- **Gallery sort/filter persistence.** Spec 037's profile gallery filter
+  (All/Earned/Locked) + sort (Default/Closest/Rarest) is per-visit only — it
+  resets on navigation. A nice-to-have: persist the member's choice via the URL
+  (`?filter=`/`?sort=`) or localStorage so it sticks. Deferred from 037.
+
+- **Secret / spoiler-hidden badges.** A future "??? — keep playing" hidden tier
+  (a `secret` flag on the catalog entry) for surprise unlocks; v1 intentionally
+  shows every condition. (Also tracked in the 035 list above.)
+
 - ~~**Badge-threshold tuning.**~~ **— Done 2026-06-13.** Tuned tier thresholds
   against the heavy-seed distribution (via `scripts/analyze-badge-stats.ts`):
   wins → 5/10/20, matches → 15/25/40, rounds → 5/10/20, sessions → 25/75/150,

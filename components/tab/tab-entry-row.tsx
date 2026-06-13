@@ -46,17 +46,25 @@ export function TabEntryRow({ entry, currencyCode, locale }: TabEntryRowProps) {
             </span>
           ) : null}
           {entry.loggerMemberId ? (
-            // Spec 023 — logger's face leads the "od X" attribution
-            // when we have the avatar fields. Falls through to text-only
-            // when the row is on-behalf but the join couldn't resolve.
-            <MemberAvatar
-              size="inline"
-              avatarKey={entry.loggerAvatarKey}
-              displayName={entry.loggerDisplayName ?? ''}
-              uploadUrl={avatarUploadUrl(entry.loggerMemberId, entry.loggerAvatarUploadAt)}
-            />
+            // Spec 023 — logger's face leads the "od X" attribution.
+            // Spec 036 — avatar + name link to the logger's profile (Runda
+            // badge stays outside the link). Text-only fallback when the
+            // on-behalf join couldn't resolve a member id.
+            <Link
+              href={`/members/${entry.loggerMemberId}` as Route}
+              className="hover:text-foreground inline-flex items-center gap-1.5 underline-offset-2 hover:underline"
+            >
+              <MemberAvatar
+                size="inline"
+                avatarKey={entry.loggerAvatarKey}
+                displayName={entry.loggerDisplayName ?? ''}
+                uploadUrl={avatarUploadUrl(entry.loggerMemberId, entry.loggerAvatarUploadAt)}
+              />
+              {entry.loggerDisplayName ? t('byOther', { logger: entry.loggerDisplayName }) : null}
+            </Link>
+          ) : entry.loggerDisplayName ? (
+            t('byOther', { logger: entry.loggerDisplayName })
           ) : null}
-          {entry.loggerDisplayName ? t('byOther', { logger: entry.loggerDisplayName }) : null}
         </span>
       );
     } else if (entry.sourceMatchId) {

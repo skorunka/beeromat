@@ -1,10 +1,13 @@
 'use client';
 
+import type { Route } from 'next';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { Clock, X } from 'lucide-react';
+
+import { Link } from '@/lib/i18n/navigation';
 
 import {
   deliverBeerDebtAction,
@@ -120,14 +123,22 @@ export function BeerIouRow({ debt, role, beers, currencyCode, locale, now }: Bee
   return (
     <Card className="flex flex-col gap-3 p-3">
       <div className="flex items-center gap-3">
-        <MemberAvatar
-          size="row"
-          avatarKey={debt.counterpartyAvatarKey}
-          displayName={debt.counterpartyName}
-          uploadUrl={avatarUploadUrl(debt.counterpartyMemberId, debt.counterpartyAvatarUploadAt)}
-        />
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-medium">{label}</div>
+        {/* Spec 036 — tap the counterparty (avatar + name) to open their profile.
+            The deliver/write-off buttons stay siblings — never inside this Link. */}
+        <Link
+          href={`/members/${debt.counterpartyMemberId}` as Route}
+          className="group flex min-w-0 flex-1 items-center gap-3"
+        >
+          <MemberAvatar
+            size="row"
+            avatarKey={debt.counterpartyAvatarKey}
+            displayName={debt.counterpartyName}
+            uploadUrl={avatarUploadUrl(debt.counterpartyMemberId, debt.counterpartyAvatarUploadAt)}
+          />
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-medium underline-offset-2 group-hover:underline">
+              {label}
+            </div>
           {debt.plannedBeerName ? (
             <div className="text-muted-foreground truncate text-xs">
               {debt.beerCount > 1 ? `${debt.beerCount}× ` : ''}
@@ -143,7 +154,8 @@ export function BeerIouRow({ debt, role, beers, currencyCode, locale, now }: Bee
               </span>
             </div>
           ) : null}
-        </div>
+          </div>
+        </Link>
         {!expanded ? (
           <div className="flex shrink-0 items-center gap-1">
             {/* Winner-only escape hatch: forgive a debt you'll never

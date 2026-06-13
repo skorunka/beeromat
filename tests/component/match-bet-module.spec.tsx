@@ -9,6 +9,14 @@ import enMessages from '@/messages/en.json';
 
 // Spec 030 — home IOU module: "X owes you a beer" / "You owe X a beer".
 
+// Spec 036 — BeerIouRow now wraps the counterparty in an i18n Link; stub it.
+vi.mock('@/lib/i18n/navigation', () => ({
+  Link: ({ href, children, ...rest }: { href: unknown; children: React.ReactNode }) => (
+    <a href={String(href)} {...rest}>
+      {children}
+    </a>
+  ),
+}));
 vi.mock('@/app/[locale]/(app)/match/actions', () => ({
   deliverBeerDebtAction: vi.fn(),
   undeliverBeerDebtAction: vi.fn(),

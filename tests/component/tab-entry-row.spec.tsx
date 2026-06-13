@@ -218,4 +218,19 @@ describe('TabEntryRow (component layer — spec 019)', () => {
       expect(container.querySelector('span.bg-primary\\/15')).not.toBeInTheDocument();
     });
   });
+
+  // Spec 036 — the on-behalf "by {logger}" attribution links to the logger profile.
+  describe('profile link (spec 036)', () => {
+    it('on-behalf attribution links to /members/{loggerMemberId}', () => {
+      renderRow({ ...baseEntry, loggerMemberId: 'm-9', loggerDisplayName: 'Pepa' });
+      const link = screen.getByRole('link');
+      expect(link).toHaveAttribute('href', expect.stringContaining('/members/m-9'));
+      expect(link).toHaveTextContent(/pepa/i);
+    });
+
+    it('self-logged entry renders no member link', () => {
+      renderRow(baseEntry);
+      expect(screen.queryByRole('link')).toBeNull();
+    });
+  });
 });

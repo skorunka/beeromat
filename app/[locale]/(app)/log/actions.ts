@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db/client';
 import { requireMember, requireUnlocked } from '@/lib/auth/session';
 import { beerTypes, stockChanges } from '@/lib/db/schema/catalog';
+import { betTransfers } from '@/lib/db/schema/bets';
 import { consumptionVoids, consumptions } from '@/lib/db/schema/consumption';
 import { members } from '@/lib/db/schema/members';
 import { drinkSessions } from '@/lib/db/schema/sessions';
@@ -565,4 +566,87 @@ export async function voidConsumptionAction(input: {
     ok: true as const,
     balanceAfterMinor: await memberBalance(ctx.member.id),
   };
+}
+
+export type HardDeleteConsumptionResult =
+  | { ok: true }
+  | { ok: false; code: 'NOT_FOUND' | 'FORBIDDEN' | 'MATCH_LINKED' };
+
+/**
+ * PERMANENTLY delete a consumption row (admin data correction). Unlike
+ * voidConsumptionAction (which keeps an audited compensating row + a
+ * struck-through ghost on the member's tab), this removes the row
+ * outright — for fake/test logs an admin wants gone, not annotated.
+ * Irreversible: all three guards are enforced HERE, not just by hiding
+ * the button (defense-in-depth, cf. the cancelAgreement / cross-club
+ * invite gates).
+ *
+ *   - club_admin only.
+ *   - Club-scoped lookup (no cross-club delete).
+ *   - Refuses a match-derived consumption (one a bet_transfer points at):
+ *     those are corrected through the match, and the FK would block the
+ *     delete anyway — fail cleanly with MATCH_LINKED instead.
+ *
+ * Stock: a fake log decremented stock for a beer still in the fridge, so
+ * restore +1 — but only when the row was NOT already voided (a prior void
+ * already incremented stock; restoring again would double-count). Audited
+ * as an `adjustment` (reason 'admin-hard-delete') to avoid an enum migration.
+ */
+export async function hardDeleteConsumptionAction(input: {
+  consumptionId: string;
+}): Promise<HardDeleteConsumptionResult> {
+  const ctx = await requireMember();
+
+  if (!hasAnyRole(ctx.member.role, 'club_admin')) {
+    return { ok: false, code: 'FORBIDDEN' } as const;
+  }
+
+  return db.transaction(async (tx) => {
+    const consumption = await tx.query.consumptions.findFirst({
+      where: and(
+        eq(consumptions.id, input.consumptionId),
+        eq(consumptions.clubId, ctx.club.id),
+      ),
+    });
+    if (!consumption) return { ok: false, code: 'NOT_FOUND' } as const;
+
+    // Match-derived (won/lost-bet) consumptions are corrected via the
+    // match, not here — and the bet_transfers FK (onDelete restrict)
+    // would throw on delete. Refuse before touching anything.
+    const linkedTransfer = await tx.query.betTransfers.findFirst({
+      where: eq(betTransfers.sourceConsumptionId, consumption.id),
+    });
+    if (linkedTransfer) return { ok: false, code: 'MATCH_LINKED' } as const;
+
+    // Drop any compensating void row first (FK restrict). If one existed,
+    // stock was already restored by that void — so skip the restore below.
+    const existingVoid = await tx.query.consumptionVoids.findFirst({
+      where: eq(consumptionVoids.consumptionId, consumption.id),
+    });
+    if (existingVoid) {
+      await tx.delete(consumptionVoids).where(eq(consumptionVoids.consumptionId, consumption.id));
+    } else {
+      await tx
+        .update(beerTypes)
+        .set({ currentStock: sql`${beerTypes.currentStock} + 1` })
+        .where(eq(beerTypes.id, consumption.beerTypeId));
+      await tx.insert(stockChanges).values({
+        clubId: ctx.club.id,
+        beerTypeId: consumption.beerTypeId,
+        delta: 1,
+        kind: 'adjustment',
+        reason: 'admin-hard-delete',
+        createdByUserId: ctx.user.id,
+      });
+    }
+
+    await tx.delete(consumptions).where(eq(consumptions.id, consumption.id));
+
+    revalidatePath('/');
+    revalidatePath('/tab');
+    revalidatePath('/log');
+    revalidatePath(`/admin/balances/${consumption.memberId}`);
+
+    return { ok: true as const };
+  });
 }

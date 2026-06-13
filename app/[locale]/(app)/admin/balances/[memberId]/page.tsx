@@ -6,7 +6,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { ManualPaymentForm } from '@/components/treasurer/manual-payment-form';
 import { TabEntryRow } from '@/components/tab/tab-entry-row';
-import { AdminVoidConsumptionButton } from '@/components/admin/admin-void-consumption-button';
+import { AdminDeleteConsumptionButton } from '@/components/admin/admin-delete-consumption-button';
 import { AdminReversePaymentButton } from '@/components/admin/admin-reverse-payment-button';
 import { Card } from '@/components/ui/card';
 import { MemberAvatar } from '@/components/ui/member-avatar';
@@ -129,7 +129,7 @@ export default async function MemberBalanceDetailPage({
                       {formatMoney(c.unitPriceMinor, currencyCode, defaultLocale)}
                     </div>
                   </div>
-                  <AdminVoidConsumptionButton
+                  <AdminDeleteConsumptionButton
                     consumptionId={c.consumptionId}
                     label={c.beerTypeName}
                   />

@@ -126,7 +126,7 @@ No new tooling/deps. The project, lint, test configs, and i18n gates already exi
 ## Phase 6: Polish & Cross-Cutting
 
 - [X] T029 Run the full gate suite: `pnpm typecheck && pnpm lint && pnpm test:unit && pnpm test:integration && pnpm test:component && pnpm build && pnpm i18n:check && pnpm forms:check`. Fix anything red.
-- [ ] T030 Walk `quickstart.md` live via the Docker MCP browser on the heavy seed — gallery (US1), earn-in-the-moment (US2), sticky-after-void, multi-earn, rarity (if built).
+- [X] T030 Walk `quickstart.md` live via the Docker MCP browser on the heavy seed — gallery (US1), earn-in-the-moment (US2), sticky-after-void, multi-earn, rarity (if built).
 - [X] T031 [P] Update `BACKLOG.md` with the v1 deferrals: tiered badges (250/500), relative/point-in-time badges (Giant-killer, "was #1"), secret achievements, gallery sort/filter controls, badge-count leaderboard, lean `getBadgeStats` reconcile optimization if fan-out ever bites.
 - [X] T032 [P] Update the `CLAUDE.md` SPECKIT block: flip spec 035 from "ACTIVE PLAN" to "Most recently shipped" with the as-built summary; note migration 0015 + the prod backfill deploy step.
 - [ ] T033 Commit + push to `main` (Vercel auto-deploys → `drizzle-kit migrate` applies 0015). After deploy READY, run `scripts/backfill-achievements.ts` against prod `DATABASE_URL` once (FR-013).

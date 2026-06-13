@@ -106,10 +106,13 @@ export async function getClubBadgeRarity(args: {
       .from(memberAchievements)
       .where(eq(memberAchievements.clubId, args.clubId))
       .groupBy(memberAchievements.badgeKey),
+    // Count ALL club members (not just active): badges are sticky and awarded to
+    // every member, so an inactive holder must not make holders > clubMembers
+    // ("52 of 51"). The whole-club denominator keeps holders ≤ total.
     db
       .select({ n: count() })
       .from(members)
-      .where(and(eq(members.clubId, args.clubId), eq(members.isActive, true)))
+      .where(eq(members.clubId, args.clubId))
       .then((r) => r[0]),
   ]);
   const holdersByKey = {} as Record<BadgeKey, number>;

@@ -30,6 +30,7 @@
     "db:reset:operational": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/reset-operational.ts",
     "db:seed:heavy": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/seed-heavy.ts",
     "db:backfill:achievements": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/backfill-achievements.ts",
+    "db:seed:verify036": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/seed-036-verify.ts",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "i18n:check": "tsx scripts/i18n-check.ts",

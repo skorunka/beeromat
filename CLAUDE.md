@@ -1,17 +1,26 @@
 <!-- SPECKIT START -->
-ACTIVE PLAN: spec 038 (tiered-badges) — see specs/038-tiered-badges/plan.md. The 6
-count-based badges become bronze/silver/gold families; win-rate + streak stay single.
-BACKWARD-COMPATIBLE + additive: the existing base key = bronze (e.g. centuryClub),
-+new …Silver/…Gold keys in the code catalog → existing reconcile/backfill grant tiers
-automatically, NO schema change. Catalog → BADGE_FAMILIES (stat + ascending
-thresholds) + SINGLE_BADGES; pure lib/achievements/family-view.ts buildGalleryViews
-(one BadgeView per family at highest earned tier + progress to next) + highestEarnedTier;
-BadgeView.tier?; BadgeKey +12; badge-chip tier cue; celebrateUnlocks names tier
-("Century Club — Silver"); achievement.tier.{bronze,silver,gold} i18n. Gallery "N of 9"
-counts families; the 037 Most-badges board keeps counting rows (depth rewarded).
-Thresholds tuned vs data (FR-013). Tests: unit (tiers/family-view) + integration
-(reconcile-tiers sticky) + component (family tile) + update 035/037 catalog tests. Not
-yet shipped.
+Most recently shipped: spec 038 (tiered-badges — the 6 count-based badges are now
+bronze/silver/gold FAMILIES; win-rate (sharpshooter) + streaks (hatTrick/onFire) stay
+single. BACKWARD-COMPATIBLE + additive: bronze reuses the existing 035 base key (e.g.
+centuryClub), +new …Silver/…Gold keys in the code catalog → existing reconcile/backfill
+grant tiers automatically, NO migration. lib/achievements/catalog.ts → BADGE_FAMILIES
+(stat selector + 3 ascending tiers) + SINGLE_BADGES + qualifyingBadgeKeys (families×tiers
++ singles) + badgeDisplay(key)→{nameKey,emoji,tier?}. predicates.ts trimmed to the 3
+singles (families derive earn/progress from stat+thresholds). Pure
+lib/achievements/family-view.ts buildGalleryViews (ONE BadgeView per family at the
+highest earned tier + progress to the NEXT tier; sticky; maxed=complete) +
+highestEarnedTier. BadgeView gains tier? + optional conditionKey (singles only).
+badge-chip shows 🥉🥈🥇 + tier label (TIER_LABEL_KEY static keys for i18n-check) and
+keeps the progress bar while a family climbs. achievements-section builds views via
+buildGalleryViews; "N of 9" counts families+singles. celebrateUnlocks names tier
+unlocks ("Century Club — Silver"). achievement.tier.{bronze,silver,gold} i18n. The 037
+Most-badges board keeps counting member_achievements rows (tiers reward depth).
+Thresholds: beers 100/250/500, wins 25/50/100, matches 25/50/100, rounds 10/25/50,
+sessions 25/50/100, types 5/10/20 (base wins/matches still unreachable on the seed —
+the separate Badge-threshold-tuning backlog item). Tests: unit achievement-tiers
+(replaced the 035 predicate test) + integration reconcile-tiers (cumulative + sticky)
++ updated 035/037 component specs. No migration; vercel-build backfill grants tiers.
+Full SDD in specs/038-tiered-badges/.
 
 Most recently shipped: spec 037 (badge-board-gallery-controls — two achievements
 follow-ups, NO schema change. (1) "Most badges" 🏅 leaderboard board: one COUNT

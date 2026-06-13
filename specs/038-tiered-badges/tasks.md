@@ -63,7 +63,7 @@ description: "Task list for spec 038 — tiered badges (bronze/silver/gold)"
 
 - [X] T012 Run the full gate suite: `pnpm typecheck && pnpm lint && pnpm test:unit && pnpm test:integration && pnpm test:component && pnpm i18n:check && pnpm forms:check && pnpm build`.
 - [X] T013 Re-run `pnpm db:backfill:achievements` locally so the dev club gets its silver/gold tiers; live-walk quickstart.md (family tiles, tier progress, celebration).
-- [ ] T014 [P] Update `BACKLOG.md` (mark tiered badges shipped) + flip `CLAUDE.md` SPECKIT marker 038 ACTIVE → shipped once validated.
+- [X] T014 [P] Update `BACKLOG.md` (mark tiered badges shipped) + flip `CLAUDE.md` SPECKIT marker 038 ACTIVE → shipped once validated.
 
 ---
 

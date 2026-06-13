@@ -11,11 +11,12 @@ When one matures, run `/speckit-specify` and the item moves into
 Deferred from spec 035 (achievements-badges) — the persistent badge layer +
 game-style gallery. Recorded as the v1 scope shipped.
 
-- **Tiered badges.** Bronze/silver/gold escalations of the count badges
-  (💯 → 250 → 500 beers; multiple win-count / matches-played tiers). The
-  catalog + `BadgeView` shape already supports adding keys; tiers would want a
-  small grouping convention (a "family" with levels) so the gallery shows the
-  current tier + next-tier progress rather than nine separate rows.
+- ~~**Tiered badges.**~~ **— Shipped 2026-06-13 as spec 038**
+  (`specs/038-tiered-badges/`): the 6 count-based badges are bronze/silver/gold
+  families (additive — bronze reuses the existing base key, +Silver/Gold keys,
+  no migration); the gallery shows one tile per family at the highest earned tier
+  + progress to the next; singles (win-rate/streak) unchanged. Threshold tuning
+  for the base/tier values is still the separate **Badge-threshold tuning** item.
 - **Relative / point-in-time badges.** "Giant-killer" (beat a much
   higher-ranked player), "was #1 on a board", "beat the reigning champion".
   These can't be derived from a current `MemberStats` snapshot — they need

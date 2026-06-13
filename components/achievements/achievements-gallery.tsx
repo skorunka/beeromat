@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl';
 
 import { cn } from '@/lib/utils';
 import type { BadgeView } from '@/lib/achievements/types';
-import { BADGE_BY_KEY } from '@/lib/achievements/catalog';
 import {
   applyGalleryView,
   canSortByRarity,
@@ -85,8 +84,9 @@ export function AchievementsGallery({ views }: { views: BadgeView[] }) {
             <BadgeChip
               key={v.key}
               emoji={v.emoji}
-              nameKey={BADGE_BY_KEY[v.key].nameKey}
-              conditionKey={BADGE_BY_KEY[v.key].conditionKey}
+              nameKey={v.nameKey}
+              conditionKey={v.conditionKey}
+              tier={v.tier}
               earned={v.earned}
               earnedAt={v.earnedAt}
               progress={v.progress}

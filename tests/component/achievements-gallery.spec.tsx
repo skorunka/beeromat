@@ -10,6 +10,7 @@ import enMessages from '@/messages/en.json';
 
 function v(over: Partial<BadgeView> & Pick<BadgeView, 'key' | 'emoji'>): BadgeView {
   return {
+    nameKey: `achievement.badge.${over.key}.name`,
     earned: false,
     earnedAt: null,
     progress: { current: 0, target: 25 },

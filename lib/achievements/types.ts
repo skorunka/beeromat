@@ -1,19 +1,37 @@
-// Spec 035 — in-code shape the badge catalog, reconcile, and gallery share.
+// Spec 035 + 038 — in-code shape the badge catalog, reconcile, and gallery share.
 // Nothing here is persisted; the member_achievements table only stores
 // (memberId, badgeKey, earnedAt).
 
 import type { MemberStats } from '@/lib/stats/types';
 
 export type BadgeKey =
-  | 'centuryClub'
-  | 'winner'
+  // Single (non-tiered) badges — spec 035.
   | 'sharpshooter'
   | 'onFire'
   | 'hatTrick'
-  | 'roundKing'
+  // Tiered families — bronze key is the ORIGINAL 035 key (backward-compatible),
+  // silver/gold are spec-038 additive keys.
+  | 'centuryClub'
+  | 'centuryClubSilver'
+  | 'centuryClubGold'
+  | 'winner'
+  | 'winnerSilver'
+  | 'winnerGold'
   | 'regular'
+  | 'regularSilver'
+  | 'regularGold'
+  | 'roundKing'
+  | 'roundKingSilver'
+  | 'roundKingGold'
+  | 'nightOwl'
+  | 'nightOwlSilver'
+  | 'nightOwlGold'
   | 'connoisseur'
-  | 'nightOwl';
+  | 'connoisseurSilver'
+  | 'connoisseurGold';
+
+// Spec 038 — tier levels for a count-based family.
+export type Tier = 'bronze' | 'silver' | 'gold';
 
 /** Progress toward a badge's goal, for the locked-state bar (FR-004). */
 export interface BadgeProgress {
@@ -22,13 +40,14 @@ export interface BadgeProgress {
   target: number;
 }
 
+// A single (non-tiered) badge — spec 035.
 export interface Badge {
   key: BadgeKey;
   emoji: string;
   /** i18n keys under the `achievement.badge.<key>` namespace. */
   nameKey: string;
   descriptionKey: string;
-  /** The unlock condition, shown for EVERY badge (earned + locked) — FR-002. */
+  /** The unlock condition, shown for single badges (FR-002). */
   conditionKey: string;
   /** Pure predicate over the member's current stats. */
   earned: (stats: MemberStats) => boolean;
@@ -36,10 +55,37 @@ export interface Badge {
   progress: (stats: MemberStats) => BadgeProgress;
 }
 
-/** One badge row in the gallery, joined with the member's earned set + stats. */
+// Spec 038 — one tier of a family.
+export interface BadgeTier {
+  tier: Tier;
+  /** Persisted key. The bronze tier's key === the family's base key. */
+  key: BadgeKey;
+  threshold: number;
+}
+
+// Spec 038 — a tiered family over a single monotonic count stat.
+export interface BadgeFamily {
+  /** Base key (also the bronze key). */
+  family: BadgeKey;
+  emoji: string;
+  nameKey: string;
+  descriptionKey: string;
+  conditionKey: string;
+  /** The tracked count this family escalates over. */
+  stat: (stats: MemberStats) => number;
+  /** Ascending: bronze → silver → gold. */
+  tiers: readonly [BadgeTier, BadgeTier, BadgeTier];
+}
+
+/** One tile in the gallery — a single badge, or a family at its highest tier. */
 export interface BadgeView {
   key: BadgeKey;
   emoji: string;
+  nameKey: string;
+  /** Shown for single badges; omitted for families (the progress bar conveys it). */
+  conditionKey?: string;
+  /** Set for tiered families: the member's highest earned tier (or bronze when locked). */
+  tier?: Tier;
   earned: boolean;
   /** Set when earned; null when locked. */
   earnedAt: Date | null;

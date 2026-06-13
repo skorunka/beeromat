@@ -70,8 +70,9 @@ describe('AchievementsSection (component — spec 035)', () => {
     // earned badge shows an "Earned {date}" caption (the trailing space/date
     // disambiguates from the spec-037 "Earned" filter button).
     expect(screen.getByText(/Earned \w/)).toBeInTheDocument();
-    // a locked badge shows its condition + a progress reading (Regular: 12 / 25)
-    expect(screen.getByText('Play 25 matches')).toBeInTheDocument();
+    // a SINGLE badge shows its condition (Sharpshooter, locked); a tiered family
+    // (Regular) shows a progress bar toward its bronze tier (12 / 25).
+    expect(screen.getByText('Win 60% over 10+ matches')).toBeInTheDocument();
     expect(screen.getByText('12 / 25')).toBeInTheDocument();
 
     // Earned (Century Club) sorts ahead of every locked badge.
@@ -94,8 +95,8 @@ describe('AchievementsSection (component — spec 035)', () => {
   it('renders Czech copy', () => {
     renderSection({ stats: baseStats, earned: [] }, 'cs');
     expect(screen.getByText('Odznaky')).toBeInTheDocument();
-    expect(screen.getByText('Stovkař')).toBeInTheDocument();
-    expect(screen.getByText('Naloguj 100 piv')).toBeInTheDocument();
+    expect(screen.getByText('Stovkař')).toBeInTheDocument(); // Century Club family (cs)
+    expect(screen.getByText(/celá stěna k odemčení/)).toBeInTheDocument(); // cs empty note
   });
 
   it('shows club rarity per badge when provided (US3)', () => {
@@ -113,14 +114,19 @@ describe('AchievementsSection (component — spec 035)', () => {
     expect(screen.getAllByText(/be the first/i).length).toBeGreaterThan(0);
   });
 
-  it('does not render a progress bar on an earned badge', () => {
+  it('does not render a progress bar on a maxed (gold) family', () => {
+    const at = new Date('2024-03-01T12:00:00Z');
     renderSection({
-      stats: stats({ totalBeers: 120 }),
-      earned: [{ key: 'centuryClub', earnedAt: new Date('2024-03-01T12:00:00Z') }],
+      stats: stats({ totalBeers: 600 }),
+      earned: [
+        { key: 'centuryClub', earnedAt: at },
+        { key: 'centuryClubSilver', earnedAt: at },
+        { key: 'centuryClubGold', earnedAt: at },
+      ],
     });
-    // The earned Century Club tile shows its date, not a "x / 100" progress.
+    // Gold (maxed) Century Club shows its date + Gold cue, no "x / y" progress bar.
     const centuryName = screen.getByText('Century Club');
     const tile = centuryName.closest('div')!.parentElement!;
-    expect(within(tile).queryByText(/\/ 100/)).not.toBeInTheDocument();
+    expect(within(tile).queryByText(/\d+ \/ \d+/)).not.toBeInTheDocument();
   });
 });

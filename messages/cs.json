@@ -327,6 +327,11 @@
     "sortClosest": "Nejblíž",
     "sortRarest": "Nejvzácnější",
     "filterEmpty": "Nic tu není — zkus jiný filtr. 🍺",
+    "tier": {
+      "bronze": "Bronz",
+      "silver": "Stříbro",
+      "gold": "Zlato"
+    },
     "badge": {
       "centuryClub": {
         "name": "Stovkař",

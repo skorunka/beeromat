@@ -2,15 +2,26 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import type { BadgeProgress } from '@/lib/achievements/types';
+import type { BadgeProgress, Tier } from '@/lib/achievements/types';
 
-// Spec 035 — one badge tile in the gallery. Earned: vivid + earned date.
-// Locked: dimmed + a progress bar toward the goal. Condition is shown for BOTH
-// (FR-002). All copy flows through the achievement.* catalog — no literal text.
+// Spec 035 + 038 — one tile in the gallery. Single badge: vivid + date when earned,
+// dimmed + condition + progress when locked. Tiered family: the highest earned tier
+// (bronze/silver/gold cue + label) with a progress bar toward the NEXT tier (until
+// gold = complete). All copy flows through the achievement.* catalog.
+
+const TIER_MEDAL: Record<Tier, string> = { bronze: '🥉', silver: '🥈', gold: '🥇' };
+// Static keys (not a template literal) so the i18n-check resolves them.
+const TIER_LABEL_KEY: Record<Tier, string> = {
+  bronze: 'achievement.tier.bronze',
+  silver: 'achievement.tier.silver',
+  gold: 'achievement.tier.gold',
+};
+
 export function BadgeChip({
   emoji,
   nameKey,
   conditionKey,
+  tier,
   earned,
   earnedAt,
   progress,
@@ -20,7 +31,10 @@ export function BadgeChip({
   emoji: string;
   /** Full catalog keys, e.g. `achievement.badge.centuryClub.name`. */
   nameKey: string;
-  conditionKey: string;
+  /** Single badges only; families convey the goal via the progress bar. */
+  conditionKey?: string;
+  /** Set for tiered families: the highest earned tier (or bronze when locked). */
+  tier?: Tier;
   earned: boolean;
   earnedAt: Date | null;
   progress: BadgeProgress;
@@ -34,6 +48,9 @@ export function BadgeChip({
       ? Math.min(100, Math.round((progress.current / progress.target) * 100))
       : 0;
   const showRarity = typeof holders === 'number' && typeof clubMembers === 'number';
+  // Show the bar while there's something to chase: any locked badge, or a tiered
+  // family not yet at its top threshold (so silver still shows progress to gold).
+  const showProgress = !earned || (tier !== undefined && progress.current < progress.target);
 
   return (
     <Card
@@ -46,9 +63,15 @@ export function BadgeChip({
         <span className={cn('text-2xl leading-none', !earned && 'grayscale')} aria-hidden>
           {emoji}
         </span>
-        <span className="text-sm font-semibold leading-tight">{t(nameKey)}</span>
+        <span className="min-w-0 text-sm font-semibold leading-tight">{t(nameKey)}</span>
+        {tier && earned ? (
+          <span className="ml-auto shrink-0 text-xs font-medium" title={t(TIER_LABEL_KEY[tier])}>
+            <span aria-hidden>{TIER_MEDAL[tier]}</span> {t(TIER_LABEL_KEY[tier])}
+          </span>
+        ) : null}
       </div>
-      <span className="text-muted-foreground text-xs">{t(conditionKey)}</span>
+
+      {conditionKey ? <span className="text-muted-foreground text-xs">{t(conditionKey)}</span> : null}
 
       {earned && earnedAt ? (
         <span className="text-primary text-xs font-medium">
@@ -58,7 +81,7 @@ export function BadgeChip({
         </span>
       ) : null}
 
-      {earned ? null : (
+      {showProgress ? (
         <div className="mt-1 flex flex-col gap-1">
           <div className="bg-muted h-1.5 overflow-hidden rounded-full">
             <div className="bg-primary/60 h-full rounded-full" style={{ width: `${pct}%` }} />
@@ -67,7 +90,7 @@ export function BadgeChip({
             {t('achievement.progress', { current: progress.current, target: progress.target })}
           </span>
         </div>
-      )}
+      ) : null}
 
       {showRarity ? (
         <span className="text-muted-foreground text-[11px]">

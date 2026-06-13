@@ -327,6 +327,11 @@
     "sortClosest": "Closest",
     "sortRarest": "Rarest",
     "filterEmpty": "Nothing here — try another filter. 🍺",
+    "tier": {
+      "bronze": "Bronze",
+      "silver": "Silver",
+      "gold": "Gold"
+    },
     "badge": {
       "centuryClub": {
         "name": "Century Club",

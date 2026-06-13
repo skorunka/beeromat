@@ -63,6 +63,11 @@ const EXCLUDED = new Set([
   // every user-facing string comes via useTranslations('stats'); member
   // names + values are data. (spec 034)
   'components/stats/leaderboard-board.tsx',
+  // achievements/achievements-section.tsx — the `views.filter((v) => v.earned)`
+  // arrow trips the JSX_TEXT regex (same =>/ternary root cause). Audited: every
+  // user-facing string comes via useTranslations('achievement'); badge names +
+  // counts are data/catalog keys. (spec 035)
+  'components/achievements/achievements-section.tsx',
   // round-logger.tsx — the `() => new Set(self ? [self.id] : [])` and
   // `members.find((mm) => mm.id === id)` arrows trip the JSX_TEXT regex
   // (same =>/ternary root cause as the pickers). File audited: every

@@ -32,7 +32,7 @@ How to build, run, and verify the feature locally.
 ## Backfill locally
 
 ```bash
-pnpm tsx scripts/backfill-achievements.ts
+pnpm db:backfill:achievements
 # stamps all currently-qualifying badges with a single release timestamp.
 ```
 
@@ -75,7 +75,7 @@ E2E: N/A for this feature (see plan.md Test layer declaration).
 ## Deploy note
 
 After merge to `main`, Vercel runs `drizzle-kit migrate` (0015 applies, additive).
-**Run the backfill once against prod** (`scripts/backfill-achievements.ts` pointed
-at the prod `DATABASE_URL`) so existing members get their historical badges with the
-release stamp. The app works without it (badges would just accrue going forward),
+**Run the backfill once against prod** (`pnpm db:backfill:achievements` with
+`DATABASE_URL` pointed at prod) so existing members get their historical badges with
+the release stamp. The app works without it (badges would just accrue going forward),
 but FR-009 wants veterans to see their badges on day one.

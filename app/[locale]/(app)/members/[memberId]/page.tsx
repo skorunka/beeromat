@@ -5,6 +5,8 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/lib/i18n/navigation';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getPlayerStats } from '@/lib/db/queries/player-stats';
+import { getEarnedBadges } from '@/lib/db/queries/achievements';
+import { AchievementsSection } from '@/components/achievements/achievements-section';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
 import { StatTile } from '@/components/stats/stat-tile';
@@ -25,7 +27,10 @@ export default async function ProfilePage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('stats.profile');
-  const stats = await getPlayerStats({ clubId: ctx.club.id, memberId });
+  const [stats, earnedBadges] = await Promise.all([
+    getPlayerStats({ clubId: ctx.club.id, memberId }),
+    getEarnedBadges({ clubId: ctx.club.id, memberId }),
+  ]);
   if (!stats) notFound();
 
   const { currencyCode, defaultLocale } = ctx.club;
@@ -50,6 +55,8 @@ export default async function ProfilePage({
       </header>
 
       <FunLines lines={selectFunLines(stats)} />
+
+      <AchievementsSection stats={stats} earned={earnedBadges} />
 
       <section className="flex flex-col gap-2">
         <h2 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">

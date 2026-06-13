@@ -70,18 +70,18 @@ No new tooling/deps. The project, lint, test configs, and i18n gates already exi
 
 ### Backfill (so veterans see badges on day one — FR-013)
 
-- [ ] T014 [US1] Create `scripts/backfill-achievements.ts` — for each club, call `reconcileAllClubMembers({clubId, stampAt})` with a single release timestamp; log inserted counts. Run it locally against the heavy seed to populate data. (Depends on T011.)
+- [X] T014 [US1] Create `scripts/backfill-achievements.ts` — for each club, call `reconcileAllClubMembers({clubId, stampAt})` with a single release timestamp; log inserted counts. Run it locally against the heavy seed to populate data. (Depends on T011.)
 
 ### Gallery UI
 
-- [ ] T015 [P] [US1] Create `components/achievements/badge-chip.tsx` — one badge tile: emoji + name + condition (shown always); earned variant (vivid + `earnedOn` date), locked variant (dimmed + `progress` bar from `BadgeProgress`). Strings via `useTranslations('achievement')`; no literal JSX copy.
-- [ ] T016 [US1] Create `components/achievements/achievements-section.tsx` — builds `BadgeView[]` over the whole `BADGES` catalog from props `{stats: MemberStats, earned: {key,earnedAt}[]}`: progress via `badge.progress(stats)`, earned/`earnedAt` from `earned`; sort earned-first (newest first) then catalog order; header `earnedCount / BADGES.length`; renders `BadgeChip`s; friendly `empty` note when none earned (gallery still shows all locked). (Depends on T009, T015.)
-- [ ] T017 [US1] Wire into `app/[locale]/(app)/members/[memberId]/page.tsx` — add `getEarnedBadges({clubId, memberId})` to the existing `Promise.all`/await block and pass the already-loaded `stats` + `earned` to `<AchievementsSection />` (new section above or below the existing stat tiles). (Depends on T016.)
-- [ ] T018 [US1] If `pnpm i18n:check` flags an arrow/ternary/JSX false-positive in the new components (as spec 034's `leaderboard-board.tsx` hit), add the offending file(s) to the EXCLUDED set in `scripts/i18n-check.ts` (real copy already flows through `t('achievement.*')`).
+- [X] T015 [P] [US1] Create `components/achievements/badge-chip.tsx` — one badge tile: emoji + name + condition (shown always); earned variant (vivid + `earnedOn` date), locked variant (dimmed + `progress` bar from `BadgeProgress`). Strings via `useTranslations('achievement')`; no literal JSX copy.
+- [X] T016 [US1] Create `components/achievements/achievements-section.tsx` — builds `BadgeView[]` over the whole `BADGES` catalog from props `{stats: MemberStats, earned: {key,earnedAt}[]}`: progress via `badge.progress(stats)`, earned/`earnedAt` from `earned`; sort earned-first (newest first) then catalog order; header `earnedCount / BADGES.length`; renders `BadgeChip`s; friendly `empty` note when none earned (gallery still shows all locked). (Depends on T009, T015.)
+- [X] T017 [US1] Wire into `app/[locale]/(app)/members/[memberId]/page.tsx` — add `getEarnedBadges({clubId, memberId})` to the existing `Promise.all`/await block and pass the already-loaded `stats` + `earned` to `<AchievementsSection />` (new section above or below the existing stat tiles). (Depends on T016.)
+- [X] T018 [US1] If `pnpm i18n:check` flags an arrow/ternary/JSX false-positive in the new components (as spec 034's `leaderboard-board.tsx` hit), add the offending file(s) to the EXCLUDED set in `scripts/i18n-check.ts` (real copy already flows through `t('achievement.*')`).
 
 ### Test
 
-- [ ] T019 [P] [US1] Component test `tests/component/achievements-section.spec.tsx` (RTL/jsdom, mocked props) — renders all 9 badges; earned ones vivid + dated + sorted first; locked ones show condition + progress ("64 / 100"); header "N of 9"; all-locked new-member case; cs+en copy. (Gate: `pnpm test:component`.)
+- [X] T019 [P] [US1] Component test `tests/component/achievements-section.spec.tsx` (RTL/jsdom, mocked props) — renders all 9 badges; earned ones vivid + dated + sorted first; locked ones show condition + progress ("64 / 100"); header "N of 9"; all-locked new-member case; cs+en copy. (Gate: `pnpm test:component`.)
 
 **Checkpoint**: Gallery live and populated; US1 demoable on its own.
 

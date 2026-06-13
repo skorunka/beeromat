@@ -173,3 +173,42 @@ export async function voidConfirmedPaymentAction(rawInput: unknown): Promise<Rea
     return { ok: true } as const;
   });
 }
+
+export type HardDeletePaymentResult =
+  | { ok: true }
+  | { ok: false; code: 'NOT_FOUND' };
+
+/**
+ * PERMANENTLY delete a payment row, ANY status (admin data reset). Unlike
+ * dispute/void (which transition status + keep the row + an audit
+ * transition), this removes the payment outright — for fake/test payments
+ * an admin wants gone to reset the data. Its append-only
+ * payment_state_transitions children (FK restrict) are dropped first.
+ *
+ * club_admin only (enforced at requireRole — stricter than the
+ * treasurer-allowed confirm/dispute/void), club-scoped lookup. Balance
+ * recomputes from the remaining payments, so deleting a confirmed payment
+ * correctly re-adds what the member owed.
+ */
+export async function hardDeletePaymentAction(rawId: unknown): Promise<HardDeletePaymentResult> {
+  const ctx = await requireRole('club_admin');
+  const parsed = z.string().uuid().safeParse(rawId);
+  if (!parsed.success) return { ok: false, code: 'NOT_FOUND' };
+  const paymentId = parsed.data;
+
+  return db.transaction(async (tx) => {
+    const payment = await tx.query.payments.findFirst({
+      where: and(eq(payments.id, paymentId), eq(payments.clubId, ctx.club.id)),
+    });
+    if (!payment) return { ok: false, code: 'NOT_FOUND' } as const;
+
+    await tx
+      .delete(paymentStateTransitions)
+      .where(eq(paymentStateTransitions.paymentId, paymentId));
+    await tx.delete(payments).where(eq(payments.id, paymentId));
+
+    revalidateTreasurerViews();
+    revalidatePath(`/admin/balances/${payment.memberId}`);
+    return { ok: true } as const;
+  });
+}

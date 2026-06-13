@@ -7,7 +7,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ManualPaymentForm } from '@/components/treasurer/manual-payment-form';
 import { TabEntryRow } from '@/components/tab/tab-entry-row';
 import { AdminDeleteConsumptionButton } from '@/components/admin/admin-delete-consumption-button';
-import { AdminReversePaymentButton } from '@/components/admin/admin-reverse-payment-button';
+import { AdminDeletePaymentButton } from '@/components/admin/admin-delete-payment-button';
 import { Card } from '@/components/ui/card';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
@@ -17,7 +17,7 @@ import { roleSatisfies } from '@/lib/permissions';
 import { db } from '@/lib/db/client';
 import { members } from '@/lib/db/schema/members';
 import { getMemberChargesForAdmin, getMemberTabForAdmin } from '@/lib/db/queries/consumption';
-import { getMemberConfirmedPayments } from '@/lib/db/queries/payments';
+import { getMemberPaymentsForAdmin } from '@/lib/db/queries/payments';
 import { getOpenSessionForClub } from '@/lib/db/queries/sessions';
 import { formatMoney } from '@/lib/format';
 
@@ -45,15 +45,23 @@ export default async function MemberBalanceDetailPage({
   const isAdmin = roleSatisfies(ctx.member.role, 'club_admin');
 
   const openSession = await getOpenSessionForClub(ctx.club.id);
-  const [balanceMinor, pendingMinor, tab, charges, confirmedPayments] = await Promise.all([
+  const [balanceMinor, pendingMinor, tab, charges, memberPayments] = await Promise.all([
     memberBalance(member.id),
     paymentsTotal(member.id, 'claimed'),
     getMemberTabForAdmin({ memberId: member.id, session: openSession }),
     isAdmin ? getMemberChargesForAdmin(member.id, ctx.club.id) : Promise.resolve([]),
-    isAdmin ? getMemberConfirmedPayments(member.id, ctx.club.id) : Promise.resolve([]),
+    isAdmin ? getMemberPaymentsForAdmin(member.id, ctx.club.id) : Promise.resolve([]),
   ]);
   const { currencyCode, defaultLocale } = ctx.club;
   const dateFmt = new Intl.DateTimeFormat(defaultLocale, { dateStyle: 'medium' });
+
+  // Static map — i18n-check rejects dynamic template-literal t() keys.
+  const paymentStatusLabel: Record<'claimed' | 'confirmed' | 'disputed' | 'voided', string> = {
+    claimed: tAdmin('paymentStatusClaimed'),
+    confirmed: tAdmin('paymentStatusConfirmed'),
+    disputed: tAdmin('paymentStatusDisputed'),
+    voided: tAdmin('paymentStatusVoided'),
+  };
 
   return (
     <main className="mx-auto max-w-md p-5">
@@ -143,11 +151,11 @@ export default async function MemberBalanceDetailPage({
         </section>
       ) : null}
 
-      {isAdmin && confirmedPayments.length > 0 ? (
+      {isAdmin && memberPayments.length > 0 ? (
         <section className="mb-6">
-          <h2 className="mb-2 text-sm font-medium">{tAdmin('reversePaymentsHeading')}</h2>
+          <h2 className="mb-2 text-sm font-medium">{tAdmin('deletePaymentsHeading')}</h2>
           <ul className="flex flex-col gap-2">
-            {confirmedPayments.map((p) => (
+            {memberPayments.map((p) => (
               <li key={p.paymentId}>
                 <Card className="flex flex-row items-center gap-3 p-3">
                   <div className="min-w-0 flex-1">
@@ -155,10 +163,10 @@ export default async function MemberBalanceDetailPage({
                       {formatMoney(p.amountMinor, currencyCode, defaultLocale)}
                     </div>
                     <div className="text-muted-foreground text-xs">
-                      {dateFmt.format(p.createdAt)}
+                      {dateFmt.format(p.createdAt)} · {paymentStatusLabel[p.status]}
                     </div>
                   </div>
-                  <AdminReversePaymentButton
+                  <AdminDeletePaymentButton
                     paymentId={p.paymentId}
                     amountLabel={formatMoney(p.amountMinor, currencyCode, defaultLocale)}
                   />
@@ -166,7 +174,7 @@ export default async function MemberBalanceDetailPage({
               </li>
             ))}
           </ul>
-          {confirmedPayments.length >= 50 ? (
+          {memberPayments.length >= 50 ? (
             <p className="text-muted-foreground mt-2 text-xs">{tAdmin('listCap', { count: 50 })}</p>
           ) : null}
         </section>

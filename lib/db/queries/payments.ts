@@ -442,3 +442,33 @@ export async function getMemberConfirmedPayments(
     .limit(50);
   return rows;
 }
+
+// Admin hard-delete surface — a member's payments in ANY status
+// (claimed/confirmed/disputed/voided), club-scoped, newest first. Unlike
+// getMemberConfirmedPayments (which lists only the reversible 'confirmed'
+// rows) this powers the "delete payment permanently" reset tool, so it
+// must surface a stray claimed claim or a voided ghost too.
+export interface AdminPayment {
+  paymentId: string;
+  amountMinor: bigint;
+  status: 'claimed' | 'confirmed' | 'disputed' | 'voided';
+  createdAt: Date;
+}
+
+export async function getMemberPaymentsForAdmin(
+  memberId: string,
+  clubId: string,
+): Promise<AdminPayment[]> {
+  const rows = await db
+    .select({
+      paymentId: payments.id,
+      amountMinor: payments.amountMinor,
+      status: payments.status,
+      createdAt: payments.createdAt,
+    })
+    .from(payments)
+    .where(and(eq(payments.memberId, memberId), eq(payments.clubId, clubId)))
+    .orderBy(desc(payments.createdAt))
+    .limit(50);
+  return rows;
+}

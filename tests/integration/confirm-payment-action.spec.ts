@@ -33,6 +33,7 @@ vi.mock('next/cache', () => ({
 import {
   confirmPaymentAction,
   disputePaymentAction,
+  hardDeletePaymentAction,
   voidConfirmedPaymentAction,
 } from '@/app/[locale]/(app)/admin/pending/actions';
 
@@ -294,5 +295,80 @@ describe('voidConfirmedPaymentAction', () => {
       reason: 'wrong action',
     });
     expect(result).toEqual({ ok: false, code: 'INVALID_STATE' });
+  });
+});
+
+describe('hardDeletePaymentAction', () => {
+  beforeEach(async () => {
+    ({ db: testDb } = await makeTestDb());
+    ctxRef.current = null;
+  });
+
+  it('permanently deletes a confirmed payment AND its state-transition rows', async () => {
+    const { user, club, member } = await seedClubAndTreasurer();
+    const payment = await seedClaimedPayment({
+      clubId: club.id,
+      memberId: member.id,
+      createdByUserId: user.id,
+    });
+    ctxRef.current = {
+      user: { id: user.id },
+      member: { id: member.id, role: 'club_admin' },
+      club: { id: club.id },
+    };
+    await confirmPaymentAction(payment.id); // creates a transition row (FK restrict)
+
+    const result = await hardDeletePaymentAction(payment.id);
+    expect(result).toEqual({ ok: true });
+
+    expect(await readPayment(payment.id)).toBeUndefined();
+    expect(await readTransitions(payment.id)).toHaveLength(0);
+  });
+
+  it('deletes a still-claimed payment (no transitions to clean up)', async () => {
+    const { user, club, member } = await seedClubAndTreasurer();
+    const payment = await seedClaimedPayment({
+      clubId: club.id,
+      memberId: member.id,
+      createdByUserId: user.id,
+    });
+    ctxRef.current = {
+      user: { id: user.id },
+      member: { id: member.id, role: 'club_admin' },
+      club: { id: club.id },
+    };
+
+    const result = await hardDeletePaymentAction(payment.id);
+    expect(result).toEqual({ ok: true });
+    expect(await readPayment(payment.id)).toBeUndefined();
+  });
+
+  it('NOT_FOUND for a payment in another club (club-scoped); leaves it intact', async () => {
+    const a = await seedClubAndTreasurer();
+    const b = await seedClubAndTreasurer();
+    const bPayment = await seedClaimedPayment({
+      clubId: b.club.id,
+      memberId: b.member.id,
+      createdByUserId: b.user.id,
+    });
+    ctxRef.current = {
+      user: { id: a.user.id },
+      member: { id: a.member.id, role: 'club_admin' },
+      club: { id: a.club.id },
+    };
+
+    const result = await hardDeletePaymentAction(bPayment.id);
+    expect(result).toEqual({ ok: false, code: 'NOT_FOUND' });
+    expect(await readPayment(bPayment.id)).toBeDefined();
+  });
+
+  it('NOT_FOUND when the id is not a UUID', async () => {
+    const { user, club, member } = await seedClubAndTreasurer();
+    ctxRef.current = {
+      user: { id: user.id },
+      member: { id: member.id, role: 'club_admin' },
+      club: { id: club.id },
+    };
+    expect(await hardDeletePaymentAction('nope')).toEqual({ ok: false, code: 'NOT_FOUND' });
   });
 });

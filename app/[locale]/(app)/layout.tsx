@@ -85,6 +85,7 @@ export default async function AppGroupLayout({ children }: { children: React.Rea
     { key: 'home', href: '/' as Route },
     { key: 'events', href: '/events' as Route },
     { key: 'match', href: '/match' as Route },
+    { key: 'leaderboards', href: '/leaderboards' as Route },
     { key: 'history', href: '/history' as Route },
     { key: 'account', href: '/account' as Route },
   ];

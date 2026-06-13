@@ -2,7 +2,7 @@
 
 import type { Route } from 'next';
 import { useTranslations } from 'next-intl';
-import { CalendarDays, Clock, Dices, Home, Plus, Receipt, Shield, Trophy, User } from 'lucide-react';
+import { CalendarDays, Clock, Dices, Home, Medal, Plus, Receipt, Shield, Trophy, User } from 'lucide-react';
 
 import { Link, usePathname } from '@/lib/i18n/navigation';
 
@@ -17,6 +17,7 @@ export type NavKey =
   | 'tab'
   | 'bet'
   | 'match'
+  | 'leaderboards'
   | 'events'
   | 'history'
   | 'account'
@@ -30,6 +31,7 @@ const ICONS: Record<NavKey, typeof Home> = {
   tab: Receipt,
   bet: Dices,
   match: Trophy,
+  leaderboards: Medal,
   events: CalendarDays,
   history: Clock,
   account: User,

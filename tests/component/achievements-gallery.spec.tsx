@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
-import { describe, it, expect } from 'vitest';
+import { beforeEach, describe, it, expect } from 'vitest';
 
 import { AchievementsGallery } from '@/components/achievements/achievements-gallery';
 import type { BadgeView } from '@/lib/achievements/types';
@@ -38,6 +38,10 @@ const NAMES = /Century Club|Winner|Regular|Night Owl/;
 const order = () => screen.getAllByText(NAMES).map((el) => el.textContent);
 
 describe('AchievementsGallery (component — spec 037)', () => {
+  // The gallery now persists filter/sort to localStorage; clear it so each
+  // test starts from the defaults rather than a prior test's choice.
+  beforeEach(() => localStorage.clear());
+
   it('shows all badges in the given order by default', () => {
     renderGallery();
     expect(order()).toEqual(['Century Club', 'Winner', 'Regular', 'Night Owl']);
@@ -73,5 +77,27 @@ describe('AchievementsGallery (component — spec 037)', () => {
   it('hides the Rarest sort when no view carries holders', () => {
     renderGallery([v({ key: 'regular', emoji: '🎾' })]);
     expect(screen.queryByRole('button', { name: /rarest/i })).toBeNull();
+  });
+
+  it('persists the filter choice across remounts (localStorage)', async () => {
+    const first = renderGallery();
+    fireEvent.click(screen.getByRole('button', { name: /^locked$/i }));
+    await waitFor(() => expect(localStorage.getItem('beeromat.gallery.filter')).toBe('locked'));
+    first.unmount();
+
+    // A fresh mount reads the saved choice → starts filtered to Locked.
+    renderGallery();
+    await waitFor(() => expect(order()).toEqual(['Regular', 'Night Owl']));
+  });
+
+  it('drops a saved Rarest sort when the profile has no rarity data', async () => {
+    localStorage.setItem('beeromat.gallery.sort', 'rarest');
+    // views without holders → rarity unavailable; restored 'rarest' is ignored.
+    renderGallery([v({ key: 'regular', emoji: '🎾' }), v({ key: 'nightOwl', emoji: '🦉' })]);
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: /rarest/i })).toBeNull(),
+    );
+    // No crash; default order preserved.
+    expect(order()).toEqual(['Regular', 'Night Owl']);
   });
 });

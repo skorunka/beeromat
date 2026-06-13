@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Gem, LayoutGrid, List, Lock, Medal, Target, type LucideIcon } from 'lucide-react';
 
@@ -46,6 +46,16 @@ const SORT_ICON: Record<GallerySort, LucideIcon> = {
   rarest: Gem,
 };
 
+// localStorage keys — the member's last filter/sort choice persists across
+// visits (it used to reset on every navigation). Read after mount to avoid an
+// SSR hydration mismatch.
+const FILTER_STORE_KEY = 'beeromat.gallery.filter';
+const SORT_STORE_KEY = 'beeromat.gallery.sort';
+const isFilter = (v: unknown): v is GalleryFilter =>
+  v === 'all' || v === 'earned' || v === 'locked';
+const isSort = (v: unknown): v is GallerySort =>
+  v === 'default' || v === 'closest' || v === 'rarest';
+
 const CHIP_GROUP = 'bg-card border-border flex shrink-0 gap-1 rounded-lg border p-1';
 const CHIP =
   'flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium whitespace-nowrap transition-colors';
@@ -57,9 +67,35 @@ export function AchievementsGallery({ views }: { views: BadgeView[] }) {
   const [filter, setFilter] = useState<GalleryFilter>('all');
   const [sort, setSort] = useState<GallerySort>('default');
 
-  const sorts: GallerySort[] = canSortByRarity(views)
+  const rarityAvailable = canSortByRarity(views);
+  const sorts: GallerySort[] = rarityAvailable
     ? ['default', 'closest', 'rarest']
     : ['default', 'closest'];
+
+  // Restore the saved choice once, after mount. A stored 'rarest' is dropped
+  // when this profile has no rarity data (the chip wouldn't render).
+  useEffect(() => {
+    try {
+      const f = localStorage.getItem(FILTER_STORE_KEY);
+      if (isFilter(f)) setFilter(f);
+      const s = localStorage.getItem(SORT_STORE_KEY);
+      if (isSort(s) && (s !== 'rarest' || rarityAvailable)) setSort(s);
+    } catch {
+      // localStorage unavailable (private mode / SSR) — keep defaults.
+    }
+  }, [rarityAvailable]);
+
+  const update = (next: { filter?: GalleryFilter; sort?: GallerySort }) => {
+    try {
+      if (next.filter) localStorage.setItem(FILTER_STORE_KEY, next.filter);
+      if (next.sort) localStorage.setItem(SORT_STORE_KEY, next.sort);
+    } catch {
+      // best-effort persistence; ignore write failures.
+    }
+    if (next.filter) setFilter(next.filter);
+    if (next.sort) setSort(next.sort);
+  };
+
   const shown = applyGalleryView(views, { filter, sort });
 
   return (
@@ -79,7 +115,7 @@ export function AchievementsGallery({ views }: { views: BadgeView[] }) {
                 aria-pressed={on}
                 aria-label={label}
                 title={label}
-                onClick={() => setFilter(f)}
+                onClick={() => update({ filter: f })}
                 className={cn(CHIP, on ? CHIP_ON : CHIP_OFF)}
               >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden />
@@ -100,7 +136,7 @@ export function AchievementsGallery({ views }: { views: BadgeView[] }) {
                 aria-pressed={on}
                 aria-label={label}
                 title={label}
-                onClick={() => setSort(s)}
+                onClick={() => update({ sort: s })}
                 className={cn(CHIP, on ? CHIP_ON : CHIP_OFF)}
               >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden />

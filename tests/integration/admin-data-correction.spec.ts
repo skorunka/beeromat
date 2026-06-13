@@ -93,7 +93,7 @@ describe('admin data-correction listing queries (spec 031)', () => {
     ({ db: testDb } = await makeTestDb());
   });
 
-  it('getMemberChargesForAdmin: non-voided own consumptions only, club-scoped', async () => {
+  it('getMemberChargesForAdmin: own consumptions incl. voided (flagged), club-scoped', async () => {
     const a = await seedClub('A');
     const b = await seedClub('B');
     const c1 = await addConsumption(a);
@@ -104,8 +104,11 @@ describe('admin data-correction listing queries (spec 031)', () => {
       .values({ clubId: a.club.id, consumptionId: c1.id, voidedByUserId: a.user.id });
 
     const charges = await getMemberChargesForAdmin(a.target.id, a.club.id);
-    expect(charges).toHaveLength(1); // 2 created in A, 1 voided; B excluded
-    expect(charges[0]!.beerTypeName).toBe('Pilsner');
+    // Both A rows listed (voided ones must remain deletable — a voided
+    // consumption still lingers as a greyed ghost); B excluded.
+    expect(charges).toHaveLength(2);
+    expect(charges.filter((c) => c.voided)).toHaveLength(1);
+    expect(charges.every((c) => c.beerTypeName === 'Pilsner')).toBe(true);
   });
 
   it('getMemberConfirmedPayments: confirmed only, club-scoped', async () => {

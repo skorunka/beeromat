@@ -641,17 +641,20 @@ export async function getSessionDetail(args: {
 }
 
 // Spec 031 — admin data correction. The member's own consumptions across
-// ALL sessions (non-voided), flat — these are exactly the rows an admin can
-// remove via voidConsumptionAction (won/lost-bet legs are corrected through
-// the match, not here). Newest first. Used by the admin member-detail
-// "correct charges" surface; intentionally simpler than getMemberTabForAdmin
-// (no bet-transfer fan-out) because the void target is always an own
-// consumption row.
+// ALL sessions, flat — these are the rows an admin can permanently delete
+// via hardDeleteConsumptionAction (won/lost-bet legs are corrected through
+// the match, not here). Newest first. Includes ALREADY-VOIDED rows too
+// (flagged `voided`): a soft-voided consumption still lingers as a greyed
+// "zrušeno" ghost on the member's tab, so the admin reset tool must be able
+// to remove it (the delete action drops the void row + skips the stock
+// restore). Intentionally simpler than getMemberTabForAdmin (no bet-transfer
+// fan-out) because the delete target is always an own consumption row.
 export interface AdminCharge {
   consumptionId: string;
   beerTypeName: string;
   unitPriceMinor: bigint;
   createdAt: Date;
+  voided: boolean;
 }
 
 export async function getMemberChargesForAdmin(
@@ -664,21 +667,22 @@ export async function getMemberChargesForAdmin(
       beerTypeName: beerTypes.name,
       unitPriceMinor: consumptions.unitPriceMinorSnapshot,
       createdAt: consumptions.createdAt,
+      voidId: consumptionVoids.id,
     })
     .from(consumptions)
     .innerJoin(beerTypes, eq(beerTypes.id, consumptions.beerTypeId))
     .leftJoin(consumptionVoids, eq(consumptionVoids.consumptionId, consumptions.id))
-    .where(
-      and(
-        eq(consumptions.memberId, memberId),
-        eq(consumptions.clubId, clubId),
-        isNull(consumptionVoids.consumptionId),
-      ),
-    )
+    .where(and(eq(consumptions.memberId, memberId), eq(consumptions.clubId, clubId)))
     .orderBy(desc(consumptions.createdAt))
     // Admin correction tool — bound the list (mistakes are corrected
     // recent-first). A member with years of history would otherwise load
     // hundreds of rows into this page.
     .limit(50);
-  return rows;
+  return rows.map((r) => ({
+    consumptionId: r.consumptionId,
+    beerTypeName: r.beerTypeName,
+    unitPriceMinor: r.unitPriceMinor,
+    createdAt: r.createdAt,
+    voided: r.voidId !== null,
+  }));
 }

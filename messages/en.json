@@ -909,6 +909,7 @@
     "deleteChargeToast": "Deleted permanently. Balance updated.",
     "deleteChargeFailed": "Couldn't delete. Try again.",
     "deleteChargeMatchLinked": "This beer came from a match — correct it through the match, not here.",
+    "chargeVoided": "cancelled",
     "reversePaymentsHeading": "Reverse a payment",
     "reversePayment": "Reverse",
     "reversePaymentConfirm": "Reverse the confirmed payment of {amount}? The member will owe it again.",

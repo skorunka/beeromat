@@ -33,7 +33,7 @@ import { users } from '@/lib/db/schema/auth';
 import { clubs } from '@/lib/db/schema/clubs';
 import { members } from '@/lib/db/schema/members';
 import { beerTypes, stockChanges } from '@/lib/db/schema/catalog';
-import { consumptions } from '@/lib/db/schema/consumption';
+import { consumptions, consumptionVoids } from '@/lib/db/schema/consumption';
 import { betTransfers } from '@/lib/db/schema/bets';
 import { drinkSessions } from '@/lib/db/schema/sessions';
 
@@ -154,6 +154,31 @@ describe('hardDeleteConsumptionAction (admin data correction)', () => {
     expect(audit[0]!.kind).toBe('adjustment');
     expect(audit[0]!.delta).toBe(1);
     expect(audit[0]!.reason).toBe('admin-hard-delete');
+  });
+
+  it('deletes an already-voided consumption: drops the void row, stock unchanged', async () => {
+    const a = await seedClub('A');
+    const con = await addConsumption(a);
+    // Soft-void it first (a prior void already restored stock).
+    await testDb
+      .insert(consumptionVoids)
+      .values({ clubId: a.club.id, consumptionId: con.id, voidedByUserId: a.adminUser.id });
+    asAdmin(a);
+
+    const result = await hardDeleteConsumptionAction({ consumptionId: con.id });
+    expect(result.ok).toBe(true);
+
+    expect(
+      await testDb.query.consumptions.findFirst({ where: eq(consumptions.id, con.id) }),
+    ).toBeUndefined();
+    expect(
+      await testDb.query.consumptionVoids.findFirst({
+        where: eq(consumptionVoids.consumptionId, con.id),
+      }),
+    ).toBeUndefined();
+    // Stock NOT incremented again (the void already did +1): stays at 99.
+    const beer = await testDb.query.beerTypes.findFirst({ where: eq(beerTypes.id, a.beer.id) });
+    expect(beer!.currentStock).toBe(99);
   });
 
   it('refuses a match-derived consumption (MATCH_LINKED), leaving it intact', async () => {

@@ -131,10 +131,13 @@ export default async function MemberBalanceDetailPage({
               <li key={c.consumptionId}>
                 <Card className="flex flex-row items-center gap-3 p-3">
                   <div className="min-w-0 flex-1">
-                    <div className="truncate font-medium">{c.beerTypeName}</div>
+                    <div className={`truncate font-medium ${c.voided ? 'line-through opacity-60' : ''}`}>
+                      {c.beerTypeName}
+                    </div>
                     <div className="text-muted-foreground text-xs">
                       {dateFmt.format(c.createdAt)} ·{' '}
                       {formatMoney(c.unitPriceMinor, currencyCode, defaultLocale)}
+                      {c.voided ? ` · ${tAdmin('chargeVoided')}` : ''}
                     </div>
                   </div>
                   <AdminDeleteConsumptionButton

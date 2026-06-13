@@ -114,10 +114,10 @@ No new tooling/deps. The project, lint, test configs, and i18n gates already exi
 
 **Independent Test**: On a seeded club, each badge shows a truthful holder count/share; an unheld badge reads "nobody yet".
 
-- [ ] T025 [US3] Add `getClubBadgeRarity({clubId})` to `lib/db/queries/achievements.ts` — one GROUP BY on `member_achievements` (holders per `badgeKey`) + one active-member count → `{holdersByKey, clubMembers}`. Per contracts/achievements.md §3.
-- [ ] T026 [P] [US3] Add `achievement.rarity` (ICU "{holders} of {total} members") + `achievement.rarityNone` to `messages/{cs,en}.json`.
-- [ ] T027 [US3] Thread optional `rarity` into `achievements-section.tsx` → `badge-chip.tsx` (render the rarity cue per badge; `rarityNone` when 0); load `getClubBadgeRarity` in `members/[memberId]/page.tsx` and pass it. (Depends on T025, T016.)
-- [ ] T028 [P] [US3] Extend `tests/component/achievements-section.spec.tsx` (or a sibling) — rarity cue renders for held badges and "nobody yet" for unheld. (Gate: `pnpm test:component`.)
+- [X] T025 [US3] Add `getClubBadgeRarity({clubId})` to `lib/db/queries/achievements.ts` — one GROUP BY on `member_achievements` (holders per `badgeKey`) + one active-member count → `{holdersByKey, clubMembers}`. Per contracts/achievements.md §3.
+- [X] T026 [P] [US3] Add `achievement.rarity` (ICU "{holders} of {total} members") + `achievement.rarityNone` to `messages/{cs,en}.json`.
+- [X] T027 [US3] Thread optional `rarity` into `achievements-section.tsx` → `badge-chip.tsx` (render the rarity cue per badge; `rarityNone` when 0); load `getClubBadgeRarity` in `members/[memberId]/page.tsx` and pass it. (Depends on T025, T016.)
+- [X] T028 [P] [US3] Extend `tests/component/achievements-section.spec.tsx` (or a sibling) — rarity cue renders for held badges and "nobody yet" for unheld. (Gate: `pnpm test:component`.)
 
 **Checkpoint**: All three stories independently functional.
 
@@ -125,10 +125,10 @@ No new tooling/deps. The project, lint, test configs, and i18n gates already exi
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T029 Run the full gate suite: `pnpm typecheck && pnpm lint && pnpm test:unit && pnpm test:integration && pnpm test:component && pnpm build && pnpm i18n:check && pnpm forms:check`. Fix anything red.
+- [X] T029 Run the full gate suite: `pnpm typecheck && pnpm lint && pnpm test:unit && pnpm test:integration && pnpm test:component && pnpm build && pnpm i18n:check && pnpm forms:check`. Fix anything red.
 - [ ] T030 Walk `quickstart.md` live via the Docker MCP browser on the heavy seed — gallery (US1), earn-in-the-moment (US2), sticky-after-void, multi-earn, rarity (if built).
-- [ ] T031 [P] Update `BACKLOG.md` with the v1 deferrals: tiered badges (250/500), relative/point-in-time badges (Giant-killer, "was #1"), secret achievements, gallery sort/filter controls, badge-count leaderboard, lean `getBadgeStats` reconcile optimization if fan-out ever bites.
-- [ ] T032 [P] Update the `CLAUDE.md` SPECKIT block: flip spec 035 from "ACTIVE PLAN" to "Most recently shipped" with the as-built summary; note migration 0015 + the prod backfill deploy step.
+- [X] T031 [P] Update `BACKLOG.md` with the v1 deferrals: tiered badges (250/500), relative/point-in-time badges (Giant-killer, "was #1"), secret achievements, gallery sort/filter controls, badge-count leaderboard, lean `getBadgeStats` reconcile optimization if fan-out ever bites.
+- [X] T032 [P] Update the `CLAUDE.md` SPECKIT block: flip spec 035 from "ACTIVE PLAN" to "Most recently shipped" with the as-built summary; note migration 0015 + the prod backfill deploy step.
 - [ ] T033 Commit + push to `main` (Vercel auto-deploys → `drizzle-kit migrate` applies 0015). After deploy READY, run `scripts/backfill-achievements.ts` against prod `DATABASE_URL` once (FR-013).
 
 ---

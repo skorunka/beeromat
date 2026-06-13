@@ -1,5 +1,5 @@
 import 'server-only';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, count, desc, eq } from 'drizzle-orm';
 
 import { db } from '@/lib/db/client';
 import { members } from '@/lib/db/schema/members';
@@ -90,6 +90,31 @@ export async function getEarnedBadges(args: {
     )
     .orderBy(desc(memberAchievements.earnedAt));
   return rows.map((r) => ({ key: r.key as BadgeKey, earnedAt: r.earnedAt }));
+}
+
+/**
+ * US3 rarity — how many members hold each badge, plus the club's active-member
+ * count. One GROUP BY + one count. Keys nobody holds are simply absent (callers
+ * treat missing as 0).
+ */
+export async function getClubBadgeRarity(args: {
+  clubId: string;
+}): Promise<{ holdersByKey: Record<BadgeKey, number>; clubMembers: number }> {
+  const [counts, memberCountRow] = await Promise.all([
+    db
+      .select({ key: memberAchievements.badgeKey, n: count() })
+      .from(memberAchievements)
+      .where(eq(memberAchievements.clubId, args.clubId))
+      .groupBy(memberAchievements.badgeKey),
+    db
+      .select({ n: count() })
+      .from(members)
+      .where(and(eq(members.clubId, args.clubId), eq(members.isActive, true)))
+      .then((r) => r[0]),
+  ]);
+  const holdersByKey = {} as Record<BadgeKey, number>;
+  for (const c of counts) holdersByKey[c.key as BadgeKey] = c.n;
+  return { holdersByKey, clubMembers: memberCountRow?.n ?? 0 };
 }
 
 /**

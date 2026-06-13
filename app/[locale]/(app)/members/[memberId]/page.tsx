@@ -5,7 +5,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { Link } from '@/lib/i18n/navigation';
 import { requireUnlocked } from '@/lib/auth/session';
 import { getPlayerStats } from '@/lib/db/queries/player-stats';
-import { getEarnedBadges } from '@/lib/db/queries/achievements';
+import { getEarnedBadges, getClubBadgeRarity } from '@/lib/db/queries/achievements';
 import { AchievementsSection } from '@/components/achievements/achievements-section';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
@@ -27,9 +27,10 @@ export default async function ProfilePage({
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('stats.profile');
-  const [stats, earnedBadges] = await Promise.all([
+  const [stats, earnedBadges, badgeRarity] = await Promise.all([
     getPlayerStats({ clubId: ctx.club.id, memberId }),
     getEarnedBadges({ clubId: ctx.club.id, memberId }),
+    getClubBadgeRarity({ clubId: ctx.club.id }),
   ]);
   if (!stats) notFound();
 
@@ -56,7 +57,7 @@ export default async function ProfilePage({
 
       <FunLines lines={selectFunLines(stats)} />
 
-      <AchievementsSection stats={stats} earned={earnedBadges} />
+      <AchievementsSection stats={stats} earned={earnedBadges} rarity={badgeRarity} />
 
       <section className="flex flex-col gap-2">
         <h2 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">

@@ -6,6 +6,35 @@ When one matures, run `/speckit-specify` and the item moves into
 
 ---
 
+## Achievements / badges (spec 035 follow-ups)
+
+Deferred from spec 035 (achievements-badges) — the persistent badge layer +
+game-style gallery. Recorded as the v1 scope shipped.
+
+- **Tiered badges.** Bronze/silver/gold escalations of the count badges
+  (💯 → 250 → 500 beers; multiple win-count / matches-played tiers). The
+  catalog + `BadgeView` shape already supports adding keys; tiers would want a
+  small grouping convention (a "family" with levels) so the gallery shows the
+  current tier + next-tier progress rather than nine separate rows.
+- **Relative / point-in-time badges.** "Giant-killer" (beat a much
+  higher-ranked player), "was #1 on a board", "beat the reigning champion".
+  These can't be derived from a current `MemberStats` snapshot — they need
+  event capture at the moment they happen (a small append-only fact table or a
+  hook in `recordResultTx`). Explicitly out of scope v1.
+- **Secret / spoiler-hidden achievements.** v1 intentionally shows every
+  condition (the whole point of the gallery). A future "??? — keep playing"
+  hidden tier could be added with a `secret` flag on the catalog entry.
+- **Gallery sort/filter controls + a badge-count leaderboard.** v1 sorts
+  earned-first then catalog order with no controls; an 8th leaderboard board
+  ("most badges") and rarity/earned-date sort toggles are natural follow-ups.
+- **Lean reconcile stats fetch.** `reconcileAchievements` reuses
+  `getPlayerStats` (~10 queries) per affected member. At clubhouse scale this
+  is negligible (verified), but if a huge round ever makes the fan-out bite, a
+  `getBadgeStats` fetching only the ~7 aggregates the predicates read is a
+  clean drop-in. Not built — noted so the option isn't rediscovered.
+
+---
+
 ## Stats / leaderboards (spec 034 follow-ups)
 
 Deferred from spec 034 (leaderboards-profiles) — the read-only stats

@@ -1,12 +1,38 @@
 <!-- SPECKIT START -->
-ACTIVE PLAN: spec 035 (achievements-badges) — see
-specs/035-achievements-badges/plan.md. Persistent, sticky, earned-at-write badge
-layer on spec 034's stats; one new table member_achievements (catalog in code,
-lib/achievements/), reconcileAchievements() in the existing log/match actions,
-backfill at release, 🍻 celebration on unlock. Profile gains a game-style
-Achievements GALLERY: shows ALL badges with their unlock condition, claimed
-(vivid + earned date) vs locked (dimmed + progress bar "64/100"), earned-first,
-"N of M" count; optional rarity (US3). Not yet shipped.
+Most recently shipped: spec 035 (achievements-badges — persistent, sticky,
+earned-at-write badge layer on spec 034's stats, PLUS a game-style badge
+GALLERY on the profile. ONE new table member_achievements (club_id, member_id,
+badge_key, earned_at; UNIQUE(member_id,badge_key)) — migration 0015, additive.
+Badge CATALOG lives in CODE not DB: lib/achievements/{types,predicates,catalog}.ts
+— 9 badges (💯 centuryClub/🏆 winner/📈 sharpshooter/🔥 onFire/🎩 hatTrick/
+🤝 roundKing/🎾 regular/🍺 connoisseur/🦉 nightOwl), each a pure earn predicate
++ progress fn over MemberStats (extended with distinctBeerTypes + sessionsAttended
+in getPlayerStats). lib/db/queries/achievements.ts: reconcileAchievements
+(insert-if-absent → newly-earned keys, STICKY — never revoked, idempotent via the
+unique index as conflict target), reconcileAndCollect (multi-member, swallows
+errors → never fails the action, returns the ACTOR's keys), getEarnedBadges,
+getClubBadgeRarity (US3), reconcileAllClubMembers (backfill). RECOGNISE-AT-WRITE
+(never on render): reconcile is called POST-COMMIT in logBeerAction (actor),
+logBeerOnBehalfAction (target silently), logRoundAction (drinkers + actor),
+recordResultAction (all participants); each success result carries
+unlockedBadges. Client celebrateUnlocks() (components/achievements/) fires the
+existing 🍻 overlay + a toast per badge, called from home-one-tap-log/
+round-logger/beer-grid/RecordResultForm. GALLERY (components/achievements/
+{achievements-section,badge-chip}.tsx on /members/[memberId]): shows ALL 9 badges
+— earned vivid + "Earned {date}" sorted first, locked dimmed + condition +
+progress bar ("64 / 100"), "N of 9" count, optional rarity ("3 of 28 members").
+Progress is a pure in-render fn over the stats the profile already loads (NO
+write-on-read, NO new per-badge query). achievement.* i18n (cs/en, name+desc+
+condition per badge). achievements-section in the i18n-check EXCLUDED set (arrow
+false-positive). Backfill: pnpm db:backfill:achievements (scripts/, single
+release earned_at stamp). DEPLOY NOTE: after migrate, run the backfill once
+against prod so veterans see historical badges. Tests: unit 10 (predicates/
+progress/catalog) + integration (reconcile-achievements 4 sticky/idempotent/
+backfill, award-on-action 3) + component (achievements-section 6). No E2E
+(display + write-side-effect, not a journey). Full SDD in
+specs/035-achievements-badges/. BACKLOG after 035: tiered badges, relative/
+point-in-time (Giant-killer, was-#1) needing event capture, secret badges,
+gallery sort/filter + badge-count board, lean getBadgeStats reconcile.)
 
 Most recently shipped: spec 034 (leaderboards-profiles — read-only stats
 layer, NO schema change. Two surfaces: /leaderboards (7 aggregate

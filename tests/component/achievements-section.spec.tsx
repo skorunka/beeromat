@@ -97,6 +97,21 @@ describe('AchievementsSection (component — spec 035)', () => {
     expect(screen.getByText('Naloguj 100 piv')).toBeInTheDocument();
   });
 
+  it('shows club rarity per badge when provided (US3)', () => {
+    render(
+      <NextIntlClientProvider locale="en" messages={enMessages}>
+        <AchievementsSection
+          stats={stats({ totalBeers: 120 })}
+          earned={[{ key: 'centuryClub', earnedAt: new Date('2024-03-01T12:00:00Z') }]}
+          rarity={{ holdersByKey: { centuryClub: 3 } as Record<BadgeKey, number>, clubMembers: 28 }}
+        />
+      </NextIntlClientProvider>,
+    );
+    expect(screen.getByText('3 of 28 members')).toBeInTheDocument();
+    // a badge nobody holds shows the "be the first" state
+    expect(screen.getAllByText(/be the first/i).length).toBeGreaterThan(0);
+  });
+
   it('does not render a progress bar on an earned badge', () => {
     renderSection({
       stats: stats({ totalBeers: 120 }),

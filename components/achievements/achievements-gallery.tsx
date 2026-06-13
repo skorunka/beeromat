@@ -47,9 +47,9 @@ export function AchievementsGallery({ views }: { views: BadgeView[] }) {
 
   return (
     <div className="flex flex-col gap-2">
-      {/* One line: filter group + sort group. Scrolls horizontally only if a
-          narrow screen can't fit both (desktop fits; mobile swipes). */}
-      <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Filter group + sort group. Wraps onto a second line on a narrow
+          screen rather than scrolling — both groups always fully visible. */}
+      <div className="flex flex-wrap items-center gap-2">
         <div className={CHIP_GROUP}>
           {FILTERS.map((f) => (
             <button

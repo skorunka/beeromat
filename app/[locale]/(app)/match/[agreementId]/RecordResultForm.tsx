@@ -11,6 +11,7 @@ import {
   reverseResultAction,
 } from '@/app/[locale]/(app)/match/actions';
 import { Button } from '@/components/ui/button';
+import { celebrateUnlocks } from '@/components/achievements/celebrate-unlocks';
 
 interface RecordResultFormProps {
   agreementId: string;
@@ -33,6 +34,7 @@ export function RecordResultForm({
   loserBeerCount = 1,
 }: RecordResultFormProps) {
   const t = useTranslations('match');
+  const tAch = useTranslations('achievement');
   const router = useRouter();
   const [isRecording, startRecord] = useTransition();
   const [isReversing, startReverse] = useTransition();
@@ -51,6 +53,8 @@ export function RecordResultForm({
       }
       const sideName = side === 'A' ? sideALabel : sideBLabel;
       toast.success(t('recordedToast', { side: sideName }));
+      // Spec 035 — celebrate any badge the recorder just unlocked.
+      celebrateUnlocks(result.unlockedBadges, tAch);
       setRecordedSide(side);
       // Auto-clear the undo affordance once the reverse window expires.
       window.setTimeout(() => setRecordedSide((s) => (s === side ? null : s)), UNDO_WINDOW_MS);

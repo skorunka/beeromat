@@ -95,14 +95,14 @@ No new tooling/deps. The project, lint, test configs, and i18n gates already exi
 
 ### Wire reconcile into the mutation actions (post-commit, swallow errors — FR-019)
 
-- [ ] T020 [US2] In `app/[locale]/(app)/log/actions.ts`: after each transaction commits, call `reconcileAchievements` wrapped in try/catch (never fail the action) — `logBeerAction` (actor), `logBeerOnBehalfAction` (target + actor), `logRoundAction` (each logged drinker + actor); add `unlockedBadges: BadgeKey[]` (the **actor's** newly-earned) to each success result type + value. Per contracts/achievements.md §4. (Depends on T011.)
-- [ ] T021 [US2] In `app/[locale]/(app)/match/actions.ts`: after `recordResultTx` commits in `recordResultAction`, reconcile **all participant member IDs** (try/catch each); add `unlockedBadges: BadgeKey[]` (actor's) to `RecordResultResult`. (Depends on T011.)
-- [ ] T022 [US2] Integration test `tests/integration/award-on-action.spec.ts` (PGlite) — driving the real `logBeerAction`/`recordResultAction` path across a threshold inserts the badge and returns it in `unlockedBadges`; below threshold returns `[]`; on-behalf/round reconciles the target/drinkers (their rows appear) while only the actor's keys ride back; a reconcile that would error does NOT fail the action. (Gate: `pnpm test:integration`.)
+- [X] T020 [US2] In `app/[locale]/(app)/log/actions.ts`: after each transaction commits, call `reconcileAchievements` wrapped in try/catch (never fail the action) — `logBeerAction` (actor), `logBeerOnBehalfAction` (target + actor), `logRoundAction` (each logged drinker + actor); add `unlockedBadges: BadgeKey[]` (the **actor's** newly-earned) to each success result type + value. Per contracts/achievements.md §4. (Depends on T011.)
+- [X] T021 [US2] In `app/[locale]/(app)/match/actions.ts`: after `recordResultTx` commits in `recordResultAction`, reconcile **all participant member IDs** (try/catch each); add `unlockedBadges: BadgeKey[]` (actor's) to `RecordResultResult`. (Depends on T011.)
+- [X] T022 [US2] Integration test `tests/integration/award-on-action.spec.ts` (PGlite) — driving the real `logBeerAction`/`recordResultAction` path across a threshold inserts the badge and returns it in `unlockedBadges`; below threshold returns `[]`; on-behalf/round reconciles the target/drinkers (their rows appear) while only the actor's keys ride back; a reconcile that would error does NOT fail the action. (Gate: `pnpm test:integration`.)
 
 ### Celebration on the client
 
-- [ ] T023 [US2] Create a tiny client helper `components/achievements/celebrate-unlocks.ts(x)` — `celebrateUnlocks(keys, t)` fires `celebrateBeer()` once and a `toast` per key naming `t(BADGE_BY_KEY[key].nameKey) + emoji` via `t('achievement.unlocked', {badge})`. (Reuses `lib/celebrate.ts`.)
-- [ ] T024 [US2] Call `celebrateUnlocks(result.unlockedBadges, t)` in the client result handlers that already call `celebrateBeer()` on success — the home one-tap log (`components/home/*one-tap*`), the `/log` grid client, `components/home/round-logger.tsx`, and the match `RecordResultForm.tsx`. Guard on `unlockedBadges?.length`. (Depends on T020, T021, T023.)
+- [X] T023 [US2] Create a tiny client helper `components/achievements/celebrate-unlocks.ts(x)` — `celebrateUnlocks(keys, t)` fires `celebrateBeer()` once and a `toast` per key naming `t(BADGE_BY_KEY[key].nameKey) + emoji` via `t('achievement.unlocked', {badge})`. (Reuses `lib/celebrate.ts`.)
+- [X] T024 [US2] Call `celebrateUnlocks(result.unlockedBadges, t)` in the client result handlers that already call `celebrateBeer()` on success — the home one-tap log (`components/home/*one-tap*`), the `/log` grid client, `components/home/round-logger.tsx`, and the match `RecordResultForm.tsx`. Guard on `unlockedBadges?.length`. (Depends on T020, T021, T023.)
 
 **Checkpoint**: Earn-in-the-moment loop works end to end; US1 + US2 both functional.
 

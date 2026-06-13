@@ -13,6 +13,8 @@ import { drinkSessions } from '@/lib/db/schema/sessions';
 import { hasAnyRole } from '@/lib/permissions';
 import { memberBalance } from '@/lib/balance/calculate';
 import { logRoundSchema } from '@/lib/validation/round';
+import { reconcileAndCollect } from '@/lib/db/queries/achievements';
+import type { BadgeKey } from '@/lib/achievements/types';
 
 export type LogBeerResult =
   | {
@@ -20,6 +22,8 @@ export type LogBeerResult =
       consumptionId: string;
       sessionId: string;
       balanceAfterMinor: bigint;
+      // Spec 035 — badges the member just unlocked (for the 🍻 celebration).
+      unlockedBadges: BadgeKey[];
     }
   | { ok: false; code: 'BEER_NOT_AVAILABLE' | 'OUT_OF_STOCK' };
 
@@ -125,10 +129,16 @@ export async function logBeerAction(input: {
   });
 
   if (!txResult.ok) return txResult;
-  return {
-    ...txResult,
-    balanceAfterMinor: await memberBalance(ctx.member.id),
-  };
+  // Post-commit (FR-009): read balance + reconcile badges for the actor.
+  const [balanceAfterMinor, unlockedBadges] = await Promise.all([
+    memberBalance(ctx.member.id),
+    reconcileAndCollect({
+      clubId: ctx.club.id,
+      memberIds: [ctx.member.id],
+      actorMemberId: ctx.member.id,
+    }),
+  ]);
+  return { ...txResult, balanceAfterMinor, unlockedBadges };
 }
 
 // Spec 019 — on-behalf log result. Success does NOT include the
@@ -140,6 +150,9 @@ export type LogBeerOnBehalfResult =
       ok: true;
       consumptionId: string;
       targetMemberId: string;
+      // Spec 035 — actor's unlocks (empty here: a single on-behalf log changes
+      // the TARGET's stats, not the logger's; the target is reconciled silently).
+      unlockedBadges: BadgeKey[];
     }
   | { ok: false; code: 'BEER_NOT_AVAILABLE' | 'OUT_OF_STOCK' | 'TARGET_NOT_IN_CLUB' | 'TARGET_IS_SELF' };
 
@@ -164,7 +177,7 @@ export async function logBeerOnBehalfAction(input: {
     return { ok: false, code: 'TARGET_IS_SELF' } as const;
   }
 
-  return db.transaction(async (tx) => {
+  const txResult = await db.transaction(async (tx) => {
     // 1. Verify target is an active member of the same club.
     const targetMember = await tx.query.members.findFirst({
       where: and(
@@ -241,11 +254,21 @@ export async function logBeerOnBehalfAction(input: {
     revalidatePath('/tab');
 
     return {
-      ok: true,
+      ok: true as const,
       consumptionId: consumption.id,
       targetMemberId: targetMember.id,
-    } as const;
+    };
   });
+
+  if (!txResult.ok) return txResult;
+  // Post-commit: reconcile the TARGET (their beer count changed); the logger's
+  // own stats are unchanged by a single on-behalf log, so unlockedBadges is empty.
+  const unlockedBadges = await reconcileAndCollect({
+    clubId: ctx.club.id,
+    memberIds: [txResult.targetMemberId],
+    actorMemberId: ctx.member.id,
+  });
+  return { ...txResult, unlockedBadges };
 }
 
 // Spec 033 — log a "round": one beer per selected drinker, each on
@@ -271,6 +294,9 @@ export type LogRoundResult =
       sessionId: string;
       /** Actor's balance AFTER commit — changes only if the actor was a drinker. */
       balanceAfterMinor: bigint;
+      // Spec 035 — actor's unlocks (e.g. Round King for pouring, or a beer badge
+      // if the actor was one of the drinkers).
+      unlockedBadges: BadgeKey[];
     }
   | { ok: false; code: 'EMPTY' | 'ALL_SKIPPED' };
 
@@ -394,10 +420,17 @@ export async function logRoundAction(input: {
   });
 
   if (!txResult.ok) return txResult;
-  return {
-    ...txResult,
-    balanceAfterMinor: await memberBalance(ctx.member.id),
-  };
+  // Post-commit: each drinker's beer count changed, and the actor poured a round
+  // (roundsPoured) → reconcile all of them; the actor's unlocks ride back.
+  const [balanceAfterMinor, unlockedBadges] = await Promise.all([
+    memberBalance(ctx.member.id),
+    reconcileAndCollect({
+      clubId: ctx.club.id,
+      memberIds: [...txResult.logged.map((l) => l.memberId), ctx.member.id],
+      actorMemberId: ctx.member.id,
+    }),
+  ]);
+  return { ...txResult, balanceAfterMinor, unlockedBadges };
 }
 
 // Spec 019 — dismiss an on-behalf review banner row by stamping

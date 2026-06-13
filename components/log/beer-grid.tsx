@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { logBeerAction } from '@/app/[locale]/(app)/log/actions';
 import { celebrateBeer } from '@/lib/celebrate';
+import { celebrateUnlocks } from '@/components/achievements/celebrate-unlocks';
 import { formatMoney } from '@/lib/format';
 
 interface BeerTile {
@@ -28,6 +29,7 @@ interface BeerGridProps {
 
 export function BeerGrid({ beers, currencyCode, locale }: BeerGridProps) {
   const t = useTranslations();
+  const tAch = useTranslations('achievement');
   const [isPending, startTransition] = useTransition();
 
   function handleLog(beer: BeerTile) {
@@ -36,6 +38,7 @@ export function BeerGrid({ beers, currencyCode, locale }: BeerGridProps) {
       const result = await logBeerAction({ beerTypeId: beer.id });
       if (result.ok) {
         celebrateBeer();
+        celebrateUnlocks(result.unlockedBadges, tAch);
         toast.success(t('log.added', { name: beer.name }));
       } else if (result.code === 'OUT_OF_STOCK') {
         toast.error(t('log.outOfStock'));

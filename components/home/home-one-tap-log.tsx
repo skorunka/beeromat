@@ -8,6 +8,7 @@ import { Beer, ChevronDown } from 'lucide-react';
 
 import { logBeerAction } from '@/app/[locale]/(app)/log/actions';
 import { celebrateBeer } from '@/lib/celebrate';
+import { celebrateUnlocks } from '@/components/achievements/celebrate-unlocks';
 import { BeerSpinner } from '@/components/ui/beer-spinner';
 import {
   DropdownMenu,
@@ -58,6 +59,7 @@ export function HomeOneTapLog({
   locale,
 }: HomeOneTapLogProps) {
   const t = useTranslations('home');
+  const tAch = useTranslations('achievement');
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -70,6 +72,7 @@ export function HomeOneTapLog({
       const result = await logBeerAction({ beerTypeId: b.id });
       if (result.ok) {
         celebrateBeer();
+        celebrateUnlocks(result.unlockedBadges, tAch);
         toast.success(
           t('toastLogged', {
             balance: formatMoney(result.balanceAfterMinor, currencyCode, locale),

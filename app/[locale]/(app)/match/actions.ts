@@ -23,6 +23,8 @@ import {
 } from '@/lib/db/queries/match-bet-debts';
 import { closeOpenRoundTx } from '@/lib/db/queries/sessions';
 import { canRecordMatchResult, roleSatisfies } from '@/lib/permissions';
+import { reconcileAndCollect } from '@/lib/db/queries/achievements';
+import type { BadgeKey } from '@/lib/achievements/types';
 import type { CreateAgreementInput } from '@/lib/validation/match-agreement';
 import {
   cancelAgreementSchema,
@@ -153,6 +155,8 @@ export type RecordResultResult =
       matchRowIds: string[];
       // Spec 030 — pending beer-debts created (0 for a friendly match).
       debtsCreated: number;
+      // Spec 035 — recorder's newly-unlocked badges (for the celebration).
+      unlockedBadges: BadgeKey[];
     }
   | { ok: false; code: 'NOT_FOUND' }
   | { ok: false; code: 'NOT_AUTHORIZED' }
@@ -182,11 +186,19 @@ export async function recordResultAction(rawInput: unknown): Promise<RecordResul
     recordedByUserId: ctx.user.id,
     winningSide: parsed.data.winningSide,
   });
-  if (result.ok) {
-    revalidatePath('/', 'layout');
-    revalidatePath('/match');
-  }
-  return result;
+  if (!result.ok) return result;
+
+  revalidatePath('/', 'layout');
+  revalidatePath('/match');
+  // Post-commit (FR-009): all participants' match stats changed (played/won/
+  // streak/partner) → reconcile each; the recorder's unlocks ride back for the
+  // celebration. Swallowed errors never fail the recorded result.
+  const unlockedBadges = await reconcileAndCollect({
+    clubId: ctx.club.id,
+    memberIds: agreement.participantMemberIds,
+    actorMemberId: ctx.member.id,
+  });
+  return { ...result, unlockedBadges };
 }
 
 // Spec 030 — deliver ("Předáno") a beer-IOU: books the cost to the

@@ -8,6 +8,7 @@ import { UserPlus, X } from 'lucide-react';
 
 import { logRoundAction } from '@/app/[locale]/(app)/log/actions';
 import { celebrateBeer } from '@/lib/celebrate';
+import { celebrateUnlocks } from '@/components/achievements/celebrate-unlocks';
 import { Button } from '@/components/ui/button';
 import { MemberAvatar } from '@/components/ui/member-avatar';
 import { avatarUploadUrl } from '@/lib/avatars/upload-url';
@@ -41,6 +42,7 @@ export function RoundLogger({
   locale,
 }: RoundLoggerProps) {
   const t = useTranslations('round');
+  const tAch = useTranslations('achievement');
   const router = useRouter();
   const self = members.find((m) => m.isSelf) ?? null;
 
@@ -126,6 +128,7 @@ export function RoundLogger({
         setLastRound(memberIds);
       }
       celebrateBeer();
+      celebrateUnlocks(result.unlockedBadges, tAch);
       if (result.skipped.length > 0) {
         const names = result.skipped.map((s) => nameOf(s.memberId)).filter(Boolean).join(', ');
         toast.success(t('toastLoggedPartial', { names }));

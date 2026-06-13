@@ -50,6 +50,30 @@ export async function reconcileAchievements(args: {
   return inserted.map((r) => r.badgeKey as BadgeKey);
 }
 
+/**
+ * Reconcile a set of members whose stats just changed, swallowing any error so a
+ * predicate bug or DB hiccup never fails the underlying action (FR-019). Returns
+ * the ACTOR's newly-earned keys (for the in-the-moment celebration); other
+ * members are reconciled silently (they aren't at the screen, no notifications in
+ * v1). Must be called AFTER the mutating transaction commits.
+ */
+export async function reconcileAndCollect(args: {
+  clubId: string;
+  memberIds: string[];
+  actorMemberId: string;
+}): Promise<BadgeKey[]> {
+  let actorKeys: BadgeKey[] = [];
+  for (const memberId of new Set(args.memberIds)) {
+    try {
+      const keys = await reconcileAchievements({ clubId: args.clubId, memberId });
+      if (memberId === args.actorMemberId) actorKeys = keys;
+    } catch (err) {
+      console.error(`reconcileAchievements failed for member ${memberId}`, err);
+    }
+  }
+  return actorKeys;
+}
+
 /** Badges a member currently holds, newest-earned first. For the profile gallery. */
 export async function getEarnedBadges(args: {
   clubId: string;

@@ -22,8 +22,8 @@ describe('FunLines (component — spec 034)', () => {
         <FunLines lines={[{ key: 'funline.payUp', params: { name: 'Pepa', count: 3 } }]} />
       </NextIntlClientProvider>,
     );
-    // cs "few" form: "3 piva", with the unambiguous "→ {name}" direction (spec 038 fix).
-    expect(screen.getByText(/Dluží 3 piva → Pepa/)).toBeInTheDocument();
+    // cs "few" form: "3 piva", second-person self-nudge + "→ {name}" direction (spec 038 fix).
+    expect(screen.getByText(/Dlužíš 3 piva → Pepa/)).toBeInTheDocument();
   });
 
   it('renders at most the top 2 lines', () => {

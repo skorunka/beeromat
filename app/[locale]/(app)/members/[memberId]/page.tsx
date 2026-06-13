@@ -55,7 +55,7 @@ export default async function ProfilePage({
         </Link>
       </header>
 
-      <FunLines lines={selectFunLines(stats)} />
+      <FunLines lines={selectFunLines(stats, { isOwnProfile: ctx.member.id === memberId })} />
 
       <AchievementsSection stats={stats} earned={earnedBadges} rarity={badgeRarity} />
 

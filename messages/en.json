@@ -306,7 +306,7 @@
   "funline": {
     "subscription": "{wins}–{losses} vs {name}. It's not a rivalry, it's a subscription. 😅",
     "undefeated": "Undefeated in {count}! Someone stop them. 🔥",
-    "payUp": "Owes {count, plural, one {# beer} other {# beers}} → {name}. Pay up! 🍺",
+    "payUp": "You owe {count, plural, one {# beer} other {# beers}} → {name}. Pay up! 🍺",
     "sugarDaddy": "Poured {count, plural, one {# round} other {# rounds}} — the club's sugar daddy. 💸",
     "professional": "Averages {avg} beers a night — a true pro. 🍺",
     "favouriteBeer": "{beer} ×{count} — loyalty pays. 🍺"

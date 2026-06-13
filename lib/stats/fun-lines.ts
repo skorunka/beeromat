@@ -5,7 +5,10 @@
 
 import type { FunLine, MemberStats } from './types';
 
-export function selectFunLines(stats: MemberStats): FunLine[] {
+export function selectFunLines(
+  stats: MemberStats,
+  opts: { isOwnProfile?: boolean } = {},
+): FunLine[] {
   const lines: FunLine[] = [];
 
   // A one-sided rivalry is the funniest — lead with it.
@@ -18,7 +21,9 @@ export function selectFunLines(stats: MemberStats): FunLine[] {
   if (stats.currentStreak >= 3) {
     lines.push({ key: 'funline.undefeated', params: { count: stats.currentStreak } });
   }
-  if (stats.owesMostTo && stats.owesMostTo.beerCount >= 2) {
+  // "Pay up!" is a self-nudge in the second person — only on your OWN profile.
+  // On someone else's profile the imperative makes no sense, so we skip it.
+  if (opts.isOwnProfile && stats.owesMostTo && stats.owesMostTo.beerCount >= 2) {
     lines.push({
       key: 'funline.payUp',
       params: { count: stats.owesMostTo.beerCount, name: stats.owesMostTo.displayName },

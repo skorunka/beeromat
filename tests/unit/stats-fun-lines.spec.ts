@@ -54,7 +54,7 @@ describe('selectFunLines (spec 034)', () => {
     expect(lines[0]!.params).toMatchObject({ wins: 0, losses: 7, name: 'Honza' });
   });
 
-  it('picks the quantity lines when their guards are met', () => {
+  it('picks the quantity lines when their guards are met (own profile)', () => {
     const keys = selectFunLines(
       stats({
         beersPerNight: 4.2,
@@ -62,6 +62,7 @@ describe('selectFunLines (spec 034)', () => {
         owesMostTo: { memberId: 'p', displayName: 'Pepa', beerCount: 3, ...face },
         favouriteBeer: { beerTypeId: 'x', name: 'Budvar', count: 40 },
       }),
+      { isOwnProfile: true },
     ).map((l) => l.key);
     expect(keys).toEqual(
       expect.arrayContaining([
@@ -73,9 +74,18 @@ describe('selectFunLines (spec 034)', () => {
     );
   });
 
+  it('payUp is a self-nudge — omitted on someone else’s profile (spec 038 fix)', () => {
+    const s = stats({ owesMostTo: { memberId: 'p', displayName: 'Pepa', beerCount: 3, ...face } });
+    // not own profile (default) → no payUp
+    expect(selectFunLines(s).map((l) => l.key)).not.toContain('funline.payUp');
+    // own profile → payUp present
+    expect(selectFunLines(s, { isOwnProfile: true }).map((l) => l.key)).toContain('funline.payUp');
+  });
+
   it('respects guards — owes 1 beer / 9 rounds → no payUp / sugarDaddy', () => {
     const keys = selectFunLines(
       stats({ roundsPoured: 9, owesMostTo: { memberId: 'p', displayName: 'Pepa', beerCount: 1, ...face } }),
+      { isOwnProfile: true },
     ).map((l) => l.key);
     expect(keys).not.toContain('funline.payUp');
     expect(keys).not.toContain('funline.sugarDaddy');

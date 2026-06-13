@@ -306,7 +306,7 @@
   "funline": {
     "subscription": "{wins}–{losses} s {name}. To není rivalita, to je předplatné. 😅",
     "undefeated": "Neporažen už {count}×! Někdo ho zastavte. 🔥",
-    "payUp": "Dluží {count, plural, one {# pivo} few {# piva} other {# piv}} → {name}. Zaplať! 🍺",
+    "payUp": "Dlužíš {count, plural, one {# pivo} few {# piva} other {# piv}} → {name}. Zaplať! 🍺",
     "sugarDaddy": "Naservíroval {count, plural, one {# rundu} few {# rundy} other {# rund}} — klubový sponzor. 💸",
     "professional": "Průměr {avg} piv na večer — profík. 🍺",
     "favouriteBeer": "{beer} ×{count} — věrnost se cení. 🍺"

@@ -33,6 +33,14 @@ game-style gallery. Recorded as the v1 scope shipped.
   `getBadgeStats` fetching only the ~7 aggregates the predicates read is a
   clean drop-in. Not built — noted so the option isn't rediscovered.
 
+- **Badge-threshold tuning.** On a realistic dataset the v1 thresholds bunch up:
+  some badges become universal (everyone hits them) and some unreachable (nobody
+  does), leaving only a few in the satisfying "fun middle". Thresholds live in
+  code (`lib/achievements/predicates.ts`), so a tuning pass — informed by the
+  actual club's stat distribution — can spread them across the achievable range.
+  Revisit once prod has accrued real activity (the seeded heavy club is the only
+  large dataset today; prod is still small).
+
 ---
 
 ## Stats / leaderboards (spec 034 follow-ups)

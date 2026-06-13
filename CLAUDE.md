@@ -1,4 +1,18 @@
 <!-- SPECKIT START -->
+ACTIVE PLAN: spec 038 (tiered-badges) — see specs/038-tiered-badges/plan.md. The 6
+count-based badges become bronze/silver/gold families; win-rate + streak stay single.
+BACKWARD-COMPATIBLE + additive: the existing base key = bronze (e.g. centuryClub),
++new …Silver/…Gold keys in the code catalog → existing reconcile/backfill grant tiers
+automatically, NO schema change. Catalog → BADGE_FAMILIES (stat + ascending
+thresholds) + SINGLE_BADGES; pure lib/achievements/family-view.ts buildGalleryViews
+(one BadgeView per family at highest earned tier + progress to next) + highestEarnedTier;
+BadgeView.tier?; BadgeKey +12; badge-chip tier cue; celebrateUnlocks names tier
+("Century Club — Silver"); achievement.tier.{bronze,silver,gold} i18n. Gallery "N of 9"
+counts families; the 037 Most-badges board keeps counting rows (depth rewarded).
+Thresholds tuned vs data (FR-013). Tests: unit (tiers/family-view) + integration
+(reconcile-tiers sticky) + component (family tile) + update 035/037 catalog tests. Not
+yet shipped.
+
 Most recently shipped: spec 037 (badge-board-gallery-controls — two achievements
 follow-ups, NO schema change. (1) "Most badges" 🏅 leaderboard board: one COUNT
 GROUP BY over member_achievements in getLeaderboards (ALL-TIME — no season filter;

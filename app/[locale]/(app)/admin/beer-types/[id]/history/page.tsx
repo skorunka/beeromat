@@ -5,7 +5,9 @@ import { and, eq } from 'drizzle-orm';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 import { Card } from '@/components/ui/card';
+import { AdminDeleteStockChangeButton } from '@/components/admin/admin-delete-stock-change-button';
 import { requireRole } from '@/lib/auth/session';
+import { roleSatisfies } from '@/lib/permissions';
 import { db } from '@/lib/db/client';
 import { beerTypes } from '@/lib/db/schema/catalog';
 import type { StockChange } from '@/lib/db/schema/catalog';
@@ -20,6 +22,9 @@ export default async function StockHistoryPage({
   setRequestLocale(locale);
 
   const ctx = await requireRole('stock_manager', 'club_admin');
+  // Deleting a history row is a club_admin-only reset affordance, even
+  // though stock_managers can view this page.
+  const isAdmin = roleSatisfies(ctx.member.role, 'club_admin');
   const t = await getTranslations('admin');
   const beer = await db.query.beerTypes.findFirst({
     where: and(eq(beerTypes.id, id), eq(beerTypes.clubId, ctx.club.id)),
@@ -73,12 +78,20 @@ export default async function StockHistoryPage({
                   {reasonLabel(row.reason) ? ` · ${reasonLabel(row.reason)}` : ''}
                 </div>
               </div>
-              <div
-                className={`font-mono text-sm font-semibold ${
-                  row.delta >= 0 ? 'text-primary' : 'text-destructive'
-                }`}
-              >
-                {row.delta >= 0 ? `+${row.delta}` : row.delta}
+              <div className="flex shrink-0 items-center gap-2">
+                <div
+                  className={`font-mono text-sm font-semibold ${
+                    row.delta >= 0 ? 'text-primary' : 'text-destructive'
+                  }`}
+                >
+                  {row.delta >= 0 ? `+${row.delta}` : row.delta}
+                </div>
+                {isAdmin ? (
+                  <AdminDeleteStockChangeButton
+                    stockChangeId={row.id}
+                    label={kindLabel[row.kind] ?? row.kind}
+                  />
+                ) : null}
               </div>
             </Card>
           </li>

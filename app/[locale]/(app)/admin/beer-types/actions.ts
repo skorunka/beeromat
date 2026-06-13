@@ -304,3 +304,35 @@ export async function recordStockAdjustmentAction(
     return { ok: true, newStock: updated.currentStock } as const;
   });
 }
+
+export type DeleteStockChangeResult =
+  | { ok: true }
+  | { ok: false; code: 'NOT_FOUND' };
+
+/**
+ * Remove a single row from a beer's stock-movement history (admin data
+ * reset). The stock ledger is normally append-only, but an admin cleaning
+ * fake/test entries from a fresh club's history needs to tidy it.
+ *
+ * Safe re: totals: currentStock is a STORED counter (not derived from this
+ * ledger), so deleting an audit row does NOT change the stock count — it
+ * only removes the history line. Nothing FKs to stock_changes, so it's a
+ * plain single delete. club_admin only, club-scoped.
+ */
+export async function deleteStockChangeAction(rawId: unknown): Promise<DeleteStockChangeResult> {
+  const ctx = await requireRole('club_admin');
+  const parsed = z.string().uuid().safeParse(rawId);
+  if (!parsed.success) return { ok: false, code: 'NOT_FOUND' };
+  const stockChangeId = parsed.data;
+
+  const row = await db.query.stockChanges.findFirst({
+    where: and(eq(stockChanges.id, stockChangeId), eq(stockChanges.clubId, ctx.club.id)),
+  });
+  if (!row) return { ok: false, code: 'NOT_FOUND' };
+
+  await db.delete(stockChanges).where(eq(stockChanges.id, stockChangeId));
+
+  revalidateStockViews();
+  revalidatePath(`/admin/beer-types/${row.beerTypeId}/history`);
+  return { ok: true };
+}

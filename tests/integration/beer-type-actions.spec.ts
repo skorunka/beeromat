@@ -33,6 +33,7 @@ import {
   unarchiveBeerTypeAction,
   recordRestockAction,
   recordStockAdjustmentAction,
+  deleteStockChangeAction,
 } from '@/app/[locale]/(app)/admin/beer-types/actions';
 
 async function seedClub(label = 'Test') {
@@ -399,5 +400,73 @@ describe('recordStockAdjustmentAction', () => {
       reason: 'noop',
     });
     expect(result).toEqual({ ok: false, code: 'INVALID_INPUT' });
+  });
+});
+
+describe('deleteStockChangeAction', () => {
+  beforeEach(async () => {
+    ({ db: testDb } = await makeTestDb());
+    ctxRef.current = null;
+  });
+
+  it('removes one history row without changing the stored stock count', async () => {
+    const seed = await seedClub();
+    setStockMgrCtx(seed);
+    const created = await createBeerTypeAction({
+      name: 'Pilsner',
+      unitPriceMinor: '5000',
+      initialStock: 10, // writes one 'restock' audit row
+      lowStockThreshold: 2,
+    });
+    if (!created.ok) throw new Error('seed beer');
+    const audit = await readStockChanges(created.beerTypeId);
+    expect(audit).toHaveLength(1);
+
+    // club_admin deletes that history row.
+    ctxRef.current = {
+      user: { id: seed.user.id },
+      member: { id: seed.member.id, role: 'club_admin' },
+      club: { id: seed.club.id },
+    };
+    const result = await deleteStockChangeAction(audit[0]!.id);
+    expect(result).toEqual({ ok: true });
+
+    expect(await readStockChanges(created.beerTypeId)).toHaveLength(0);
+    // Stored counter is independent of the ledger — unchanged.
+    expect((await readBeer(created.beerTypeId))?.currentStock).toBe(10);
+  });
+
+  it('NOT_FOUND for a stock change in another club (club-scoped)', async () => {
+    const a = await seedClub('A');
+    const b = await seedClub('B');
+    setStockMgrCtx(b);
+    const bBeer = await createBeerTypeAction({
+      name: 'B-Pils',
+      unitPriceMinor: '5000',
+      initialStock: 5,
+      lowStockThreshold: 2,
+    });
+    if (!bBeer.ok) throw new Error('seed beer');
+    const bAudit = await readStockChanges(bBeer.beerTypeId);
+
+    // club_admin of A tries to delete B's row.
+    ctxRef.current = {
+      user: { id: a.user.id },
+      member: { id: a.member.id, role: 'club_admin' },
+      club: { id: a.club.id },
+    };
+    const result = await deleteStockChangeAction(bAudit[0]!.id);
+    expect(result).toEqual({ ok: false, code: 'NOT_FOUND' });
+    expect(await readStockChanges(bBeer.beerTypeId)).toHaveLength(1);
+  });
+
+  it('NOT_FOUND when the id is not a UUID', async () => {
+    const seed = await seedClub();
+    ctxRef.current = {
+      user: { id: seed.user.id },
+      member: { id: seed.member.id, role: 'club_admin' },
+      club: { id: seed.club.id },
+    };
+    expect(await deleteStockChangeAction('nope')).toEqual({ ok: false, code: 'NOT_FOUND' });
   });
 });

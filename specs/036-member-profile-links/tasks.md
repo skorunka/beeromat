@@ -16,7 +16,7 @@ description: "Task list for spec 036 — member-name profile links everywhere"
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirm working tree clean on `main`; dev server up (`localhost:3010`) for live checks. No deps/config changes (presentational only).
+- [X] T001 Confirm working tree clean on `main`; dev server up (`localhost:3010`) for live checks. No deps/config changes (presentational only).
 
 ---
 
@@ -32,8 +32,8 @@ description: "Task list for spec 036 — member-name profile links everywhere"
 
 **Independent Test**: Render a `BeerIouRow`; the avatar+name is an anchor → `/members/[counterpartyMemberId]`; clicking a control still fires its handler.
 
-- [ ] T002 [US1] In `components/match/beer-iou-row.tsx`, wrap the avatar + label block (the `MemberAvatar` + the `min-w-0 flex-1` text `<div>`) in a `Link` (`@/lib/i18n/navigation`) to `/members/${debt.counterpartyMemberId}`; add a subtle hover-underline on the name; keep the deliver/write-off/cancel buttons as SIBLINGS outside the Link (no nested `<a>`). Per contracts/profile-links.md.
-- [ ] T003 [P] [US1] Add `tests/component/beer-iou-row.spec.tsx` (RTL, mock `@/lib/i18n/navigation` Link → `<a>`, mock the match server actions + `useConfirm`): assert the counterparty name renders as an anchor whose href ends `/members/<counterpartyMemberId>`; assert tapping "Předáno" calls the deliver action (link didn't capture it). (Gate: `pnpm test:component`.)
+- [X] T002 [US1] In `components/match/beer-iou-row.tsx`, wrap the avatar + label block (the `MemberAvatar` + the `min-w-0 flex-1` text `<div>`) in a `Link` (`@/lib/i18n/navigation`) to `/members/${debt.counterpartyMemberId}`; add a subtle hover-underline on the name; keep the deliver/write-off/cancel buttons as SIBLINGS outside the Link (no nested `<a>`). Per contracts/profile-links.md.
+- [X] T003 [P] [US1] Add `tests/component/beer-iou-row.spec.tsx` (RTL, mock `@/lib/i18n/navigation` Link → `<a>`, mock the match server actions + `useConfirm`): assert the counterparty name renders as an anchor whose href ends `/members/<counterpartyMemberId>`; assert tapping "Předáno" calls the deliver action (link didn't capture it). (Gate: `pnpm test:component`.)
 
 **Checkpoint**: IOU rows (home + /match settle) drill into the counterparty profile.
 
@@ -45,8 +45,8 @@ description: "Task list for spec 036 — member-name profile links everywhere"
 
 **Independent Test**: Render a `TabEntryRow` with an on-behalf entry (`loggerMemberId` set) → "od {logger}" is an anchor → `/members/[loggerMemberId]`; a self entry renders no member link.
 
-- [ ] T004 [US2] In `components/tab/tab-entry-row.tsx`, wrap the on-behalf subtitle's `MemberAvatar` + `t('byOther', {logger})` text in a `Link` to `/members/${entry.loggerMemberId}` (only when `loggerMemberId` is present); keep the `🍺 Runda` badge OUTSIDE the link; leave the text-only fallback (no `loggerMemberId`) and the bet-row `t('wonBet'/'fromBet')` sentences unchanged. Per contracts/profile-links.md.
-- [ ] T005 [P] [US2] Add `tests/component/tab-entry-row.spec.tsx` (RTL, mock the i18n Link → `<a>`): on-behalf entry → "od {logger}" anchor href ends `/members/<loggerMemberId>`; self entry → no `/members/` link; (optional) bet row still links only to `/match/<id>`. (Gate: `pnpm test:component`.)
+- [X] T004 [US2] In `components/tab/tab-entry-row.tsx`, wrap the on-behalf subtitle's `MemberAvatar` + `t('byOther', {logger})` text in a `Link` to `/members/${entry.loggerMemberId}` (only when `loggerMemberId` is present); keep the `🍺 Runda` badge OUTSIDE the link; leave the text-only fallback (no `loggerMemberId`) and the bet-row `t('wonBet'/'fromBet')` sentences unchanged. Per contracts/profile-links.md.
+- [X] T005 [P] [US2] Add `tests/component/tab-entry-row.spec.tsx` (RTL, mock the i18n Link → `<a>`): on-behalf entry → "od {logger}" anchor href ends `/members/<loggerMemberId>`; self entry → no `/members/` link; (optional) bet row still links only to `/match/<id>`. (Gate: `pnpm test:component`.)
 
 **Checkpoint**: /tab on-behalf attribution drills into the logger profile.
 
@@ -54,10 +54,10 @@ description: "Task list for spec 036 — member-name profile links everywhere"
 
 ## Phase 5: Polish & Cross-Cutting
 
-- [ ] T006 Run gates: `pnpm typecheck && pnpm lint && pnpm test:component && pnpm i18n:check && pnpm forms:check && pnpm build`. (No unit/integration impact.)
-- [ ] T007 Live-walk quickstart.md on the heavy seed via the Docker MCP browser — IOU tap, tab "od X" tap, controls still fire, match-result rows still navigate (no nested-link regression).
-- [ ] T008 [P] Update `BACKLOG.md`: record the deferred bits (match-hub recent-results per-player links — nested anchor; won/lost-bet mid-sentence logger names — needs `t.rich`).
-- [ ] T009 [P] Flip `CLAUDE.md` SPECKIT marker for 036 from ACTIVE PLAN → shipped (as-built) once validated.
+- [X] T006 Run gates: `pnpm typecheck && pnpm lint && pnpm test:component && pnpm i18n:check && pnpm forms:check && pnpm build`. (No unit/integration impact.)
+- [X] T007 Live-walk quickstart.md on the heavy seed via the Docker MCP browser — IOU tap, tab "od X" tap, controls still fire, match-result rows still navigate (no nested-link regression).
+- [X] T008 [P] Update `BACKLOG.md`: record the deferred bits (match-hub recent-results per-player links — nested anchor; won/lost-bet mid-sentence logger names — needs `t.rich`).
+- [X] T009 [P] Flip `CLAUDE.md` SPECKIT marker for 036 from ACTIVE PLAN → shipped (as-built) once validated.
 
 ---
 

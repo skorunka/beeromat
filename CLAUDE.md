@@ -1,11 +1,20 @@
 <!-- SPECKIT START -->
-ACTIVE PLAN: spec 036 (member-profile-links) — see
-specs/036-member-profile-links/plan.md. Small presentational follow-up to 034+030:
-make member names tappable to /members/[id] on the beer-IOU rows
-(BeerIouRow, counterpartyMemberId) + the /tab on-behalf "od {logger}" line
-(TabEntryRow, loggerMemberId). NO query/schema change (ids already on the
-shapes). No nested anchors; match-hub result rows + won/lost-bet mid-sentence
-names deferred. Component tests only. Not yet shipped.
+Most recently shipped: spec 036 (member-profile-links — small presentational
+follow-up to 034+030. Member names now tap-through to /members/[id] on the
+beer-IOU rows (BeerIouRow: counterparty avatar+name wrapped in a Link to
+/members/[counterpartyMemberId]; deliver/write-off buttons stay siblings — no
+nested anchor) + the /tab on-behalf "od {logger}" line (TabEntryRow: avatar+name
+→ /members/[loggerMemberId]; Runda badge outside the link; text-only fallback +
+won/lost-bet sentences unchanged). The home "match card" IS the IOU rows
+(MatchBetModule renders BeerIouRow). NO query/schema change — ids already on
+BeerDebtRow + MemberTabEntry. Hard rule honoured: no <a> nested in <a>.
+DEFERRED (BACKLOG): match-hub recent-results per-player links (whole-row is
+already a match Link → nesting) + won/lost-bet mid-sentence logger names (need
+t.rich). Tests: component only — beer-iou-row.spec (2) + tab-entry-row.spec
+extended (2) + match-bet-module.spec given the Link mock; no unit/integration/
+E2E. Verify-data: scripts/seed-036-verify.ts (pnpm db:seed:verify036) seeds an
+on-behalf beer + an IOU each direction for the viewer. Full SDD in
+specs/036-member-profile-links/.
 
 Most recently shipped: spec 035 (achievements-badges — persistent, sticky,
 earned-at-write badge layer on spec 034's stats, PLUS a game-style badge

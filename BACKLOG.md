@@ -49,14 +49,17 @@ Deferred from spec 034 (leaderboards-profiles) — the read-only stats
 layer shipped 2026-06-11. Recorded here when the user chose to build
 **achievements/badges** next and backlog the rest.
 
-- **Match-lineup → profile links everywhere.** Spec 034's drill-in
-  (`components/match/match-players.tsx`) currently lives only on the
-  match *detail* page header. Extend tappable player→`/members/[id]`
-  links to the other surfaces that render member names as plain text:
-  the home match-bet card, /tab "od X" attribution rows, and the
-  beer-IOU rows. `RecentResultsList` is the awkward one — it renders a
-  joined-name *string* inside a row that's itself a link to the match,
-  so a per-name link needs the row restructured (don't nest anchors).
+- ~~**Match-lineup → profile links everywhere.**~~ **— Mostly shipped
+  2026-06-13 as spec 036** (`specs/036-member-profile-links/`): the
+  beer-IOU counterparty (home + /match) and the /tab "od {logger}"
+  on-behalf attribution now link to `/members/[id]` (the home match
+  card *is* the IOU rows). **Still deferred** (recorded then):
+  - **Match-hub recent-results rows** — each row is itself a `<Link>`
+    to the match; per-player links would nest anchors. De-nesting
+    restructures the row — invasive for low value.
+  - **Won/lost-bet `/tab` rows** — the logger name sits mid-sentence in
+    an ICU string (`t('wonBet'/'fromBet', {logger})`); linking just the
+    name needs `t.rich`. Low value (the row already links to the match).
 
 - **Season archives.** Spec 034's "season" is a live rolling-90-day
   window (`?scope`), never persisted. Follow-up: snapshot a finished

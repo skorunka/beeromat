@@ -63,6 +63,10 @@ const EXCLUDED = new Set([
   // every user-facing string comes via useTranslations('stats'); member
   // names + values are data. (spec 034)
   'components/stats/leaderboard-board.tsx',
+  // stats/board-select.tsx — the `BOARDS.find((b) => …)` / `.map((b) => …)`
+  // arrows trip the JSX_TEXT regex (same =>/ternary root cause). Audited: every
+  // user-facing string is t(`board.${key}`); emoji are aria-hidden data. (spec 034 follow-up)
+  'components/stats/board-select.tsx',
   // achievements/achievements-section.tsx — the `views.filter((v) => v.earned)`
   // arrow trips the JSX_TEXT regex (same =>/ternary root cause). Audited: every
   // user-facing string comes via useTranslations('achievement'); badge names +

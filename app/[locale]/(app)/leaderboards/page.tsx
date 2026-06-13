@@ -5,22 +5,38 @@ import { getLeaderboards } from '@/lib/db/queries/leaderboards';
 import { SEASON_DAYS } from '@/lib/stats/constants';
 import { LeaderboardBoard } from '@/components/stats/leaderboard-board';
 import { ScopeToggle } from '@/components/stats/scope-toggle';
-import type { Scope } from '@/lib/stats/types';
+import { BoardSelect } from '@/components/stats/board-select';
+import type { BoardKey, Scope } from '@/lib/stats/types';
 
-// Spec 034 — the club leaderboards. 7 boards, all-time/season toggle via
-// ?scope. Server-rendered; boards are SQL-aggregated (getLeaderboards).
+const BOARD_KEYS: BoardKey[] = [
+  'beers',
+  'tab',
+  'wins',
+  'played',
+  'winRate',
+  'streak',
+  'boughtForOthers',
+];
+
+// Spec 034 (+ follow-up) — the club leaderboards. ONE board shown at a time,
+// picked via the ?board= dropdown (default 'beers'); all-time/season via
+// ?scope=. Server-rendered; boards are SQL-aggregated (getLeaderboards).
 export default async function LeaderboardsPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ scope?: string }>;
+  searchParams: Promise<{ scope?: string; board?: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const { scope: scopeParam } = await searchParams;
+  const { scope: scopeParam, board: boardParam } = await searchParams;
   const scope: Scope = scopeParam === 'season' ? 'season' : 'allTime';
+  const board: BoardKey =
+    boardParam && (BOARD_KEYS as string[]).includes(boardParam)
+      ? (boardParam as BoardKey)
+      : 'beers';
 
   const ctx = await requireUnlocked();
   const t = await getTranslations('stats');
@@ -29,6 +45,10 @@ export default async function LeaderboardsPage({
     viewerMemberId: ctx.member.id,
     scope,
   });
+  // Plain loop (not .find(=>)) to avoid the i18n-check JSX-text false-positive
+  // on the arrow — this page carries real t() strings, so it stays scanned.
+  let selected = boards[0];
+  for (const b of boards) if (b.key === board) selected = b;
 
   return (
     <main className="mx-auto flex max-w-md flex-col gap-4 p-5">
@@ -37,24 +57,23 @@ export default async function LeaderboardsPage({
         <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
       </header>
 
-      <ScopeToggle scope={scope} />
+      <ScopeToggle scope={scope} board={board} />
       {scope === 'season' ? (
         <p className="text-muted-foreground -mt-2 text-center text-xs">
           {t('seasonNote', { days: SEASON_DAYS })}
         </p>
       ) : null}
 
-      <div className="flex flex-col gap-4">
-        {boards.map((board) => (
-          <LeaderboardBoard
-            key={board.key}
-            board={board}
-            viewerMemberId={ctx.member.id}
-            currencyCode={ctx.club.currencyCode}
-            locale={ctx.club.defaultLocale}
-          />
-        ))}
-      </div>
+      <BoardSelect current={board} scope={scope} />
+
+      {selected ? (
+        <LeaderboardBoard
+          board={selected}
+          viewerMemberId={ctx.member.id}
+          currencyCode={ctx.club.currencyCode}
+          locale={ctx.club.defaultLocale}
+        />
+      ) : null}
     </main>
   );
 }

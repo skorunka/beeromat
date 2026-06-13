@@ -91,12 +91,14 @@ describe('ScopeToggle (component — spec 034)', () => {
   it('marks the active scope and links to the other', () => {
     render(
       <NextIntlClientProvider locale="en" messages={enMessages}>
-        <ScopeToggle scope="allTime" />
+        <ScopeToggle scope="allTime" board="beers" />
       </NextIntlClientProvider>,
     );
     const allTime = screen.getByRole('link', { name: /All-time/i });
     const season = screen.getByRole('link', { name: /This season/i });
     expect(allTime).toHaveAttribute('aria-current', 'true');
     expect(season).toHaveAttribute('href', expect.stringContaining('scope=season'));
+    // Scope links preserve the current board so flipping scope keeps the board.
+    expect(season).toHaveAttribute('href', expect.stringContaining('board=beers'));
   });
 });

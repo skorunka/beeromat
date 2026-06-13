@@ -153,6 +153,7 @@ export async function getMyTabForSession(args: {
         sourceMatchId: matches.agreementId,
         betTransferId: betTransfers.id,
         betTransferVoidId: betTransferVoids.id,
+        transferToMemberId: transferToMembers.id,
         transferToDisplayName: transferToMembers.displayName,
       })
       .from(consumptions)
@@ -203,6 +204,7 @@ export async function getMyTabForSession(args: {
         beerTypeName: beerTypes.name,
         unitPriceMinor: consumptions.unitPriceMinorSnapshot,
         createdAt: betTransfers.createdAt,
+        fromMemberId: members.id,
         fromMemberDisplayName: members.displayName,
         sourceMatchId: matches.agreementId,
         voidId: betTransferVoids.id,
@@ -249,7 +251,7 @@ export async function getMyTabForSession(args: {
         sourceMatchId: r.sourceMatchId,
         // The OTHER party shown on the winner's row is the loser.
         loggerDisplayName: r.transferToDisplayName,
-        loggerMemberId: null,
+        loggerMemberId: r.transferToMemberId,
         loggerAvatarKey: null,
         loggerAvatarUploadAt: null,
         fromRound: false,
@@ -284,7 +286,7 @@ export async function getMyTabForSession(args: {
       canUndo: false,
       sourceMatchId: r.sourceMatchId,
       loggerDisplayName: r.fromMemberDisplayName,
-      loggerMemberId: null,
+      loggerMemberId: r.fromMemberId,
       loggerAvatarKey: null,
       loggerAvatarUploadAt: null,
       fromRound: false,
@@ -343,6 +345,7 @@ export async function getMemberTabForAdmin(args: {
         sourceMatchId: matches.agreementId,
         betTransferId: betTransfers.id,
         betTransferVoidId: betTransferVoids.id,
+        transferToMemberId: transferToMembers.id,
         transferToDisplayName: transferToMembers.displayName,
       })
       .from(consumptions)
@@ -392,6 +395,7 @@ export async function getMemberTabForAdmin(args: {
         beerTypeName: beerTypes.name,
         unitPriceMinor: consumptions.unitPriceMinorSnapshot,
         createdAt: betTransfers.createdAt,
+        fromMemberId: members.id,
         fromMemberDisplayName: members.displayName,
         sourceMatchId: matches.agreementId,
         voidId: betTransferVoids.id,
@@ -427,7 +431,7 @@ export async function getMemberTabForAdmin(args: {
         canUndo: false,
         sourceMatchId: r.sourceMatchId,
         loggerDisplayName: r.transferToDisplayName,
-        loggerMemberId: null,
+        loggerMemberId: r.transferToMemberId,
         loggerAvatarKey: null,
         loggerAvatarUploadAt: null,
         fromRound: false,
@@ -462,7 +466,7 @@ export async function getMemberTabForAdmin(args: {
       canUndo: false,
       sourceMatchId: r.sourceMatchId,
       loggerDisplayName: r.fromMemberDisplayName,
-      loggerMemberId: null,
+      loggerMemberId: r.fromMemberId,
       loggerAvatarKey: null,
       loggerAvatarUploadAt: null,
       fromRound: false,

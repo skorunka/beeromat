@@ -104,6 +104,7 @@
     "upcomingHeading": "Upcoming",
     "upcomingEmpty": "No matches scheduled — start one below.",
     "recentHeading": "Recent results",
+    "viewMatchAria": "View match",
     "allMatchesCta": "All matches →",
     "historyTitle": "Match history",
     "historySubtitle": "Every match played, newest first.",
@@ -682,8 +683,8 @@
     "fromMatch": "from the match →",
     "byOther": "by {logger}",
     "roundBadge": "Round",
-    "fromBet": "lost bet: {logger} · {beer}",
-    "wonBet": "won bet: {logger} pays · {beer}",
+    "fromBet": "lost bet: <lnk>{logger}</lnk> · {beer}",
+    "wonBet": "won bet: <lnk>{logger}</lnk> pays · {beer}",
     "breakdown": {
       "heading": "Your tab",
       "lostBet": "lost bet"

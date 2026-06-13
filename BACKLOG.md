@@ -98,6 +98,19 @@ layer shipped 2026-06-11. Recorded here when the user chose to build
   real use — tighten spacing, empty-states, any fun-line that reads
   oddly at the extremes.
 
+- ~~**Match-hub recent-results + won/lost-bet profile links.**~~ **— Shipped
+  2026-06-14.** RecentResultsList de-nested (was one whole-row match Link):
+  player names now link to `/members/[id]`, a trailing chevron opens the
+  match, repeat button unchanged (`match.viewMatchAria` i18n). Won/lost-bet
+  `/tab` rows link the counterparty name via `t.rich` `<lnk>` — the tab
+  queries (getMyTabForSession + getMemberTabForAdmin) now carry the
+  counterparty memberId on transfer_in/out rows.
+
+- ~~**Per-row "repeat this match".**~~ **— Already shipped** (spec 027
+  follow-up): `recreateMatchAction({ agreementId })` clones any past matchup
+  (server-validated, club-scoped) via the per-row RepeatMatchButton on the
+  /match hub. Backlog was stale.
+
 ## UX
 
 - ~~**Dedupe beer dropdowns onto the shared BeerPickerDropdown.**~~

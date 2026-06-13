@@ -27,6 +27,23 @@ export function TabEntryRow({ entry, currencyCode, locale }: TabEntryRowProps) {
     entry.createdAt,
   );
 
+  // Spec 036 follow-up — the counterparty named in a won/lost-bet row links
+  // to their profile. The name sits mid-sentence in an ICU string, so it's
+  // rendered via t.rich's <lnk> chunk. Falls back to plain text when the
+  // counterparty member id couldn't be resolved.
+  function linkName(chunks: React.ReactNode) {
+    const memberId = entry.loggerMemberId;
+    if (!memberId) return <>{chunks}</>;
+    return (
+      <Link
+        href={`/members/${memberId}` as Route}
+        className="font-semibold underline-offset-2 hover:underline"
+      >
+        {chunks}
+      </Link>
+    );
+  }
+
   // Subtitle: which origin badge to show (one only, in priority order).
   // - On-behalf "od X" wins when present (always shown for non-self logs).
   // - Source-match "ze zápasu →" for the winner of a bet (consumption
@@ -89,9 +106,10 @@ export function TabEntryRow({ entry, currencyCode, locale }: TabEntryRowProps) {
         <Card className="flex flex-row items-center justify-between gap-3 p-3">
         <div className="min-w-0">
           <div className="text-sm font-medium leading-snug">
-            {t('wonBet', {
+            {t.rich('wonBet', {
               logger: entry.loggerDisplayName ?? '?',
               beer: entry.beerTypeName,
+              lnk: linkName,
             })}
           </div>
           <div className="text-muted-foreground text-xs">
@@ -131,9 +149,10 @@ export function TabEntryRow({ entry, currencyCode, locale }: TabEntryRowProps) {
         >
         <div className="min-w-0">
           <div className="text-sm font-medium leading-snug">
-            {t('fromBet', {
+            {t.rich('fromBet', {
               logger: entry.loggerDisplayName ?? '?',
               beer: entry.beerTypeName,
+              lnk: linkName,
             })}
           </div>
           <div className="text-muted-foreground text-xs">

@@ -104,6 +104,7 @@
     "upcomingHeading": "Naplánované",
     "upcomingEmpty": "Žádný zápas — naplánuj nový níže.",
     "recentHeading": "Nedávné výsledky",
+    "viewMatchAria": "Zobrazit zápas",
     "allMatchesCta": "Všechny zápasy →",
     "historyTitle": "Historie zápasů",
     "historySubtitle": "Všechny odehrané zápasy, od nejnovějších.",
@@ -682,8 +683,8 @@
     "fromMatch": "ze zápasu →",
     "byOther": "od {logger}",
     "roundBadge": "Runda",
-    "fromBet": "z prohrané sázky: {logger} · {beer}",
-    "wonBet": "z vyhrané sázky: platí {logger} · {beer}",
+    "fromBet": "z prohrané sázky: <lnk>{logger}</lnk> · {beer}",
+    "wonBet": "z vyhrané sázky: platí <lnk>{logger}</lnk> · {beer}",
     "breakdown": {
       "heading": "Tvoje útrata",
       "lostBet": "prohraná sázka"

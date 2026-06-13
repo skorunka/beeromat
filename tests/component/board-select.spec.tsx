@@ -1,19 +1,22 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import { describe, it, expect, vi } from 'vitest';
 
-const push = vi.fn();
 vi.mock('@/lib/i18n/navigation', () => ({
-  useRouter: () => ({ push }),
+  Link: ({ href, children, ...rest }: { href: unknown; children: React.ReactNode }) => (
+    <a href={String(href)} {...rest}>
+      {children}
+    </a>
+  ),
 }));
 
 import { BoardSelect } from '@/components/stats/board-select';
 import enMessages from '@/messages/en.json';
 
-// Spec 034 follow-up — the single-board switcher. One board shown at a time;
-// the dropdown navigates to ?board= (preserving scope).
+// Spec 034 follow-up — the chip-strip switcher. Server-rendered Links; the active
+// chip carries aria-current, every chip links to ?board= (preserving scope).
 
-function renderSelect(current: Parameters<typeof BoardSelect>[0]['current'], scope: 'allTime' | 'season' = 'allTime') {
+function renderStrip(current: Parameters<typeof BoardSelect>[0]['current'], scope: 'allTime' | 'season' = 'allTime') {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages}>
       <BoardSelect current={current} scope={scope} />
@@ -22,27 +25,26 @@ function renderSelect(current: Parameters<typeof BoardSelect>[0]['current'], sco
 }
 
 describe('BoardSelect (component — spec 034 follow-up)', () => {
-  it('shows the current board on the trigger', () => {
-    renderSelect('beers');
-    expect(screen.getByRole('button', { name: /Most beers/i })).toBeInTheDocument();
+  it('renders one chip per board (all 7 visible)', () => {
+    renderStrip('beers');
+    expect(screen.getAllByRole('link')).toHaveLength(7);
+    expect(screen.getByRole('link', { name: /Most beers/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Most generous/i })).toBeInTheDocument();
   });
 
-  it('opens to list all seven boards', async () => {
-    renderSelect('beers');
-    fireEvent.click(screen.getByRole('button', { name: /Most beers/i }));
-    await waitFor(() => {
-      expect(screen.queryAllByRole('menuitemradio').length).toBe(7);
-    });
+  it('marks the current board active and links each chip to its ?board=', () => {
+    renderStrip('beers');
+    expect(screen.getByRole('link', { name: /Most beers/i })).toHaveAttribute('aria-current', 'true');
+    const wins = screen.getByRole('link', { name: /Most wins/i });
+    expect(wins).not.toHaveAttribute('aria-current');
+    expect(wins).toHaveAttribute('href', expect.stringContaining('board=wins'));
   });
 
-  it('navigates to ?board= on pick, preserving season scope', async () => {
-    renderSelect('beers', 'season');
-    fireEvent.click(screen.getByRole('button', { name: /Most beers/i }));
-    const wins = await screen.findByRole('menuitemradio', { name: /Most wins/i });
-    fireEvent.click(wins);
-    await waitFor(() => {
-      expect(push).toHaveBeenCalledWith(expect.stringContaining('board=wins'));
-    });
-    expect(push).toHaveBeenCalledWith(expect.stringContaining('scope=season'));
+  it('preserves season scope in every chip href', () => {
+    renderStrip('beers', 'season');
+    expect(screen.getByRole('link', { name: /Most wins/i })).toHaveAttribute(
+      'href',
+      expect.stringContaining('scope=season'),
+    );
   });
 });
